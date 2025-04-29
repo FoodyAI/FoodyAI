@@ -95,7 +95,7 @@ class _WelcomeScreenContent extends StatelessWidget {
                             ),
                             const SizedBox(height: 16),
                             Text(
-                              'Discover, Cook, and Share\nYour Favorite Recipes',
+                              'AI-Powered Food Analysis\nTrack Your Nutrition & Calories',
                               textAlign: TextAlign.center,
                               style: Theme.of(context)
                                   .textTheme
@@ -126,7 +126,7 @@ class _WelcomeScreenContent extends StatelessWidget {
                         },
                         child: Center(
                           child: ElevatedButton(
-                            onPressed: viewModel.isLoading
+                            onPressed: viewModel.isGoogleLoading
                                 ? null
                                 : viewModel.signInWithGoogle,
                             style: ElevatedButton.styleFrom(
@@ -142,7 +142,7 @@ class _WelcomeScreenContent extends StatelessWidget {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                if (viewModel.isLoading)
+                                if (viewModel.isGoogleLoading)
                                   const SizedBox(
                                     width: 24,
                                     height: 24,
@@ -188,9 +188,11 @@ class _WelcomeScreenContent extends StatelessWidget {
                         },
                         child: Center(
                           child: TextButton(
-                            onPressed: viewModel.isLoading
+                            onPressed: viewModel.isGuestLoading
                                 ? null
-                                : () => viewModel.continueAsGuest(context),
+                                : () {
+                                    viewModel.continueAsGuest(context);
+                                  },
                             style: TextButton.styleFrom(
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 24, vertical: 12),

@@ -5,22 +5,25 @@ import '../../domain/entities/user_profile.dart';
 import '../pages/onboarding_view.dart';
 
 class WelcomeViewModel extends ChangeNotifier {
-  bool _isLoading = false;
-  bool get isLoading => _isLoading;
+  bool _isGoogleLoading = false;
+  bool _isGuestLoading = false;
+  bool get isLoading => _isGoogleLoading || _isGuestLoading;
+  bool get isGoogleLoading => _isGoogleLoading;
+  bool get isGuestLoading => _isGuestLoading;
 
   Future<void> signInWithGoogle() async {
-    _isLoading = true;
+    _isGoogleLoading = true;
     notifyListeners();
 
     // TODO: Implement Google Sign In
     await Future.delayed(const Duration(seconds: 1)); // Simulated delay
 
-    _isLoading = false;
+    _isGoogleLoading = false;
     notifyListeners();
   }
 
   void continueAsGuest(BuildContext context) async {
-    _isLoading = true;
+    _isGuestLoading = true;
     notifyListeners();
 
     // Get the UserProfileViewModel and create an empty profile for guest
@@ -37,7 +40,7 @@ class WelcomeViewModel extends ChangeNotifier {
       isMetric: true,
     );
 
-    _isLoading = false;
+    _isGuestLoading = false;
     notifyListeners();
 
     // Navigate to onboarding view
