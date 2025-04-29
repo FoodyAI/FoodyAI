@@ -82,6 +82,7 @@ class ImageAnalysisViewModel extends ChangeNotifier {
         calories: _currentAnalysis!.calories,
         healthScore: _currentAnalysis!.healthScore,
         imagePath: _currentAnalysis!.imagePath,
+        orderNumber: _savedAnalyses.length + 1,
       );
       _savedAnalyses.add(analysis);
       await _storage.saveAnalyses(_savedAnalyses);
@@ -94,13 +95,35 @@ class ImageAnalysisViewModel extends ChangeNotifier {
   Future<void> removeAnalysis(int index) async {
     if (index >= 0 && index < _savedAnalyses.length) {
       _savedAnalyses.removeAt(index);
+      for (int i = 0; i < _savedAnalyses.length; i++) {
+        _savedAnalyses[i] = FoodAnalysis(
+          name: _savedAnalyses[i].name,
+          protein: _savedAnalyses[i].protein,
+          carbs: _savedAnalyses[i].carbs,
+          fat: _savedAnalyses[i].fat,
+          calories: _savedAnalyses[i].calories,
+          healthScore: _savedAnalyses[i].healthScore,
+          imagePath: _savedAnalyses[i].imagePath,
+          orderNumber: i + 1,
+        );
+      }
       await _storage.saveAnalyses(_savedAnalyses);
       notifyListeners();
     }
   }
 
   Future<void> addAnalysis(FoodAnalysis analysis) async {
-    _savedAnalyses.add(analysis);
+    final newAnalysis = FoodAnalysis(
+      name: analysis.name,
+      protein: analysis.protein,
+      carbs: analysis.carbs,
+      fat: analysis.fat,
+      calories: analysis.calories,
+      healthScore: analysis.healthScore,
+      imagePath: analysis.imagePath,
+      orderNumber: _savedAnalyses.length + 1,
+    );
+    _savedAnalyses.add(newAnalysis);
     await _storage.saveAnalyses(_savedAnalyses);
     notifyListeners();
   }

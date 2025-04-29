@@ -9,6 +9,7 @@ class FoodAnalysis {
   final double calories;
   final double healthScore;
   final String? imagePath;
+  final int orderNumber;
 
   const FoodAnalysis({
     required this.name,
@@ -18,6 +19,7 @@ class FoodAnalysis {
     required this.calories,
     required this.healthScore,
     this.imagePath,
+    this.orderNumber = 0,
   });
 
   factory FoodAnalysis.fromJson(Map<String, dynamic> json) {
@@ -29,6 +31,7 @@ class FoodAnalysis {
       calories: (json['calories'] as num).toDouble(),
       healthScore: (json['healthScore'] as num).toDouble(),
       imagePath: json['imagePath'] as String?,
+      orderNumber: json['orderNumber'] as int? ?? 0,
     );
   }
 }

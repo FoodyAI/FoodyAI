@@ -16,6 +16,7 @@ class FoodAnalysisStorage {
               'calories': analysis.calories,
               'healthScore': analysis.healthScore,
               'imagePath': analysis.imagePath,
+              'orderNumber': analysis.orderNumber,
             })
         .toList();
 
@@ -38,6 +39,7 @@ class FoodAnalysisStorage {
               calories: (item['calories'] as num).toDouble(),
               healthScore: (item['healthScore'] as num).toDouble(),
               imagePath: item['imagePath'] as String?,
+              orderNumber: item['orderNumber'] as int? ?? 0,
             ))
         .toList();
   }
