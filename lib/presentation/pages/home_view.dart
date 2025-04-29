@@ -222,20 +222,24 @@ class _HomeContent extends StatelessWidget {
                                   },
                                 );
                               },
-                              onDismissed: (direction) {
-                                vm.removeAnalysis(index);
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text('${analysis.name} removed'),
-                                    action: SnackBarAction(
-                                      label: 'Undo',
-                                      onPressed: () {
-                                        // Re-add the item
-                                        vm.addAnalysis(analysis);
-                                      },
+                              onDismissed: (direction) async {
+                                final removedAnalysis =
+                                    await vm.removeAnalysis(index);
+                                if (removedAnalysis != null) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                          '${removedAnalysis.name} removed'),
+                                      action: SnackBarAction(
+                                        label: 'Undo',
+                                        onPressed: () {
+                                          // Re-add the item with its original order number
+                                          vm.addAnalysis(removedAnalysis);
+                                        },
+                                      ),
                                     ),
-                                  ),
-                                );
+                                  );
+                                }
                               },
                               child: FoodAnalysisCard(
                                 analysis: analysis,

@@ -92,8 +92,9 @@ class ImageAnalysisViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> removeAnalysis(int index) async {
+  Future<FoodAnalysis?> removeAnalysis(int index) async {
     if (index >= 0 && index < _savedAnalyses.length) {
+      final removedAnalysis = _savedAnalyses[index];
       _savedAnalyses.removeAt(index);
       for (int i = 0; i < _savedAnalyses.length; i++) {
         _savedAnalyses[i] = FoodAnalysis(
@@ -109,21 +110,39 @@ class ImageAnalysisViewModel extends ChangeNotifier {
       }
       await _storage.saveAnalyses(_savedAnalyses);
       notifyListeners();
+      return removedAnalysis;
     }
+    return null;
   }
 
   Future<void> addAnalysis(FoodAnalysis analysis) async {
-    final newAnalysis = FoodAnalysis(
-      name: analysis.name,
-      protein: analysis.protein,
-      carbs: analysis.carbs,
-      fat: analysis.fat,
-      calories: analysis.calories,
-      healthScore: analysis.healthScore,
-      imagePath: analysis.imagePath,
-      orderNumber: _savedAnalyses.length + 1,
-    );
-    _savedAnalyses.add(newAnalysis);
+    if (analysis.orderNumber > 0) {
+      _savedAnalyses.insert(analysis.orderNumber - 1, analysis);
+      for (int i = analysis.orderNumber; i < _savedAnalyses.length; i++) {
+        _savedAnalyses[i] = FoodAnalysis(
+          name: _savedAnalyses[i].name,
+          protein: _savedAnalyses[i].protein,
+          carbs: _savedAnalyses[i].carbs,
+          fat: _savedAnalyses[i].fat,
+          calories: _savedAnalyses[i].calories,
+          healthScore: _savedAnalyses[i].healthScore,
+          imagePath: _savedAnalyses[i].imagePath,
+          orderNumber: i + 1,
+        );
+      }
+    } else {
+      final newAnalysis = FoodAnalysis(
+        name: analysis.name,
+        protein: analysis.protein,
+        carbs: analysis.carbs,
+        fat: analysis.fat,
+        calories: analysis.calories,
+        healthScore: analysis.healthScore,
+        imagePath: analysis.imagePath,
+        orderNumber: _savedAnalyses.length + 1,
+      );
+      _savedAnalyses.add(newAnalysis);
+    }
     await _storage.saveAnalyses(_savedAnalyses);
     notifyListeners();
   }
