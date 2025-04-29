@@ -9,6 +9,7 @@ import '../widgets/food_analysis_card.dart';
 import '../widgets/calorie_tracking_card.dart';
 import '../widgets/bottom_navigation.dart';
 import '../widgets/undo_delete_snackbar.dart';
+import '../widgets/custom_app_bar.dart';
 import '../../data/models/food_analysis.dart';
 import 'analyze_view.dart';
 import 'profile_view.dart';
@@ -60,8 +61,10 @@ class _HomeContent extends StatelessWidget {
     final recommendedCalories = profile.dailyCalories;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Foody'),
+      appBar: const CustomAppBar(
+        title: 'Home',
+        icon: Icons.home,
+        showInfoButton: false,
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {

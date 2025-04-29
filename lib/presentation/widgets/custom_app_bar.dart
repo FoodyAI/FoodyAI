@@ -7,6 +7,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final List<Widget>? actions;
   final bool showInfoButton;
   final VoidCallback? onInfoPressed;
+  final IconData? icon;
 
   const CustomAppBar({
     super.key,
@@ -16,6 +17,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.actions,
     this.showInfoButton = false,
     this.onInfoPressed,
+    this.icon,
   });
 
   @override
@@ -34,19 +36,20 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           : null,
       title: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(12),
+          if (icon != null)
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Theme.of(context).primaryColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                icon,
+                color: Theme.of(context).primaryColor,
+                size: 24,
+              ),
             ),
-            child: Icon(
-              Icons.analytics,
-              color: Theme.of(context).primaryColor,
-              size: 24,
-            ),
-          ),
-          const SizedBox(width: 12),
+          if (icon != null) const SizedBox(width: 12),
           Text(
             title,
             style: const TextStyle(

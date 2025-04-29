@@ -65,7 +65,8 @@ class _AnalysisLoadingViewState extends State<AnalysisLoadingView>
       backgroundColor: Colors.white,
       appBar: const CustomAppBar(
         title: 'Health Analysis',
-        showInfoButton: true,
+        icon: Icons.analytics,
+        
       ),
       body: SafeArea(
         child: AnimatedSwitcher(
