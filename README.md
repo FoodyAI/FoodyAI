@@ -2,8 +2,6 @@
 
 A Flutter application that uses AI to analyze food images and provide health metrics insights.
 
-![Foody AI App](assets/google_logo.png)
-
 ## 🌟 Features
 
 - 📸 Image Analysis: Upload and analyze food images using AI
@@ -11,7 +9,6 @@ A Flutter application that uses AI to analyze food images and provide health met
 - 🎯 User Profiles: Personalized user experience
 - 📱 Cross-Platform: Works on iOS, Android, and Web
 - 🎨 Modern UI: Beautiful and intuitive interface
-- 🔒 Secure: End-to-end encryption for user data
 
 ## 🚀 Getting Started
 
@@ -61,7 +58,7 @@ flutter run
 
 ## 📱 Screenshots
 
-[Add your app screenshots here]
+Comming Soon ...
 
 ## 🤝 Contributing
 
@@ -79,7 +76,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 👥 Authors
 
-- **Mohammad Amin Rez** - *Initial work* - [mohammadaminrez](https://github.com/mohammadaminrez)
+- **Amin Rezaei Sepehr** - *Initial work* - [mohammadaminrez](https://github.com/mohammadaminrez)
 
 ## 🙏 Acknowledgments
 
@@ -88,6 +85,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Contact
 
-Your Name - [@your_twitter](https://twitter.com/your_twitter)
+Amin Rezaei Sepehr - [mohammadaminrez@gmail.com](mailto:mohammadaminrez@gmail.com)
 
 Project Link: [https://github.com/mohammadaminrez/foody](https://github.com/mohammadaminrez/foody)
