@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../presentation/viewmodels/user_profile_viewmodel.dart';
-import '../domain/entities/user_profile.dart';
-import '../presentation/pages/onboarding_view.dart';
+import 'user_profile_viewmodel.dart';
+import '../../domain/entities/user_profile.dart';
+import '../pages/onboarding_view.dart';
 
 class WelcomeViewModel extends ChangeNotifier {
   bool _isLoading = false;

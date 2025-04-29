@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'di/service_locator.dart';
 import 'presentation/viewmodels/user_profile_viewmodel.dart';
 import 'presentation/viewmodels/image_analysis_viewmodel.dart';
-import 'views/welcome_screen.dart';
+import 'presentation/pages/welcome_view.dart';
 import 'presentation/pages/home_view.dart';
 
 void main() async {
