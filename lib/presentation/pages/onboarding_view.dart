@@ -1,0 +1,607 @@
+// lib/views/onboarding_view.dart
+
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../viewmodels/user_profile_viewmodel.dart';
+import '../../domain/entities/user_profile.dart';
+import 'home_view.dart';
+
+class OnboardingView extends StatefulWidget {
+  const OnboardingView({Key? key}) : super(key: key);
+
+  @override
+  State<OnboardingView> createState() => _OnboardingViewState();
+}
+
+class _OnboardingViewState extends State<OnboardingView> {
+  final _formKey = GlobalKey<FormState>();
+  final _pageController = PageController();
+  int _currentPage = 0;
+
+  late String _gender;
+  late int _age;
+  late double _weight;
+  late String _weightUnit;
+  late double _height;
+  late String _heightUnit;
+  late bool _isMetric;
+  late ActivityLevel _activityLevel;
+
+  @override
+  void initState() {
+    super.initState();
+    final profileVM = Provider.of<UserProfileViewModel>(context, listen: false);
+    if (profileVM.profile != null) {
+      final profile = profileVM.profile!;
+      _gender = profile.gender;
+      _age = profile.age;
+      _isMetric = profileVM.isMetric;
+      _weightUnit = profileVM.weightUnit;
+      _heightUnit = profileVM.heightUnit;
+      _weight = profileVM.displayWeight;
+      _height = profileVM.displayHeight;
+      _activityLevel = profile.activityLevel;
+    } else {
+      _gender = 'Male';
+      _age = 25;
+      _weight = 70;
+      _weightUnit = 'kg';
+      _height = 170;
+      _heightUnit = 'cm';
+      _isMetric = true;
+      _activityLevel = ActivityLevel.sedentary;
+    }
+  }
+
+  void _toggleUnit() {
+    setState(() {
+      _isMetric = !_isMetric;
+      _weightUnit = _isMetric ? 'kg' : 'lbs';
+      _heightUnit = _isMetric ? 'cm' : 'inch';
+      if (_isMetric) {
+        _weight = _weight * 0.453592;
+        _height = _height * 2.54;
+      } else {
+        _weight = _weight * 2.20462;
+        _height = _height / 2.54;
+      }
+    });
+  }
+
+  int _parseInt(String? s, int fallback) => int.tryParse(s ?? '') ?? fallback;
+  double _parseDouble(String? s, double fallback) =>
+      double.tryParse(s ?? '') ?? fallback;
+
+  void _nextPage() {
+    if (_currentPage < 3) {
+      if (_currentPage == 0) {
+        // Save gender page
+        if (!_formKey.currentState!.validate()) return;
+        _formKey.currentState!.save();
+      } else if (_currentPage == 1) {
+        // Save measurements page
+        if (!_formKey.currentState!.validate()) return;
+        _formKey.currentState!.save();
+      } else if (_currentPage == 2) {
+        // Save activity page
+        if (!_formKey.currentState!.validate()) return;
+        _formKey.currentState!.save();
+      }
+      _pageController.nextPage(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    } else {
+      _submitForm();
+    }
+  }
+
+  void _previousPage() {
+    if (_currentPage > 0) {
+      _pageController.previousPage(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
+  Future<void> _submitForm() async {
+    final vm = Provider.of<UserProfileViewModel>(context, listen: false);
+    final ctx = context;
+
+    await vm.saveProfile(
+      gender: _gender,
+      age: _age,
+      weight: _weight,
+      weightUnit: _weightUnit,
+      height: _height,
+      heightUnit: _heightUnit,
+      activityLevel: _activityLevel,
+      isMetric: _isMetric,
+    );
+
+    // Mark onboarding as completed
+    await vm.completeOnboarding();
+
+    if (!ctx.mounted) return;
+    Navigator.pushReplacement(
+      ctx,
+      MaterialPageRoute(builder: (_) => const HomeView()),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SafeArea(
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              // Progress Indicator
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  children: List.generate(
+                    4,
+                    (index) => Expanded(
+                      child: Container(
+                        height: 4,
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        decoration: BoxDecoration(
+                          color: index <= _currentPage
+                              ? Theme.of(context).colorScheme.primary
+                              : Colors.grey[300],
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              // Page Content
+              Expanded(
+                child: PageView(
+                  controller: _pageController,
+                  onPageChanged: (index) =>
+                      setState(() => _currentPage = index),
+                  physics: const NeverScrollableScrollPhysics(),
+                  children: [
+                    _buildGenderPage(),
+                    _buildMeasurementsPage(),
+                    _buildActivityPage(),
+                    _buildSummaryPage(),
+                  ],
+                ),
+              ),
+              // Navigation Buttons
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    if (_currentPage > 0)
+                      TextButton.icon(
+                        onPressed: _previousPage,
+                        icon: const Icon(Icons.arrow_back),
+                        label: const Text('Back'),
+                      )
+                    else
+                      const SizedBox(width: 100),
+                    ElevatedButton.icon(
+                      onPressed: _nextPage,
+                      icon: Icon(_currentPage == 3
+                          ? Icons.check
+                          : Icons.arrow_forward),
+                      label: Text(_currentPage == 3 ? 'Submit' : 'Next'),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGenderPage() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'What\'s your gender?',
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'This helps us calculate your daily calorie needs',
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.grey[600],
+            ),
+          ),
+          const SizedBox(height: 32),
+          Row(
+            children: [
+              Expanded(
+                child: _buildGenderOption(
+                  'Male',
+                  Icons.male,
+                  Colors.blue,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _buildGenderOption(
+                  'Female',
+                  Icons.female,
+                  Colors.pink,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGenderOption(String gender, IconData icon, Color color) {
+    final isSelected = _gender == gender;
+    return InkWell(
+      onTap: () => setState(() => _gender = gender),
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: isSelected ? color.withOpacity(0.1) : Colors.grey[100],
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected ? color : Colors.transparent,
+            width: 2,
+          ),
+        ),
+        child: Column(
+          children: [
+            Icon(
+              icon,
+              size: 48,
+              color: isSelected ? color : Colors.grey,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              gender,
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: isSelected ? color : Colors.grey,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMeasurementsPage() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Your Measurements',
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Enter your age, weight, and height',
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.grey[600],
+            ),
+          ),
+          const SizedBox(height: 32),
+          // Unit Toggle
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('Imperial'),
+                Switch(
+                  value: _isMetric,
+                  onChanged: (_) => _toggleUnit(),
+                ),
+                const Text('Metric'),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          // Age Input
+          TextFormField(
+            initialValue: _age.toString(),
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              labelText: 'Age',
+              hintText: 'Enter your age',
+              prefixIcon: const Icon(Icons.cake),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            validator: (v) => _parseInt(v, -1) < 0 ? 'Invalid age' : null,
+            onSaved: (v) => _age = _parseInt(v, _age),
+          ),
+          const SizedBox(height: 16),
+          // Weight Input
+          TextFormField(
+            initialValue: _weight.toStringAsFixed(1),
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              labelText: 'Weight',
+              hintText: 'Enter your weight',
+              prefixIcon: const Icon(Icons.monitor_weight),
+              suffixText: _weightUnit,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            validator: (v) =>
+                _parseDouble(v, -1) <= 0 ? 'Invalid weight' : null,
+            onSaved: (v) => _weight = _parseDouble(v, _weight),
+          ),
+          const SizedBox(height: 16),
+          // Height Input
+          TextFormField(
+            initialValue: _height.toStringAsFixed(1),
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              labelText: 'Height',
+              hintText: 'Enter your height',
+              prefixIcon: const Icon(Icons.height),
+              suffixText: _heightUnit,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            validator: (v) =>
+                _parseDouble(v, -1) <= 0 ? 'Invalid height' : null,
+            onSaved: (v) => _height = _parseDouble(v, _height),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActivityPage() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Activity Level',
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'How active are you in your daily life?',
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.grey[600],
+            ),
+          ),
+          const SizedBox(height: 32),
+          ...ActivityLevel.values.map((level) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: _buildActivityOption(level),
+              )),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActivityOption(ActivityLevel level) {
+    final isSelected = _activityLevel == level;
+    return InkWell(
+      onTap: () => setState(() => _activityLevel = level),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
+              : Colors.grey[100],
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected
+                ? Theme.of(context).colorScheme.primary
+                : Colors.transparent,
+            width: 2,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              Icons.directions_run,
+              color: isSelected
+                  ? Theme.of(context).colorScheme.primary
+                  : Colors.grey,
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    level.displayName,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: isSelected
+                          ? Theme.of(context).colorScheme.primary
+                          : Colors.black,
+                    ),
+                  ),
+                  Text(
+                    _getActivityDescription(level),
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (isSelected)
+              Icon(
+                Icons.check_circle,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _getActivityDescription(ActivityLevel level) {
+    switch (level) {
+      case ActivityLevel.sedentary:
+        return 'Little or no exercise';
+      case ActivityLevel.lightlyActive:
+        return 'Light exercise 1-3 days/week';
+      case ActivityLevel.moderatelyActive:
+        return 'Moderate exercise 3-5 days/week';
+      case ActivityLevel.veryActive:
+        return 'Hard exercise 6-7 days/week';
+      case ActivityLevel.extraActive:
+        return 'Very hard exercise & physical job';
+    }
+  }
+
+  Widget _buildSummaryPage() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Summary',
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Review your information before submitting',
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.grey[600],
+            ),
+          ),
+          const SizedBox(height: 32),
+          _buildSummaryCard(
+            'Personal Information',
+            [
+              _buildSummaryRow('Gender', _gender),
+              _buildSummaryRow('Age', '$_age years'),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _buildSummaryCard(
+            'Measurements',
+            [
+              _buildSummaryRow(
+                  'Weight', '${_weight.toStringAsFixed(1)} $_weightUnit'),
+              _buildSummaryRow(
+                  'Height', '${_height.toStringAsFixed(1)} $_heightUnit'),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _buildSummaryCard(
+            'Activity Level',
+            [
+              _buildSummaryRow('Level', _activityLevel.displayName),
+              _buildSummaryRow(
+                  'Description', _getActivityDescription(_activityLevel)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSummaryCard(String title, List<Widget> rows) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
+            ...rows,
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSummaryRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              color: Colors.grey[600],
+            ),
+          ),
+          Text(
+            value,
+            style: const TextStyle(
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
