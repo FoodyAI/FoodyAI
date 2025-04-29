@@ -8,6 +8,7 @@ import '../viewmodels/user_profile_viewmodel.dart';
 import '../widgets/food_analysis_card.dart';
 import '../widgets/calorie_tracking_card.dart';
 import '../widgets/bottom_navigation.dart';
+import '../widgets/undo_delete_snackbar.dart';
 import '../../data/models/food_analysis.dart';
 import 'analyze_view.dart';
 import 'profile_view.dart';
@@ -226,18 +227,12 @@ class _HomeContent extends StatelessWidget {
                                 final removedAnalysis =
                                     await vm.removeAnalysis(index);
                                 if (removedAnalysis != null) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                          '${removedAnalysis.name} removed'),
-                                      action: SnackBarAction(
-                                        label: 'Undo',
-                                        onPressed: () {
-                                          // Re-add the item with its original order number
-                                          vm.addAnalysis(removedAnalysis);
-                                        },
-                                      ),
-                                    ),
+                                  UndoDeleteSnackbar.show(
+                                    context: context,
+                                    removedAnalysis: removedAnalysis,
+                                    onUndo: () {
+                                      vm.addAnalysis(removedAnalysis);
+                                    },
                                   );
                                 }
                               },
