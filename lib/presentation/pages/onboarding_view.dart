@@ -320,22 +320,26 @@ class _OnboardingViewState extends State<OnboardingView> {
           ),
           const SizedBox(height: 32),
           // Unit Toggle
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.grey[100],
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text('Imperial'),
-                Switch(
-                  value: _isMetric,
-                  onChanged: (_) => _toggleUnit(),
-                ),
-                const Text('Metric'),
-              ],
+          Center(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('Imperial'),
+                  const SizedBox(width: 12),
+                  Switch(
+                    value: _isMetric,
+                    onChanged: (_) => _toggleUnit(),
+                  ),
+                  const SizedBox(width: 12),
+                  const Text('Metric'),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 24),
