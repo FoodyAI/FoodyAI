@@ -2,10 +2,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../viewmodels/user_profile_viewmodel.dart';
 import '../../domain/entities/user_profile.dart';
-import 'home_view.dart';
+import 'analysis_loading_view.dart';
 
 class OnboardingView extends StatefulWidget {
   const OnboardingView({Key? key}) : super(key: key);
@@ -127,7 +126,7 @@ class _OnboardingViewState extends State<OnboardingView> {
     if (!ctx.mounted) return;
     Navigator.pushReplacement(
       ctx,
-      MaterialPageRoute(builder: (_) => const HomeView()),
+      MaterialPageRoute(builder: (_) => const AnalysisLoadingView()),
     );
   }
 
