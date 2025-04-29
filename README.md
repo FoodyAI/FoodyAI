@@ -11,6 +11,7 @@ A Flutter application that uses AI to analyze food images and provide health met
 - 🎯 User Profiles: Personalized user experience
 - 📱 Cross-Platform: Works on iOS, Android, and Web
 - 🎨 Modern UI: Beautiful and intuitive interface
+- 🔒 Secure: End-to-end encryption for user data
 
 ## 🚀 Getting Started
 

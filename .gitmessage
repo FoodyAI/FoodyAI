@@ -1,0 +1,41 @@
+# <type>(<scope>): <subject>
+#
+# <body>
+#
+# <footer>
+#
+# Types:
+#   feat:     A new feature
+#   fix:      A bug fix
+#   docs:     Documentation changes
+#   style:    Code style changes (formatting, missing semi colons, etc)
+#   refactor: Code changes that neither fix bugs nor add features
+#   perf:     Performance improvements
+#   test:     Adding or fixing tests
+#   chore:    Changes to build process or auxiliary tools
+#   ci:       Changes to CI configuration files and scripts
+#
+# Scope:
+#   The scope could be anything specifying the place of the commit change
+#   For example: auth, api, ui, readme, etc.
+#
+# Subject:
+#   - Use present tense ("add" not "added")
+#   - Use imperative mood ("move" not "moves")
+#   - No period at the end
+#   - 50 characters or less
+#
+# Body:
+#   - Explain what and why, not how
+#   - Wrap at 72 characters
+#   - Can include multiple paragraphs
+#
+# Footer:
+#   - Reference issue numbers
+#   - Breaking changes
+#   - Can include multiple lines
+#
+# Examples:
+#   feat(auth): implement Google Sign-In
+#   fix(api): resolve image upload timeout
+#   docs(readme): update installation guide 
