@@ -184,7 +184,7 @@ class _HomeContent extends StatelessWidget {
                         return Column(
                           children: [
                             Dismissible(
-                              key: Key('analysis_$index'),
+                              key: Key('analysis_${analysis.name}_$index'),
                               direction: DismissDirection.endToStart,
                               background: Container(
                                 color: Colors.red,
@@ -195,8 +195,47 @@ class _HomeContent extends StatelessWidget {
                                   color: Colors.white,
                                 ),
                               ),
-                              onDismissed: (_) async {
-                                await vm.removeAnalysis(index);
+                              confirmDismiss: (_) async {
+                                return await showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      title: const Text('Confirm Delete'),
+                                      content: Text(
+                                          'Are you sure you want to delete ${analysis.name}?'),
+                                      actions: <Widget>[
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.of(context).pop(false),
+                                          child: const Text('Cancel'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.of(context).pop(true),
+                                          child: const Text(
+                                            'Delete',
+                                            style: TextStyle(color: Colors.red),
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                              },
+                              onDismissed: (direction) {
+                                vm.removeAnalysis(index);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('${analysis.name} removed'),
+                                    action: SnackBarAction(
+                                      label: 'Undo',
+                                      onPressed: () {
+                                        // Re-add the item
+                                        vm.addAnalysis(analysis);
+                                      },
+                                    ),
+                                  ),
+                                );
                               },
                               child: FoodAnalysisCard(
                                 analysis: analysis,

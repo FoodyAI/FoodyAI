@@ -99,6 +99,12 @@ class ImageAnalysisViewModel extends ChangeNotifier {
     }
   }
 
+  Future<void> addAnalysis(FoodAnalysis analysis) async {
+    _savedAnalyses.add(analysis);
+    await _storage.saveAnalyses(_savedAnalyses);
+    notifyListeners();
+  }
+
   void clearImage() {
     _selectedImage = null;
     _currentAnalysis = null;
