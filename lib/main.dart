@@ -27,6 +27,7 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Foody',
         debugShowCheckedModeBanner: false,
+        navigatorKey: navigatorKey,
         theme: ThemeData(
           primarySwatch: Colors.teal,
           useMaterial3: true,

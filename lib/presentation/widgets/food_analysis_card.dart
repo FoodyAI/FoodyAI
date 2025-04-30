@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:shimmer/shimmer.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../data/models/food_analysis.dart';
+import '../viewmodels/image_analysis_viewmodel.dart';
+import 'rating_dialog.dart';
 
 class FoodAnalysisCard extends StatelessWidget {
   final FoodAnalysis analysis;
@@ -114,12 +117,12 @@ class FoodAnalysisCard extends StatelessWidget {
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                        analysis.name,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: -0.5,
-                        ),
+                              analysis.name,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: -0.5,
+                              ),
                             ),
                           ),
                         ],
