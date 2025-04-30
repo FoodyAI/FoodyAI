@@ -13,6 +13,7 @@ import '../widgets/custom_app_bar.dart';
 import '../../data/models/food_analysis.dart';
 import 'analyze_view.dart';
 import 'profile_view.dart';
+import '../../../core/constants/app_colors.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -70,10 +71,10 @@ class _HomeContent extends StatelessWidget {
         onPressed: () {
           showModalBottomSheet(
             context: context,
-            backgroundColor: Colors.transparent,
+            backgroundColor: AppColors.transparent,
             builder: (context) => Container(
               decoration: const BoxDecoration(
-                color: Colors.white,
+                color: AppColors.white,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
               ),
               child: SafeArea(
@@ -85,7 +86,7 @@ class _HomeContent extends StatelessWidget {
                       width: 40,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: Colors.grey[300],
+                        color: AppColors.grey300,
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -94,10 +95,10 @@ class _HomeContent extends StatelessWidget {
                       leading: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Colors.blue.withOpacity(0.1),
+                          color: AppColors.withOpacity(AppColors.blue, 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: const Icon(Icons.camera_alt, color: Colors.blue),
+                        child: Icon(Icons.camera_alt, color: AppColors.blue),
                       ),
                       title: const Text('Take Picture'),
                       onTap: () {
@@ -113,11 +114,11 @@ class _HomeContent extends StatelessWidget {
                       leading: Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Colors.green.withOpacity(0.1),
+                          color: AppColors.withOpacity(AppColors.green, 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: const Icon(Icons.photo_library,
-                            color: Colors.green),
+                        child:
+                            Icon(Icons.photo_library, color: AppColors.green),
                       ),
                       title: const Text('Upload from Gallery'),
                       onTap: () {
@@ -160,7 +161,7 @@ class _HomeContent extends StatelessWidget {
                         padding: const EdgeInsets.all(16),
                         child: Text(
                           vm.error!,
-                          style: const TextStyle(color: Colors.red),
+                          style: const TextStyle(color: AppColors.error),
                           textAlign: TextAlign.center,
                         ),
                       )
@@ -191,12 +192,12 @@ class _HomeContent extends StatelessWidget {
                               key: Key('analysis_${analysis.name}_$index'),
                               direction: DismissDirection.endToStart,
                               background: Container(
-                                color: Colors.red,
+                                color: AppColors.error,
                                 alignment: Alignment.centerRight,
                                 padding: const EdgeInsets.only(right: 16),
                                 child: const Icon(
                                   Icons.delete,
-                                  color: Colors.white,
+                                  color: AppColors.white,
                                 ),
                               ),
                               confirmDismiss: (_) async {
@@ -218,7 +219,8 @@ class _HomeContent extends StatelessWidget {
                                               Navigator.of(context).pop(true),
                                           child: const Text(
                                             'Delete',
-                                            style: TextStyle(color: Colors.red),
+                                            style: TextStyle(
+                                                color: AppColors.error),
                                           ),
                                         ),
                                       ],
@@ -268,7 +270,7 @@ class _HomeContent extends StatelessWidget {
                             Icon(
                               Icons.restaurant_menu,
                               size: 64,
-                              color: Colors.grey[400],
+                              color: AppColors.grey400,
                             ),
                             const SizedBox(height: 16),
                             Text(
@@ -276,7 +278,7 @@ class _HomeContent extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.grey[600],
+                                color: AppColors.grey600,
                               ),
                             ),
                             const SizedBox(height: 8),
@@ -284,7 +286,7 @@ class _HomeContent extends StatelessWidget {
                               'Tap the + button to add your first meal',
                               style: TextStyle(
                                 fontSize: 16,
-                                color: Colors.grey[500],
+                                color: AppColors.grey500,
                               ),
                               textAlign: TextAlign.center,
                             ),

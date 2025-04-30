@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:shimmer/shimmer.dart';
 import '../../data/models/food_analysis.dart';
+import '../../../core/constants/app_colors.dart';
 
 class FoodAnalysisCard extends StatelessWidget {
   final FoodAnalysis analysis;
@@ -34,13 +35,13 @@ class FoodAnalysisCard extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Colors.white.withOpacity(0.9),
-              Colors.white.withOpacity(0.8),
+              AppColors.withOpacity(AppColors.white, 0.9),
+              AppColors.withOpacity(AppColors.white, 0.8),
             ],
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: AppColors.withOpacity(AppColors.black, 0.05),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -52,7 +53,7 @@ class FoodAnalysisCard extends StatelessWidget {
             showModalBottomSheet(
               context: context,
               isScrollControlled: true,
-              backgroundColor: Colors.transparent,
+              backgroundColor: AppColors.transparent,
               builder: (context) => DraggableScrollableSheet(
                 initialChildSize: 0.9,
                 maxChildSize: 0.9,
@@ -60,12 +61,12 @@ class FoodAnalysisCard extends StatelessWidget {
                 expand: false,
                 builder: (context, scrollController) => Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AppColors.white,
                     borderRadius:
                         const BorderRadius.vertical(top: Radius.circular(32)),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
+                        color: AppColors.withOpacity(AppColors.black, 0.1),
                         blurRadius: 20,
                         offset: const Offset(0, -4),
                       ),
@@ -97,9 +98,8 @@ class FoodAnalysisCard extends StatelessWidget {
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: Theme.of(context)
-                                  .primaryColor
-                                  .withOpacity(0.1),
+                              color: AppColors.withOpacity(
+                                  Theme.of(context).primaryColor, 0.1),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
@@ -131,7 +131,8 @@ class FoodAnalysisCard extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
-                              color: Colors.orange.withOpacity(0.1),
+                              color:
+                                  AppColors.withOpacity(AppColors.orange, 0.1),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Row(
@@ -140,13 +141,13 @@ class FoodAnalysisCard extends StatelessWidget {
                                 Icon(
                                   Icons.local_fire_department,
                                   size: 16,
-                                  color: Colors.orange[700],
+                                  color: AppColors.orange,
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
                                   '${analysis.calories.toStringAsFixed(1)} cal',
                                   style: TextStyle(
-                                    color: Colors.orange[700],
+                                    color: AppColors.orange,
                                     fontWeight: FontWeight.w600,
                                     fontSize: 14,
                                   ),
@@ -162,7 +163,7 @@ class FoodAnalysisCard extends StatelessWidget {
                 ),
                 Icon(
                   Icons.chevron_right,
-                  color: Colors.grey[400],
+                  color: AppColors.grey400,
                 ),
               ],
             ),
@@ -192,8 +193,8 @@ class FoodAnalysisCard extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Theme.of(context).primaryColor.withOpacity(0.2),
-            Theme.of(context).primaryColor.withOpacity(0.1),
+            AppColors.withOpacity(Theme.of(context).primaryColor, 0.2),
+            AppColors.withOpacity(Theme.of(context).primaryColor, 0.1),
           ],
         ),
         borderRadius: BorderRadius.circular(16),
@@ -235,7 +236,7 @@ class FoodAnalysisCard extends StatelessWidget {
             },
             child: const Text(
               'Delete',
-              style: TextStyle(color: Colors.red),
+              style: TextStyle(color: AppColors.error),
             ),
           ),
         ],
@@ -257,7 +258,7 @@ class FoodAnalysisCard extends StatelessWidget {
                   height: 4,
                   margin: const EdgeInsets.only(bottom: 24),
                   decoration: BoxDecoration(
-                    color: Colors.grey[300],
+                    color: AppColors.grey300,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -302,14 +303,14 @@ class FoodAnalysisCard extends StatelessWidget {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.red.withOpacity(0.3),
+                      color: AppColors.withOpacity(AppColors.error, 0.3),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
                   ],
                 ),
                 child: Material(
-                  color: Colors.transparent,
+                  color: AppColors.transparent,
                   child: InkWell(
                     onTap: () => _showDeleteDialog(context),
                     customBorder: const CircleBorder(),
@@ -322,14 +323,14 @@ class FoodAnalysisCard extends StatelessWidget {
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                           colors: [
-                            Colors.red[400]!,
-                            Colors.red[600]!,
+                            AppColors.error,
+                            AppColors.withOpacity(AppColors.error, 0.8),
                           ],
                         ),
                       ),
                       child: const Icon(
                         Icons.delete_outline,
-                        color: Colors.white,
+                        color: AppColors.white,
                         size: 28,
                       ),
                     ),
@@ -361,7 +362,7 @@ class FoodAnalysisCard extends StatelessWidget {
                 'Protein',
                 analysis.protein,
                 'g',
-                Colors.blue,
+                AppColors.blue,
                 Icons.fitness_center,
               ),
             ),
@@ -371,7 +372,7 @@ class FoodAnalysisCard extends StatelessWidget {
                 'Carbs',
                 analysis.carbs,
                 'g',
-                Colors.green,
+                AppColors.green,
                 Icons.grain,
               ),
             ),
@@ -381,7 +382,7 @@ class FoodAnalysisCard extends StatelessWidget {
                 'Fat',
                 analysis.fat,
                 'g',
-                Colors.orange,
+                AppColors.orange,
                 Icons.water_drop,
               ),
             ),
@@ -401,7 +402,7 @@ class FoodAnalysisCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: AppColors.withOpacity(color, 0.1),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -449,8 +450,8 @@ class FoodAnalysisCard extends StatelessWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Colors.green.withOpacity(0.1),
-                Colors.blue.withOpacity(0.1),
+                AppColors.withOpacity(AppColors.green, 0.1),
+                AppColors.withOpacity(AppColors.blue, 0.1),
               ],
             ),
             borderRadius: BorderRadius.circular(16),
@@ -460,7 +461,7 @@ class FoodAnalysisCard extends StatelessWidget {
               Icon(
                 Icons.favorite,
                 size: 32,
-                color: Colors.red[400],
+                color: AppColors.error,
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -478,7 +479,7 @@ class FoodAnalysisCard extends StatelessWidget {
                     Text(
                       _getHealthScoreDescription(analysis.healthScore),
                       style: TextStyle(
-                        color: Colors.grey[600],
+                        color: AppColors.grey600,
                         fontSize: 14,
                       ),
                     ),
@@ -512,11 +513,11 @@ class FoodAnalysisCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(24),
-          color: Colors.white,
+          color: AppColors.white,
         ),
         child: Shimmer.fromColors(
-          baseColor: Colors.grey[200]!,
-          highlightColor: Colors.grey[100]!,
+          baseColor: AppColors.grey200,
+          highlightColor: AppColors.grey100,
           period: const Duration(milliseconds: 1500),
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -526,7 +527,7 @@ class FoodAnalysisCard extends StatelessWidget {
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AppColors.white,
                     borderRadius: BorderRadius.circular(16),
                   ),
                 ),
@@ -539,7 +540,7 @@ class FoodAnalysisCard extends StatelessWidget {
                         width: double.infinity,
                         height: 20,
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: AppColors.white,
                           borderRadius: BorderRadius.circular(4),
                         ),
                       ),
@@ -548,7 +549,7 @@ class FoodAnalysisCard extends StatelessWidget {
                         width: 100,
                         height: 16,
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: AppColors.white,
                           borderRadius: BorderRadius.circular(4),
                         ),
                       ),
@@ -559,7 +560,7 @@ class FoodAnalysisCard extends StatelessWidget {
                   width: 24,
                   height: 24,
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: AppColors.white,
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),

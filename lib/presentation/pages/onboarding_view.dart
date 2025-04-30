@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../viewmodels/user_profile_viewmodel.dart';
 import '../../domain/entities/user_profile.dart';
 import 'analysis_loading_view.dart';
+import '../../../core/constants/app_colors.dart';
 
 class OnboardingView extends StatefulWidget {
   const OnboardingView({Key? key}) : super(key: key);
@@ -150,8 +151,8 @@ class _OnboardingViewState extends State<OnboardingView> {
                         margin: const EdgeInsets.symmetric(horizontal: 4),
                         decoration: BoxDecoration(
                           color: index <= _currentPage
-                              ? Theme.of(context).colorScheme.primary
-                              : Colors.grey[300],
+                              ? AppColors.primary
+                              : AppColors.grey300,
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -232,7 +233,7 @@ class _OnboardingViewState extends State<OnboardingView> {
             'This helps us calculate your daily calorie needs',
             style: TextStyle(
               fontSize: 16,
-              color: Colors.grey[600],
+              color: AppColors.grey600,
             ),
           ),
           const SizedBox(height: 32),
@@ -242,7 +243,7 @@ class _OnboardingViewState extends State<OnboardingView> {
                 child: _buildGenderOption(
                   'Male',
                   Icons.male,
-                  Colors.blue,
+                  AppColors.blue,
                 ),
               ),
               const SizedBox(width: 16),
@@ -250,7 +251,7 @@ class _OnboardingViewState extends State<OnboardingView> {
                 child: _buildGenderOption(
                   'Female',
                   Icons.female,
-                  Colors.pink,
+                  AppColors.profile,
                 ),
               ),
             ],
@@ -267,10 +268,12 @@ class _OnboardingViewState extends State<OnboardingView> {
       child: Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
-          color: isSelected ? color.withOpacity(0.1) : Colors.grey[100],
+          color: isSelected
+              ? AppColors.withOpacity(color, 0.1)
+              : AppColors.grey100,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? color : Colors.transparent,
+            color: isSelected ? color : AppColors.transparent,
             width: 2,
           ),
         ),
@@ -279,7 +282,7 @@ class _OnboardingViewState extends State<OnboardingView> {
             Icon(
               icon,
               size: 48,
-              color: isSelected ? color : Colors.grey,
+              color: isSelected ? color : AppColors.grey500,
             ),
             const SizedBox(height: 16),
             Text(
@@ -287,7 +290,7 @@ class _OnboardingViewState extends State<OnboardingView> {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: isSelected ? color : Colors.grey,
+                color: isSelected ? color : AppColors.grey500,
               ),
             ),
           ],
@@ -314,7 +317,7 @@ class _OnboardingViewState extends State<OnboardingView> {
             'Enter your age, weight, and height',
             style: TextStyle(
               fontSize: 16,
-              color: Colors.grey[600],
+              color: AppColors.grey600,
             ),
           ),
           const SizedBox(height: 32),
@@ -323,7 +326,7 @@ class _OnboardingViewState extends State<OnboardingView> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                color: Colors.grey[100],
+                color: AppColors.grey100,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Row(
@@ -416,7 +419,7 @@ class _OnboardingViewState extends State<OnboardingView> {
             'How active are you in your daily life?',
             style: TextStyle(
               fontSize: 16,
-              color: Colors.grey[600],
+              color: AppColors.grey600,
             ),
           ),
           const SizedBox(height: 32),
@@ -437,13 +440,11 @@ class _OnboardingViewState extends State<OnboardingView> {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: isSelected
-              ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
-              : Colors.grey[100],
+              ? AppColors.withOpacity(AppColors.primary, 0.1)
+              : AppColors.grey100,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected
-                ? Theme.of(context).colorScheme.primary
-                : Colors.transparent,
+            color: isSelected ? AppColors.primary : AppColors.transparent,
             width: 2,
           ),
         ),
@@ -451,9 +452,7 @@ class _OnboardingViewState extends State<OnboardingView> {
           children: [
             Icon(
               Icons.directions_run,
-              color: isSelected
-                  ? Theme.of(context).colorScheme.primary
-                  : Colors.grey,
+              color: isSelected ? AppColors.primary : AppColors.grey500,
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -466,15 +465,15 @@ class _OnboardingViewState extends State<OnboardingView> {
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                       color: isSelected
-                          ? Theme.of(context).colorScheme.primary
-                          : Colors.black,
+                          ? AppColors.primary
+                          : AppColors.textPrimary,
                     ),
                   ),
                   Text(
                     _getActivityDescription(level),
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.grey[600],
+                      color: AppColors.grey600,
                     ),
                   ),
                 ],
@@ -483,7 +482,7 @@ class _OnboardingViewState extends State<OnboardingView> {
             if (isSelected)
               Icon(
                 Icons.check_circle,
-                color: Theme.of(context).colorScheme.primary,
+                color: AppColors.primary,
               ),
           ],
         ),
@@ -524,7 +523,7 @@ class _OnboardingViewState extends State<OnboardingView> {
             'Review your information before submitting',
             style: TextStyle(
               fontSize: 16,
-              color: Colors.grey[600],
+              color: AppColors.grey600,
             ),
           ),
           const SizedBox(height: 32),
@@ -594,7 +593,7 @@ class _OnboardingViewState extends State<OnboardingView> {
           Text(
             label,
             style: TextStyle(
-              color: Colors.grey[600],
+              color: AppColors.grey600,
             ),
           ),
           Text(

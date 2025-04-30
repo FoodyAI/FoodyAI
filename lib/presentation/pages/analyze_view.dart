@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
 import '../widgets/health_analysis_content.dart';
 import '../widgets/custom_app_bar.dart';
+import '../../../core/constants/app_colors.dart';
 
 class AnalyzeView extends StatelessWidget {
   const AnalyzeView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      appBar: CustomAppBar(
+    return Scaffold(
+      backgroundColor: AppColors.white,
+      appBar: const CustomAppBar(
         title: 'Health Analysis',
         icon: Icons.analytics,
       ),
-      body: HealthAnalysisContent(),
+      body: const HealthAnalysisContent(),
     );
   }
 }

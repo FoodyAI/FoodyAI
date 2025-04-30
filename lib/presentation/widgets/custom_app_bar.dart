@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/constants/app_colors.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -23,13 +24,13 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.white,
       elevation: 0,
       leading: leadingIcon != null
           ? IconButton(
               icon: Icon(
                 leadingIcon,
-                color: Colors.grey[600],
+                color: AppColors.grey600,
               ),
               onPressed: onLeadingPressed,
             )
@@ -40,12 +41,12 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor.withOpacity(0.1),
+                color: AppColors.withOpacity(AppColors.primary, 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
                 icon,
-                color: Theme.of(context).primaryColor,
+                color: AppColors.primary,
                 size: 24,
               ),
             ),
@@ -53,7 +54,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           Text(
             title,
             style: const TextStyle(
-              color: Colors.black87,
+              color: AppColors.textPrimary,
               fontSize: 20,
               fontWeight: FontWeight.w500,
             ),
@@ -66,7 +67,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           IconButton(
             icon: Icon(
               Icons.info_outline,
-              color: Colors.grey[600],
+              color: AppColors.grey600,
             ),
             onPressed: onInfoPressed,
           ),

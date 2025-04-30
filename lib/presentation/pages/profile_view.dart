@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../viewmodels/user_profile_viewmodel.dart';
 import '../../domain/entities/user_profile.dart';
 import '../widgets/custom_app_bar.dart';
+import '../../../core/constants/app_colors.dart';
 
 class ProfileView extends StatelessWidget {
   const ProfileView({super.key});
@@ -41,6 +42,7 @@ class ProfileView extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
+                              color: AppColors.textPrimary,
                             ),
                           ),
                           const SizedBox(height: 16),
@@ -96,6 +98,7 @@ class ProfileView extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
+                              color: AppColors.textPrimary,
                             ),
                           ),
                           const SizedBox(height: 16),
@@ -106,18 +109,15 @@ class ProfileView extends StatelessWidget {
                             child: Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .primary
-                                    .withOpacity(0.1),
+                                color: AppColors.withOpacity(
+                                    AppColors.primary, 0.1),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Row(
                                 children: [
                                   Icon(
                                     Icons.directions_run,
-                                    color:
-                                        Theme.of(context).colorScheme.primary,
+                                    color: AppColors.primary,
                                   ),
                                   const SizedBox(width: 12),
                                   Expanded(
@@ -131,8 +131,7 @@ class ProfileView extends StatelessWidget {
                                   ),
                                   Icon(
                                     Icons.edit,
-                                    color:
-                                        Theme.of(context).colorScheme.primary,
+                                    color: AppColors.primary,
                                   ),
                                 ],
                               ),
@@ -164,7 +163,7 @@ class ProfileView extends StatelessWidget {
         children: [
           Icon(
             icon,
-            color: Theme.of(context).colorScheme.primary,
+            color: AppColors.primary,
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -174,7 +173,7 @@ class ProfileView extends StatelessWidget {
                 Text(
                   label,
                   style: TextStyle(
-                    color: Colors.grey[600],
+                    color: AppColors.grey600,
                     fontSize: 14,
                   ),
                 ),
@@ -191,7 +190,7 @@ class ProfileView extends StatelessWidget {
           IconButton(
             icon: Icon(
               Icons.edit,
-              color: Theme.of(context).colorScheme.primary,
+              color: AppColors.primary,
             ),
             onPressed: onEdit,
           ),

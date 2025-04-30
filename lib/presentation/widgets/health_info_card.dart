@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../domain/entities/user_profile.dart';
+import '../../../core/constants/app_colors.dart';
 
 class HealthInfoCard extends StatelessWidget {
   final UserProfile profile;
@@ -21,16 +22,16 @@ class HealthInfoCard extends StatelessWidget {
     Color statusColor;
     if (bmiValue < 18.5) {
       status = 'Underweight';
-      statusColor = Colors.blue[700]!;
+      statusColor = AppColors.blue;
     } else if (bmiValue < 25.0) {
       status = 'Normal';
-      statusColor = Colors.green[600]!;
+      statusColor = AppColors.green;
     } else if (bmiValue < 30.0) {
       status = 'Overweight';
-      statusColor = Colors.amber[700]!;
+      statusColor = AppColors.orange;
     } else {
       status = 'Obesity';
-      statusColor = Colors.red[800]!;
+      statusColor = AppColors.error;
     }
 
     return Container(
@@ -40,14 +41,14 @@ class HealthInfoCard extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            statusColor.withOpacity(0.1),
-            statusColor.withOpacity(0.05),
+            AppColors.withOpacity(statusColor, 0.1),
+            AppColors.withOpacity(statusColor, 0.05),
           ],
         ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: statusColor.withOpacity(0.1),
+            color: AppColors.withOpacity(statusColor, 0.1),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -61,18 +62,19 @@ class HealthInfoCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'Health Summary',
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
                   ),
                 ),
                 Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.2),
+                    color: AppColors.withOpacity(statusColor, 0.2),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -106,7 +108,7 @@ class HealthInfoCard extends StatelessWidget {
                       'Daily Calories',
                       calories,
                       'Recommended Intake',
-                      Colors.orange,
+                      AppColors.orange,
                       Icons.local_fire_department,
                     ),
                   ),
@@ -117,7 +119,7 @@ class HealthInfoCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.1),
+                color: AppColors.withOpacity(AppColors.white, 0.1),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Row(
@@ -131,7 +133,7 @@ class HealthInfoCard extends StatelessWidget {
                     child: Text(
                       'Based on your profile, we recommend maintaining a balanced diet and regular exercise routine.',
                       style: TextStyle(
-                        color: Colors.grey[800],
+                        color: AppColors.textPrimary,
                         fontSize: 14,
                       ),
                     ),
@@ -156,11 +158,11 @@ class HealthInfoCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.1),
+            color: AppColors.withOpacity(color, 0.1),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -185,7 +187,7 @@ class HealthInfoCard extends StatelessWidget {
                   child: Text(
                     title,
                     style: TextStyle(
-                      color: Colors.grey[600],
+                      color: AppColors.grey600,
                       fontSize: 14,
                     ),
                   ),
@@ -211,7 +213,7 @@ class HealthInfoCard extends StatelessWidget {
               child: Text(
                 subtitle,
                 style: TextStyle(
-                  color: Colors.grey[600],
+                  color: AppColors.grey600,
                   fontSize: 12,
                 ),
               ),

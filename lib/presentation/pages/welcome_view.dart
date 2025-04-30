@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../viewmodels/welcome_viewmodel.dart';
 import 'dart:math' as math;
 import 'dart:math';
+import '../../../core/constants/app_colors.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -52,13 +53,13 @@ class _WelcomeScreenContent extends StatelessWidget {
                         child: Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.1),
+                            color: AppColors.withOpacity(AppColors.white, 0.1),
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.restaurant_menu,
                             size: 80,
-                            color: Colors.white,
+                            color: AppColors.white,
                           ),
                         ),
                       ),
@@ -88,7 +89,7 @@ class _WelcomeScreenContent extends StatelessWidget {
                                   .textTheme
                                   .headlineMedium
                                   ?.copyWith(
-                                    color: Colors.white,
+                                    color: AppColors.white,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 32,
                                   ),
@@ -101,7 +102,8 @@ class _WelcomeScreenContent extends StatelessWidget {
                                   .textTheme
                                   .bodyLarge
                                   ?.copyWith(
-                                    color: Colors.white.withOpacity(0.9),
+                                    color: AppColors.withOpacity(
+                                        AppColors.white, 0.9),
                                     fontSize: 18,
                                     height: 1.5,
                                   ),
@@ -130,8 +132,8 @@ class _WelcomeScreenContent extends StatelessWidget {
                                 ? null
                                 : viewModel.signInWithGoogle,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              foregroundColor: Colors.black87,
+                              backgroundColor: AppColors.white,
+                              foregroundColor: AppColors.textPrimary,
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 32, vertical: 16),
                               shape: RoundedRectangleBorder(
@@ -149,7 +151,7 @@ class _WelcomeScreenContent extends StatelessWidget {
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
                                       valueColor: AlwaysStoppedAnimation<Color>(
-                                          Colors.black87),
+                                          AppColors.textPrimary),
                                     ),
                                   )
                                 else ...[
@@ -200,7 +202,8 @@ class _WelcomeScreenContent extends StatelessWidget {
                             child: Text(
                               'Continue as Guest',
                               style: TextStyle(
-                                color: Colors.white.withOpacity(0.9),
+                                color:
+                                    AppColors.withOpacity(AppColors.white, 0.9),
                                 fontSize: 16,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -283,10 +286,7 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [
-            Colors.indigo.shade900,
-            Colors.purple.shade900,
-          ],
+          colors: AppColors.primaryGradient,
         ),
       ),
       child: AnimatedBuilder(
@@ -309,7 +309,7 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
                   child: Icon(
                     icon.icon,
                     size: icon.size,
-                    color: Colors.white.withOpacity(0.3),
+                    color: AppColors.withOpacity(AppColors.white, 0.3),
                   ),
                 ),
               );

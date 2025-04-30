@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../widgets/health_analysis_content.dart';
 import '../widgets/custom_app_bar.dart';
 import 'home_view.dart';
+import '../../../core/constants/app_colors.dart';
 
 class AnalysisLoadingView extends StatefulWidget {
   const AnalysisLoadingView({super.key});
@@ -62,11 +63,10 @@ class _AnalysisLoadingViewState extends State<AnalysisLoadingView>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.white,
       appBar: const CustomAppBar(
         title: 'Health Analysis',
         icon: Icons.analytics,
-        
       ),
       body: SafeArea(
         child: AnimatedSwitcher(
@@ -105,6 +105,8 @@ class _AnalysisLoadingViewState extends State<AnalysisLoadingView>
                           );
                         },
                         style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: AppColors.white,
                           padding: const EdgeInsets.symmetric(
                             horizontal: 32,
                             vertical: 16,
@@ -140,16 +142,15 @@ class _AnalysisLoadingViewState extends State<AnalysisLoadingView>
                                 width: 120,
                                 height: 120,
                                 decoration: BoxDecoration(
-                                  color: Theme.of(context)
-                                      .primaryColor
-                                      .withOpacity(0.1),
+                                  color: AppColors.withOpacity(
+                                      AppColors.primary, 0.1),
                                   shape: BoxShape.circle,
                                 ),
                                 child: Center(
                                   child: Icon(
                                     Icons.analytics,
                                     size: 60,
-                                    color: Theme.of(context).primaryColor,
+                                    color: AppColors.primary,
                                   ),
                                 ),
                               ),
@@ -159,7 +160,7 @@ class _AnalysisLoadingViewState extends State<AnalysisLoadingView>
                                 style: TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
-                                  color: Theme.of(context).primaryColor,
+                                  color: AppColors.primary,
                                 ),
                               ),
                               const SizedBox(height: 16),
@@ -167,7 +168,7 @@ class _AnalysisLoadingViewState extends State<AnalysisLoadingView>
                                 'We\'re processing your health information',
                                 style: TextStyle(
                                   fontSize: 16,
-                                  color: Colors.grey[600],
+                                  color: AppColors.grey600,
                                 ),
                               ),
                             ],

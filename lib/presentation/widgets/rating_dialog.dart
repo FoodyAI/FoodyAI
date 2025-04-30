@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/image_analysis_viewmodel.dart';
+import '../../../core/constants/app_colors.dart';
 
 class RatingDialog extends StatefulWidget {
   const RatingDialog({super.key});
@@ -95,15 +96,15 @@ class _RatingDialogState extends State<RatingDialog>
     return ScaleTransition(
       scale: _scaleAnimation,
       child: Dialog(
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppColors.transparent,
         child: Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppColors.white,
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: AppColors.withOpacity(AppColors.black, 0.1),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               ),
@@ -115,13 +116,13 @@ class _RatingDialogState extends State<RatingDialog>
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor.withOpacity(0.1),
+                  color: AppColors.withOpacity(AppColors.primary, 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
                   Icons.favorite,
                   size: 48,
-                  color: Theme.of(context).primaryColor,
+                  color: AppColors.primary,
                 ),
               ),
               const SizedBox(height: 24),
@@ -140,7 +141,7 @@ class _RatingDialogState extends State<RatingDialog>
                     : 'Your feedback helps us improve',
                 style: TextStyle(
                   fontSize: 16,
-                  color: Colors.grey[600],
+                  color: AppColors.grey600,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -165,8 +166,8 @@ class _RatingDialogState extends State<RatingDialog>
                                     : Icons.star_border,
                                 size: 40,
                                 color: index < _rating
-                                    ? Colors.amber
-                                    : Colors.grey[400],
+                                    ? AppColors.warning
+                                    : AppColors.grey400,
                               ),
                             );
                           },
@@ -215,7 +216,7 @@ class _RatingDialogState extends State<RatingDialog>
                       child: Text(
                         'Maybe Later',
                         style: TextStyle(
-                          color: Colors.grey[600],
+                          color: AppColors.grey600,
                           fontSize: 16,
                         ),
                       ),
@@ -226,7 +227,7 @@ class _RatingDialogState extends State<RatingDialog>
                       child: Text(
                         'Don\'t Ask Again',
                         style: TextStyle(
-                          color: Colors.grey[500],
+                          color: AppColors.grey500,
                           fontSize: 16,
                         ),
                       ),

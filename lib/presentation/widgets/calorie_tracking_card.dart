@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../data/models/food_analysis.dart';
+import '../../../core/constants/app_colors.dart';
 
 class CalorieTrackingCard extends StatefulWidget {
   final double totalCaloriesConsumed;
@@ -75,14 +76,14 @@ class _CalorieTrackingCardState extends State<CalorieTrackingCard>
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Theme.of(context).colorScheme.primary,
-            Theme.of(context).colorScheme.primary.withOpacity(0.8),
+            AppColors.primary,
+            AppColors.withOpacity(AppColors.primary, 0.8),
           ],
         ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+            color: AppColors.withOpacity(AppColors.primary, 0.3),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -97,7 +98,7 @@ class _CalorieTrackingCardState extends State<CalorieTrackingCard>
               const Text(
                 'Today\'s Calories',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: AppColors.white,
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
@@ -108,13 +109,13 @@ class _CalorieTrackingCardState extends State<CalorieTrackingCard>
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: AppColors.withOpacity(AppColors.white, 0.2),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
                   '${remainingCalories.toStringAsFixed(0)} left',
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: AppColors.white,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -128,7 +129,7 @@ class _CalorieTrackingCardState extends State<CalorieTrackingCard>
               Container(
                 height: 12,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: AppColors.withOpacity(AppColors.white, 0.2),
                   borderRadius: BorderRadius.circular(6),
                 ),
               ),
@@ -142,11 +143,11 @@ class _CalorieTrackingCardState extends State<CalorieTrackingCard>
                         0.8 *
                         _progressAnimation.value,
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: AppColors.white,
                       borderRadius: BorderRadius.circular(6),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.white.withOpacity(0.3),
+                          color: AppColors.withOpacity(AppColors.white, 0.3),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -186,14 +187,14 @@ class _CalorieTrackingCardState extends State<CalorieTrackingCard>
           children: [
             Icon(
               icon,
-              color: Colors.white.withOpacity(0.8),
+              color: AppColors.withOpacity(AppColors.white, 0.8),
               size: 16,
             ),
             const SizedBox(width: 4),
             Text(
               label,
               style: TextStyle(
-                color: Colors.white.withOpacity(0.8),
+                color: AppColors.withOpacity(AppColors.white, 0.8),
                 fontSize: 14,
               ),
             ),
@@ -203,7 +204,7 @@ class _CalorieTrackingCardState extends State<CalorieTrackingCard>
         Text(
           value,
           style: const TextStyle(
-            color: Colors.white,
+            color: AppColors.white,
             fontSize: 24,
             fontWeight: FontWeight.bold,
           ),
