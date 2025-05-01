@@ -1,6 +1,6 @@
 {
-    "name": "foody_ai_app",
-    "short_name": "foody_ai_app",
+    "name": "foody",
+    "short_name": "foody",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

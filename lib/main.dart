@@ -26,7 +26,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ImageAnalysisViewModel()),
       ],
       child: MaterialApp(
-        title: 'Foody',
+        title: 'foody',
         debugShowCheckedModeBanner: false,
         navigatorKey: navigatorKey,
         theme: AppTheme.lightTheme,
