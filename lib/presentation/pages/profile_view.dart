@@ -13,7 +13,7 @@ class ProfileView extends StatelessWidget {
   Widget build(BuildContext context) {
     final profileVM = Provider.of<UserProfileViewModel>(context);
     final profile = profileVM.profile!;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -397,7 +397,6 @@ class ProfileView extends StatelessWidget {
   }
 
   void _showGenderDialog(BuildContext context, UserProfileViewModel vm) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final colorScheme = Theme.of(context).colorScheme;
 
     showDialog(
@@ -781,6 +780,10 @@ class ProfileView extends StatelessWidget {
       }
     }
 
+    if (!vm.isMetric) {
+      updateMetricToImperial();
+    }
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -1043,7 +1046,6 @@ class ProfileView extends StatelessWidget {
   }
 
   void _showActivityLevelDialog(BuildContext context, UserProfileViewModel vm) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final colorScheme = Theme.of(context).colorScheme;
 
     IconData getActivityIcon(ActivityLevel level) {
@@ -1115,7 +1117,7 @@ class ProfileView extends StatelessWidget {
   }
 
   void _showThemeDialog(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     final colorScheme = Theme.of(context).colorScheme;
     final themeVM = Provider.of<ThemeViewModel>(context, listen: false);
 
