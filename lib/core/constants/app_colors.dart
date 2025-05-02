@@ -15,15 +15,23 @@ class AppColors {
   static const Color accentLight = Color(0xFFFF8A80); // Lighter coral
 
   // Background Colors
-  static const Color background =
-      Color(0xFFF8F9FA); // Slightly warmer background
-  static const Color surface = Colors.white;
+  static const Color background = Color(0xFFF8F9FA); // Light theme background
+  static const Color surface = Colors.white; // Light theme surface
+  static const Color darkBackground =
+      Color(0xFF121212); // Dark theme background
+  static const Color darkSurface = Color(0xFF1E1E1E); // Dark theme surface
 
   // Text Colors
   static const Color textPrimary =
-      Color(0xFF2C3E50); // Darker, more readable text
-  static const Color textSecondary = Color(0xFF546E7A); // Softer secondary text
-  static const Color textHint = Color(0xFF90A4AE); // Softer hint text
+      Color(0xFF2C3E50); // Light theme primary text
+  static const Color textSecondary =
+      Color(0xFF546E7A); // Light theme secondary text
+  static const Color textHint = Color(0xFF90A4AE); // Light theme hint text
+  static const Color darkTextPrimary =
+      Color(0xFFE1E1E1); // Dark theme primary text
+  static const Color darkTextSecondary =
+      Color(0xFFB0B0B0); // Dark theme secondary text
+  static const Color darkTextHint = Color(0xFF808080); // Dark theme hint text
 
   // Status Colors
   static const Color success = Color(0xFF43A047); // Slightly softer green
@@ -35,6 +43,9 @@ class AppColors {
   static const Color white = Colors.white;
   static const Color black = Colors.black;
   static const Color transparent = Colors.transparent;
+  static const Color darkCardBackground =
+      Color(0xFF2D2D2D); // Dark theme card background
+  static const Color darkDivider = Color(0xFF3D3D3D); // Dark theme divider
 
   // Grey Shades
   static const Color grey100 = Color(0xFFF8F9FA); // Warmer light grey

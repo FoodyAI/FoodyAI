@@ -19,6 +19,10 @@ class AppTheme {
     primary: AppColors.primary,
     secondary: AppColors.primaryLight,
     error: AppColors.error,
+    background: AppColors.darkBackground,
+    surface: AppColors.darkSurface,
+    onBackground: AppColors.darkTextPrimary,
+    onSurface: AppColors.darkTextPrimary,
     brightness: Brightness.dark,
   );
 
@@ -27,8 +31,18 @@ class AppTheme {
     useMaterial3: true,
     textTheme: GoogleFonts.interTextTheme(),
     appBarTheme: AppBarTheme(
-      backgroundColor: lightColorScheme.primaryContainer,
-      foregroundColor: lightColorScheme.onPrimaryContainer,
+      backgroundColor: AppColors.primary,
+      foregroundColor: AppColors.white,
+      elevation: 0,
+      centerTitle: true,
+      iconTheme: const IconThemeData(color: AppColors.white),
+    ),
+    cardTheme: CardTheme(
+      color: AppColors.surface,
+      elevation: 2,
+    ),
+    dividerTheme: const DividerThemeData(
+      color: AppColors.grey300,
     ),
   );
 
@@ -36,10 +50,39 @@ class AppTheme {
     colorScheme: darkColorScheme,
     useMaterial3: true,
     textTheme: GoogleFonts.interTextTheme(
-        ThemeData(brightness: Brightness.dark).textTheme),
+      ThemeData(brightness: Brightness.dark).textTheme,
+    ),
     appBarTheme: AppBarTheme(
-      backgroundColor: darkColorScheme.primaryContainer,
-      foregroundColor: darkColorScheme.onPrimaryContainer,
+      backgroundColor: AppColors.black,
+      foregroundColor: AppColors.white,
+      elevation: 0,
+      centerTitle: true,
+      iconTheme: const IconThemeData(color: AppColors.white),
+    ),
+    cardTheme: CardTheme(
+      color: AppColors.darkCardBackground,
+      elevation: 2,
+    ),
+    dividerTheme: const DividerThemeData(
+      color: AppColors.darkDivider,
+    ),
+    scaffoldBackgroundColor: AppColors.darkBackground,
+    bottomNavigationBarTheme: BottomNavigationBarThemeData(
+      backgroundColor: AppColors.darkSurface,
+      selectedItemColor: AppColors.primary,
+      unselectedItemColor: AppColors.darkTextSecondary,
+    ),
+    dialogTheme: DialogTheme(
+      backgroundColor: AppColors.darkSurface,
+      titleTextStyle: TextStyle(
+        color: AppColors.darkTextPrimary,
+        fontSize: 20,
+        fontWeight: FontWeight.bold,
+      ),
+      contentTextStyle: TextStyle(
+        color: AppColors.darkTextSecondary,
+        fontSize: 16,
+      ),
     ),
   );
 }

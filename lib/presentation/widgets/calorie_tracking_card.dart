@@ -68,6 +68,18 @@ class _CalorieTrackingCardState extends State<CalorieTrackingCard>
     final remainingCalories =
         widget.recommendedCalories - widget.totalCaloriesConsumed;
 
+    // Determine status color based on calorie consumption
+    Color statusColor;
+    if (remainingCalories < 0) {
+      statusColor = AppColors.error;
+    } else if (remainingCalories < widget.recommendedCalories * 0.2) {
+      statusColor = AppColors.orange;
+    } else if (remainingCalories < widget.recommendedCalories * 0.5) {
+      statusColor = AppColors.blue;
+    } else {
+      statusColor = AppColors.green;
+    }
+
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(20),
@@ -76,16 +88,16 @@ class _CalorieTrackingCardState extends State<CalorieTrackingCard>
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppColors.primary,
-            AppColors.withOpacity(AppColors.primary, 0.8),
+            AppColors.withOpacity(statusColor, 0.1),
+            AppColors.withOpacity(statusColor, 0.05),
           ],
         ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: AppColors.withOpacity(AppColors.primary, 0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            color: AppColors.withOpacity(statusColor, 0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
           ),
         ],
       ),
@@ -95,12 +107,12 @@ class _CalorieTrackingCardState extends State<CalorieTrackingCard>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Today\'s Calories',
                 style: TextStyle(
-                  color: AppColors.white,
-                  fontSize: 20,
+                  fontSize: 24,
                   fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.onBackground,
                 ),
               ),
               Container(
@@ -109,14 +121,14 @@ class _CalorieTrackingCardState extends State<CalorieTrackingCard>
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.withOpacity(AppColors.white, 0.2),
+                  color: AppColors.withOpacity(statusColor, 0.2),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
                   '${remainingCalories.toStringAsFixed(0)} left',
-                  style: const TextStyle(
-                    color: AppColors.white,
-                    fontWeight: FontWeight.w500,
+                  style: TextStyle(
+                    color: statusColor,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
@@ -129,7 +141,7 @@ class _CalorieTrackingCardState extends State<CalorieTrackingCard>
               Container(
                 height: 12,
                 decoration: BoxDecoration(
-                  color: AppColors.withOpacity(AppColors.white, 0.2),
+                  color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(6),
                 ),
               ),
@@ -143,11 +155,11 @@ class _CalorieTrackingCardState extends State<CalorieTrackingCard>
                         0.8 *
                         _progressAnimation.value,
                     decoration: BoxDecoration(
-                      color: AppColors.white,
+                      color: statusColor,
                       borderRadius: BorderRadius.circular(6),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.withOpacity(AppColors.white, 0.3),
+                          color: AppColors.withOpacity(statusColor, 0.3),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -166,11 +178,13 @@ class _CalorieTrackingCardState extends State<CalorieTrackingCard>
                 'Consumed',
                 widget.totalCaloriesConsumed.toStringAsFixed(0),
                 Icons.local_fire_department,
+                statusColor,
               ),
               _buildCalorieInfo(
                 'Goal',
                 widget.recommendedCalories.toStringAsFixed(0),
                 Icons.flag,
+                statusColor,
               ),
             ],
           ),
@@ -179,37 +193,65 @@ class _CalorieTrackingCardState extends State<CalorieTrackingCard>
     );
   }
 
-  Widget _buildCalorieInfo(String label, String value, IconData icon) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(
-              icon,
-              color: AppColors.withOpacity(AppColors.white, 0.8),
-              size: 16,
-            ),
-            const SizedBox(width: 4),
-            Text(
-              label,
+  Widget _buildCalorieInfo(
+      String label, String value, IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.withOpacity(color, 0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                color: color,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withOpacity(0.7),
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              value,
               style: TextStyle(
-                color: AppColors.withOpacity(AppColors.white, 0.8),
-                fontSize: 14,
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: color,
               ),
             ),
-          ],
-        ),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: const TextStyle(
-            color: AppColors.white,
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

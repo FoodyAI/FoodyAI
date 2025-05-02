@@ -9,7 +9,7 @@ class AnalyzeView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.white,
+      backgroundColor: Theme.of(context).colorScheme.background,
       appBar: const CustomAppBar(
         title: 'Health Analysis',
         icon: Icons.analytics,

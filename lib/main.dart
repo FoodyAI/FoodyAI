@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'di/service_locator.dart';
 import 'presentation/viewmodels/user_profile_viewmodel.dart';
 import 'presentation/viewmodels/image_analysis_viewmodel.dart';
+import 'presentation/viewmodels/theme_viewmodel.dart';
 import 'presentation/pages/welcome_view.dart';
 import 'presentation/pages/home_view.dart';
 import 'core/utils/theme.dart';
@@ -24,14 +25,20 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => getIt<UserProfileViewModel>()),
         ChangeNotifierProvider(create: (_) => ImageAnalysisViewModel()),
+        ChangeNotifierProvider(create: (_) => ThemeViewModel()),
       ],
-      child: MaterialApp(
-        title: 'foody',
-        debugShowCheckedModeBanner: false,
-        navigatorKey: navigatorKey,
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        home: const AppNavigator(),
+      child: Consumer<ThemeViewModel>(
+        builder: (context, themeVM, _) {
+          return MaterialApp(
+            title: 'foody',
+            debugShowCheckedModeBanner: false,
+            navigatorKey: navigatorKey,
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: themeVM.themeMode,
+            home: const AppNavigator(),
+          );
+        },
       ),
     );
   }

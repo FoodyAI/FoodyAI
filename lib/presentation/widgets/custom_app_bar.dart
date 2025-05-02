@@ -23,14 +23,17 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return AppBar(
-      backgroundColor: AppColors.white,
+      backgroundColor: isDark ? AppColors.darkSurface : AppColors.white,
       elevation: 0,
       leading: leadingIcon != null
           ? IconButton(
               icon: Icon(
                 leadingIcon,
-                color: AppColors.grey600,
+                color: isDark ? AppColors.darkTextSecondary : AppColors.grey600,
               ),
               onPressed: onLeadingPressed,
             )
@@ -41,20 +44,23 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppColors.withOpacity(AppColors.primary, 0.1),
+                color: AppColors.withOpacity(
+                  colorScheme.primary,
+                  isDark ? 0.2 : 0.1,
+                ),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
                 icon,
-                color: AppColors.primary,
+                color: colorScheme.primary,
                 size: 24,
               ),
             ),
           if (icon != null) const SizedBox(width: 12),
           Text(
             title,
-            style: const TextStyle(
-              color: AppColors.textPrimary,
+            style: TextStyle(
+              color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
               fontSize: 20,
               fontWeight: FontWeight.w500,
             ),
@@ -67,7 +73,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
           IconButton(
             icon: Icon(
               Icons.info_outline,
-              color: AppColors.grey600,
+              color: isDark ? AppColors.darkTextSecondary : AppColors.grey600,
             ),
             onPressed: onInfoPressed,
           ),

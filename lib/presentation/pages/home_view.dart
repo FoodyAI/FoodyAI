@@ -72,69 +72,101 @@ class _HomeContent extends StatelessWidget {
           showModalBottomSheet(
             context: context,
             backgroundColor: AppColors.transparent,
-            builder: (context) => Container(
-              decoration: const BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-              ),
-              child: SafeArea(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const SizedBox(height: 8),
-                    Container(
-                      width: 40,
-                      height: 4,
-                      decoration: BoxDecoration(
-                        color: AppColors.grey300,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
+            builder: (context) {
+              final isDark = Theme.of(context).brightness == Brightness.dark;
+              final colorScheme = Theme.of(context).colorScheme;
+
+              return Container(
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.grey800 : AppColors.white,
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(24)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: isDark
+                          ? AppColors.withOpacity(AppColors.black, 0.4)
+                          : AppColors.withOpacity(AppColors.black, 0.1),
+                      blurRadius: 20,
+                      offset: const Offset(0, -4),
                     ),
-                    const SizedBox(height: 16),
-                    ListTile(
-                      leading: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: AppColors.withOpacity(AppColors.blue, 0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Icon(Icons.camera_alt, color: AppColors.blue),
-                      ),
-                      title: const Text('Take Picture'),
-                      onTap: () {
-                        Navigator.pop(context);
-                        final vm = Provider.of<ImageAnalysisViewModel>(context,
-                            listen: false);
-                        vm.pickImage(ImageSource.camera).then((_) {
-                          if (vm.selectedImage != null) vm.analyzeImage();
-                        });
-                      },
-                    ),
-                    ListTile(
-                      leading: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: AppColors.withOpacity(AppColors.green, 0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child:
-                            Icon(Icons.photo_library, color: AppColors.green),
-                      ),
-                      title: const Text('Upload from Gallery'),
-                      onTap: () {
-                        Navigator.pop(context);
-                        final vm = Provider.of<ImageAnalysisViewModel>(context,
-                            listen: false);
-                        vm.pickImage(ImageSource.gallery).then((_) {
-                          if (vm.selectedImage != null) vm.analyzeImage();
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 16),
                   ],
                 ),
-              ),
-            ),
+                child: SafeArea(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const SizedBox(height: 8),
+                      Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: isDark ? AppColors.grey600 : AppColors.grey300,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      ListTile(
+                        leading: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color:
+                                AppColors.withOpacity(colorScheme.primary, 0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(Icons.camera_alt,
+                              color: colorScheme.primary),
+                        ),
+                        title: Text(
+                          'Take Picture',
+                          style: TextStyle(
+                            color: isDark ? AppColors.white : AppColors.black,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        onTap: () {
+                          Navigator.pop(context);
+                          final vm = Provider.of<ImageAnalysisViewModel>(
+                              context,
+                              listen: false);
+                          vm.pickImage(ImageSource.camera).then((_) {
+                            if (vm.selectedImage != null) vm.analyzeImage();
+                          });
+                        },
+                      ),
+                      ListTile(
+                        leading: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: AppColors.withOpacity(
+                                colorScheme.secondary, 0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(Icons.photo_library,
+                              color: colorScheme.secondary),
+                        ),
+                        title: Text(
+                          'Upload from Gallery',
+                          style: TextStyle(
+                            color: isDark ? AppColors.white : AppColors.black,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        onTap: () {
+                          Navigator.pop(context);
+                          final vm = Provider.of<ImageAnalysisViewModel>(
+                              context,
+                              listen: false);
+                          vm.pickImage(ImageSource.gallery).then((_) {
+                            if (vm.selectedImage != null) vm.analyzeImage();
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                  ),
+                ),
+              );
+            },
           );
         },
         child: const Icon(Icons.add),

@@ -83,7 +83,7 @@ class _WelcomeScreenContent extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Text(
-                              'Welcome to Foody',
+                              'Foody',
                               textAlign: TextAlign.center,
                               style: Theme.of(context)
                                   .textTheme

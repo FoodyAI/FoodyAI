@@ -22,6 +22,8 @@ class FoodAnalysisCard extends StatelessWidget {
       return _buildShimmerCard();
     }
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Card(
       elevation: 0,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -34,14 +36,21 @@ class FoodAnalysisCard extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              AppColors.withOpacity(AppColors.white, 0.9),
-              AppColors.withOpacity(AppColors.white, 0.8),
-            ],
+            colors: isDark
+                ? [
+                    AppColors.withOpacity(AppColors.grey800, 0.9),
+                    AppColors.withOpacity(AppColors.grey600, 0.8),
+                  ]
+                : [
+                    AppColors.withOpacity(AppColors.white, 0.9),
+                    AppColors.withOpacity(AppColors.white, 0.8),
+                  ],
           ),
           boxShadow: [
             BoxShadow(
-              color: AppColors.withOpacity(AppColors.black, 0.05),
+              color: isDark
+                  ? AppColors.withOpacity(AppColors.black, 0.3)
+                  : AppColors.withOpacity(AppColors.black, 0.05),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -61,12 +70,14 @@ class FoodAnalysisCard extends StatelessWidget {
                 expand: false,
                 builder: (context, scrollController) => Container(
                   decoration: BoxDecoration(
-                    color: AppColors.white,
+                    color: isDark ? AppColors.grey800 : AppColors.white,
                     borderRadius:
                         const BorderRadius.vertical(top: Radius.circular(32)),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.withOpacity(AppColors.black, 0.1),
+                        color: isDark
+                            ? AppColors.withOpacity(AppColors.black, 0.4)
+                            : AppColors.withOpacity(AppColors.black, 0.1),
                         blurRadius: 20,
                         offset: const Offset(0, -4),
                       ),
@@ -115,10 +126,12 @@ class FoodAnalysisCard extends StatelessWidget {
                           Expanded(
                             child: Text(
                               analysis.name,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
                                 letterSpacing: -0.5,
+                                color:
+                                    isDark ? AppColors.white : AppColors.black,
                               ),
                             ),
                           ),
@@ -163,7 +176,7 @@ class FoodAnalysisCard extends StatelessWidget {
                 ),
                 Icon(
                   Icons.chevron_right,
-                  color: AppColors.grey400,
+                  color: isDark ? AppColors.grey400 : AppColors.grey400,
                 ),
               ],
             ),
@@ -174,6 +187,8 @@ class FoodAnalysisCard extends StatelessWidget {
   }
 
   Widget _buildImage(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     if (analysis.imagePath != null) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(16),
@@ -192,10 +207,15 @@ class FoodAnalysisCard extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            AppColors.withOpacity(Theme.of(context).primaryColor, 0.2),
-            AppColors.withOpacity(Theme.of(context).primaryColor, 0.1),
-          ],
+          colors: isDark
+              ? [
+                  AppColors.withOpacity(Theme.of(context).primaryColor, 0.3),
+                  AppColors.withOpacity(Theme.of(context).primaryColor, 0.2),
+                ]
+              : [
+                  AppColors.withOpacity(Theme.of(context).primaryColor, 0.2),
+                  AppColors.withOpacity(Theme.of(context).primaryColor, 0.1),
+                ],
         ),
         borderRadius: BorderRadius.circular(16),
       ),
@@ -435,11 +455,12 @@ class FoodAnalysisCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Health Score',
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
+            color: Theme.of(context).colorScheme.onBackground,
           ),
         ),
         const SizedBox(height: 16),
@@ -470,16 +491,20 @@ class FoodAnalysisCard extends StatelessWidget {
                   children: [
                     Text(
                       '${analysis.healthScore.toStringAsFixed(1)}/10',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onBackground,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       _getHealthScoreDescription(analysis.healthScore),
                       style: TextStyle(
-                        color: AppColors.grey600,
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onBackground
+                            .withOpacity(0.7),
                         fontSize: 14,
                       ),
                     ),
@@ -504,67 +529,83 @@ class FoodAnalysisCard extends StatelessWidget {
   }
 
   Widget _buildShimmerCard() {
-    return Card(
-      elevation: 0,
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Container(
-        decoration: BoxDecoration(
+    return Builder(
+      builder: (context) => Card(
+        elevation: 0,
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(24),
-          color: AppColors.white,
         ),
-        child: Shimmer.fromColors(
-          baseColor: AppColors.grey200,
-          highlightColor: AppColors.grey100,
-          period: const Duration(milliseconds: 1500),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    color: AppColors.white,
-                    borderRadius: BorderRadius.circular(16),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+            color: Theme.of(context).cardColor,
+          ),
+          child: Shimmer.fromColors(
+            baseColor: Theme.of(context).brightness == Brightness.dark
+                ? AppColors.withOpacity(AppColors.grey800, 0.5)
+                : AppColors.grey200,
+            highlightColor: Theme.of(context).brightness == Brightness.dark
+                ? AppColors.withOpacity(AppColors.grey600, 0.5)
+                : AppColors.grey100,
+            period: const Duration(milliseconds: 1500),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? AppColors.grey800
+                          : AppColors.white,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        width: double.infinity,
-                        height: 20,
-                        decoration: BoxDecoration(
-                          color: AppColors.white,
-                          borderRadius: BorderRadius.circular(4),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          width: double.infinity,
+                          height: 20,
+                          decoration: BoxDecoration(
+                            color:
+                                Theme.of(context).brightness == Brightness.dark
+                                    ? AppColors.grey800
+                                    : AppColors.white,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      Container(
-                        width: 100,
-                        height: 16,
-                        decoration: BoxDecoration(
-                          color: AppColors.white,
-                          borderRadius: BorderRadius.circular(4),
+                        const SizedBox(height: 8),
+                        Container(
+                          width: 100,
+                          height: 16,
+                          decoration: BoxDecoration(
+                            color:
+                                Theme.of(context).brightness == Brightness.dark
+                                    ? AppColors.grey800
+                                    : AppColors.white,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                Container(
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    color: AppColors.white,
-                    borderRadius: BorderRadius.circular(12),
+                  Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? AppColors.grey800
+                          : AppColors.white,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

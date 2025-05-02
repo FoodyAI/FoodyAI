@@ -67,7 +67,7 @@ class HealthInfoCard extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
+                    color: Theme.of(context).colorScheme.onBackground,
                   ),
                 ),
                 Container(
@@ -119,7 +119,7 @@ class HealthInfoCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.withOpacity(AppColors.white, 0.1),
+                color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Row(
@@ -133,7 +133,7 @@ class HealthInfoCard extends StatelessWidget {
                     child: Text(
                       'Based on your profile, we recommend maintaining a balanced diet and regular exercise routine.',
                       style: TextStyle(
-                        color: AppColors.textPrimary,
+                        color: Theme.of(context).colorScheme.onSurface,
                         fontSize: 14,
                       ),
                     ),
@@ -158,7 +158,7 @@ class HealthInfoCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -187,7 +187,10 @@ class HealthInfoCard extends StatelessWidget {
                   child: Text(
                     title,
                     style: TextStyle(
-                      color: AppColors.grey600,
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withOpacity(0.7),
                       fontSize: 14,
                     ),
                   ),
@@ -213,7 +216,8 @@ class HealthInfoCard extends StatelessWidget {
               child: Text(
                 subtitle,
                 style: TextStyle(
-                  color: AppColors.grey600,
+                  color:
+                      Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                   fontSize: 12,
                 ),
               ),
