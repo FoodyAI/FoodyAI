@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/user_profile_viewmodel.dart';
 import '../../domain/entities/user_profile.dart';
+import '../widgets/profile_inputs.dart';
 import 'analysis_loading_view.dart';
 import '../../../core/constants/app_colors.dart';
 
@@ -68,10 +69,6 @@ class _OnboardingViewState extends State<OnboardingView> {
       }
     });
   }
-
-  int _parseInt(String? s, int fallback) => int.tryParse(s ?? '') ?? fallback;
-  double _parseDouble(String? s, double fallback) =>
-      double.tryParse(s ?? '') ?? fallback;
 
   void _nextPage() {
     if (_currentPage < 3) {
@@ -314,7 +311,7 @@ class _OnboardingViewState extends State<OnboardingView> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Enter your age, weight, and height',
+            'Let\'s get to know your body better',
             style: TextStyle(
               fontSize: 16,
               color: AppColors.grey600,
@@ -323,78 +320,223 @@ class _OnboardingViewState extends State<OnboardingView> {
           const SizedBox(height: 32),
           // Unit Toggle
           Center(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: AppColors.grey100,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text('Imperial'),
-                  const SizedBox(width: 12),
-                  Switch(
-                    value: _isMetric,
-                    onChanged: (_) => _toggleUnit(),
-                  ),
-                  const SizedBox(width: 12),
-                  const Text('Metric'),
-                ],
-              ),
+            child: UnitSwitchButton(
+              isMetric: _isMetric,
+              onChanged: (_) => _toggleUnit(),
             ),
           ),
           const SizedBox(height: 24),
-          // Age Input
-          TextFormField(
-            initialValue: _age.toString(),
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(
-              labelText: 'Age',
-              hintText: 'Enter your age',
-              prefixIcon: const Icon(Icons.cake),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            validator: (v) => _parseInt(v, -1) < 0 ? 'Invalid age' : null,
-            onSaved: (v) => _age = _parseInt(v, _age),
+          // Measurements
+          _buildInfoRow(
+            context,
+            Icons.cake,
+            'Age',
+            '$_age years',
+            onEdit: () => _showAgeDialog(context),
           ),
-          const SizedBox(height: 16),
-          // Weight Input
-          TextFormField(
-            initialValue: _weight.toStringAsFixed(1),
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(
-              labelText: 'Weight',
-              hintText: 'Enter your weight',
-              prefixIcon: const Icon(Icons.monitor_weight),
-              suffixText: _weightUnit,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            validator: (v) =>
-                _parseDouble(v, -1) <= 0 ? 'Invalid weight' : null,
-            onSaved: (v) => _weight = _parseDouble(v, _weight),
+          _buildInfoRow(
+            context,
+            Icons.monitor_weight,
+            'Weight',
+            '${_weight.toStringAsFixed(1)} $_weightUnit',
+            onEdit: () => _showWeightDialog(context),
           ),
-          const SizedBox(height: 16),
-          // Height Input
-          TextFormField(
-            initialValue: _height.toStringAsFixed(1),
-            keyboardType: TextInputType.number,
-            decoration: InputDecoration(
-              labelText: 'Height',
-              hintText: 'Enter your height',
-              prefixIcon: const Icon(Icons.height),
-              suffixText: _heightUnit,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+          _buildInfoRow(
+            context,
+            Icons.height,
+            'Height',
+            _isMetric
+                ? '${_height.toStringAsFixed(1)} cm'
+                : '${(_height / 12).floor()}′${(_height % 12).round()}″',
+            onEdit: () => _showHeightDialog(context),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(
+    BuildContext context,
+    IconData icon,
+    String label,
+    String value, {
+    required VoidCallback onEdit,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: InkWell(
+        onTap: onEdit,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: AppColors.withOpacity(colorScheme.primary, 0.1),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                icon,
+                color: colorScheme.primary,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                    Text(
+                      value,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: colorScheme.onSurface.withOpacity(0.7),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.edit,
+                color: colorScheme.primary,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showAgeDialog(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          'Select Age',
+          style: TextStyle(
+            color: colorScheme.onSurface,
+          ),
+        ),
+        content: AgeInput(
+          age: _age,
+          onChanged: (age) => setState(() => _age = age),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cancel',
+              style: TextStyle(
+                color: colorScheme.primary,
               ),
             ),
-            validator: (v) =>
-                _parseDouble(v, -1) <= 0 ? 'Invalid height' : null,
-            onSaved: (v) => _height = _parseDouble(v, _height),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: Text(
+              'Save',
+              style: TextStyle(
+                color: colorScheme.primary,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showWeightDialog(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          'Edit Weight',
+          style: TextStyle(
+            color: colorScheme.onSurface,
+          ),
+        ),
+        content: WeightInput(
+          weight: _weight,
+          unit: _weightUnit,
+          onChanged: (weight) => setState(() => _weight = weight),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cancel',
+              style: TextStyle(
+                color: colorScheme.primary,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: Text(
+              'Save',
+              style: TextStyle(
+                color: colorScheme.primary,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showHeightDialog(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          'Edit Height',
+          style: TextStyle(
+            color: colorScheme.onSurface,
+          ),
+        ),
+        content: HeightInput(
+          height: _height,
+          isMetric: _isMetric,
+          onChanged: (height) => setState(() => _height = height),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cancel',
+              style: TextStyle(
+                color: colorScheme.primary,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: Text(
+              'Save',
+              style: TextStyle(
+                color: colorScheme.primary,
+              ),
+            ),
           ),
         ],
       ),

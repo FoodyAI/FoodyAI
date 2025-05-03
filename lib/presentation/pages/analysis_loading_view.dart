@@ -62,11 +62,14 @@ class _AnalysisLoadingViewState extends State<AnalysisLoadingView>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: AppColors.white,
-      appBar: const CustomAppBar(
-        title: 'Health Analysis',
-        icon: Icons.analytics,
+      backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: CustomAppBar(
+        title: _showHealthChart ? 'Health Analysis' : '',
+        icon: _showHealthChart ? Icons.analytics : null,
       ),
       body: SafeArea(
         child: AnimatedSwitcher(
@@ -142,8 +145,7 @@ class _AnalysisLoadingViewState extends State<AnalysisLoadingView>
                                 width: 120,
                                 height: 120,
                                 decoration: BoxDecoration(
-                                  color: AppColors.withOpacity(
-                                      AppColors.primary, 0.1),
+                                  color: AppColors.primary.withOpacity(0.1),
                                   shape: BoxShape.circle,
                                 ),
                                 child: Center(
@@ -168,7 +170,9 @@ class _AnalysisLoadingViewState extends State<AnalysisLoadingView>
                                 'We\'re processing your health information',
                                 style: TextStyle(
                                   fontSize: 16,
-                                  color: AppColors.grey600,
+                                  color: isDark
+                                      ? AppColors.white.withOpacity(0.7)
+                                      : AppColors.grey600,
                                 ),
                               ),
                             ],
