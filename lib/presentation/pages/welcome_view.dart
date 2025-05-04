@@ -23,12 +23,17 @@ class _WelcomeScreenContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<WelcomeViewModel>();
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: isDarkMode ? AppColors.black : AppColors.white,
+        elevation: 0,
+      ),
       body: Stack(
         children: [
           // Animated Background
-          const AnimatedBackground(),
+          AnimatedBackground(isDarkMode: isDarkMode),
 
           // Content
           SafeArea(
@@ -53,13 +58,17 @@ class _WelcomeScreenContent extends StatelessWidget {
                         child: Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: AppColors.withOpacity(AppColors.white, 0.1),
+                            color: isDarkMode
+                                ? AppColors.withOpacity(AppColors.black, 0.1)
+                                : AppColors.withOpacity(AppColors.white, 0.1),
                             shape: BoxShape.circle,
                           ),
                           child: Icon(
                             Icons.restaurant_menu,
                             size: 80,
-                            color: AppColors.white,
+                            color: isDarkMode
+                                ? AppColors.green
+                                : AppColors.textPrimary,
                           ),
                         ),
                       ),
@@ -89,7 +98,9 @@ class _WelcomeScreenContent extends StatelessWidget {
                                   .textTheme
                                   .headlineMedium
                                   ?.copyWith(
-                                    color: AppColors.white,
+                                    color: isDarkMode
+                                        ? AppColors.white
+                                        : AppColors.textPrimary,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 32,
                                   ),
@@ -102,8 +113,11 @@ class _WelcomeScreenContent extends StatelessWidget {
                                   .textTheme
                                   .bodyLarge
                                   ?.copyWith(
-                                    color: AppColors.withOpacity(
-                                        AppColors.white, 0.9),
+                                    color: isDarkMode
+                                        ? AppColors.withOpacity(
+                                            AppColors.white, 0.9)
+                                        : AppColors.withOpacity(
+                                            AppColors.textPrimary, 0.9),
                                     fontSize: 18,
                                     height: 1.5,
                                   ),
@@ -132,8 +146,12 @@ class _WelcomeScreenContent extends StatelessWidget {
                                 ? null
                                 : viewModel.signInWithGoogle,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.white,
-                              foregroundColor: AppColors.textPrimary,
+                              backgroundColor: isDarkMode
+                                  ? AppColors.green
+                                  : AppColors.white,
+                              foregroundColor: isDarkMode
+                                  ? AppColors.white
+                                  : AppColors.textPrimary,
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 32, vertical: 16),
                               shape: RoundedRectangleBorder(
@@ -145,13 +163,15 @@ class _WelcomeScreenContent extends StatelessWidget {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 if (viewModel.isGoogleLoading)
-                                  const SizedBox(
+                                  SizedBox(
                                     width: 24,
                                     height: 24,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
                                       valueColor: AlwaysStoppedAnimation<Color>(
-                                          AppColors.textPrimary),
+                                          isDarkMode
+                                              ? AppColors.white
+                                              : AppColors.textPrimary),
                                     ),
                                   )
                                 else ...[
@@ -202,8 +222,11 @@ class _WelcomeScreenContent extends StatelessWidget {
                             child: Text(
                               'Continue as Guest',
                               style: TextStyle(
-                                color:
-                                    AppColors.withOpacity(AppColors.white, 0.9),
+                                color: isDarkMode
+                                    ? AppColors.withOpacity(
+                                        AppColors.white, 0.9)
+                                    : AppColors.withOpacity(
+                                        AppColors.textPrimary, 0.9),
                                 fontSize: 16,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -224,7 +247,8 @@ class _WelcomeScreenContent extends StatelessWidget {
 }
 
 class AnimatedBackground extends StatefulWidget {
-  const AnimatedBackground({super.key});
+  final bool isDarkMode;
+  const AnimatedBackground({super.key, required this.isDarkMode});
 
   @override
   State<AnimatedBackground> createState() => _AnimatedBackgroundState();
@@ -283,11 +307,7 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: AppColors.primaryGradient,
-        ),
+        color: widget.isDarkMode ? AppColors.black : AppColors.white,
       ),
       child: AnimatedBuilder(
         animation: _controller,
@@ -309,7 +329,9 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
                   child: Icon(
                     icon.icon,
                     size: icon.size,
-                    color: AppColors.withOpacity(AppColors.white, 0.3),
+                    color: widget.isDarkMode
+                        ? AppColors.withOpacity(AppColors.green, 0.3)
+                        : AppColors.withOpacity(AppColors.green, 0.3),
                   ),
                 ),
               );

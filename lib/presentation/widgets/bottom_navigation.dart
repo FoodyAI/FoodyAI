@@ -13,18 +13,19 @@ class BottomNavigation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.darkBackground,
-        border: const Border(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        border: Border(
           top: BorderSide(
-            color: AppColors.borderLight,
+            color: isDark ? AppColors.borderLight : Colors.grey.shade200,
             width: 0.5,
           ),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withOpacity(0.1),
             blurRadius: 10,
             offset: const Offset(0, -5),
           ),
@@ -36,15 +37,16 @@ class BottomNavigation extends StatelessWidget {
         elevation: 0,
         backgroundColor: Colors.transparent,
         selectedItemColor: AppColors.accent,
-        unselectedItemColor: AppColors.textSecondary,
+        unselectedItemColor:
+            isDark ? AppColors.textSecondary : Colors.grey.shade600,
         selectedLabelStyle: const TextStyle(
           fontWeight: FontWeight.w600,
           fontSize: 12,
         ),
-        unselectedLabelStyle: const TextStyle(
+        unselectedLabelStyle: TextStyle(
           fontWeight: FontWeight.w500,
           fontSize: 12,
-          color: AppColors.textSecondary,
+          color: isDark ? AppColors.textSecondary : Colors.grey.shade600,
         ),
         type: BottomNavigationBarType.fixed,
         items: [
