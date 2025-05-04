@@ -269,7 +269,6 @@ class FoodAnalysisCard extends StatelessWidget {
   }
 
   Widget _buildContent(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Stack(
       children: [
