@@ -71,13 +71,13 @@ class _CalorieTrackingCardState extends State<CalorieTrackingCard>
     // Determine status color based on calorie consumption
     Color statusColor;
     if (remainingCalories < 0) {
-      statusColor = AppColors.error;
+      statusColor = Colors.red; // Exceeded goal - Red for warning
     } else if (remainingCalories < widget.recommendedCalories * 0.2) {
-      statusColor = AppColors.orange;
+      statusColor = Colors.orange; // Very close to limit - Orange for caution
     } else if (remainingCalories < widget.recommendedCalories * 0.5) {
-      statusColor = AppColors.blue;
+      statusColor = Colors.amber; // Moderate consumption - Yellow for attention
     } else {
-      statusColor = AppColors.green;
+      statusColor = Colors.green; // Healthy consumption - Green for good
     }
 
     return Container(
@@ -124,12 +124,30 @@ class _CalorieTrackingCardState extends State<CalorieTrackingCard>
                   color: AppColors.withOpacity(statusColor, 0.2),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: Text(
-                  '${remainingCalories.toStringAsFixed(0)} left',
-                  style: TextStyle(
-                    color: statusColor,
-                    fontWeight: FontWeight.w600,
-                  ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (remainingCalories <= 0)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: Text(
+                          '🎉',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: statusColor,
+                          ),
+                        ),
+                      ),
+                    Text(
+                      remainingCalories <= 0
+                          ? 'Goal Achieved!'
+                          : '${remainingCalories.toStringAsFixed(0)} left',
+                      style: TextStyle(
+                        color: statusColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -146,25 +164,27 @@ class _CalorieTrackingCardState extends State<CalorieTrackingCard>
                 ),
               ),
               // Animated progress indicator
-              AnimatedBuilder(
-                animation: _progressAnimation,
-                builder: (context, child) {
-                  return Container(
-                    height: 12,
-                    width: MediaQuery.of(context).size.width *
-                        0.8 *
-                        _progressAnimation.value,
-                    decoration: BoxDecoration(
-                      color: statusColor,
-                      borderRadius: BorderRadius.circular(6),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.withOpacity(statusColor, 0.3),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  return AnimatedBuilder(
+                    animation: _progressAnimation,
+                    builder: (context, child) {
+                      return Container(
+                        height: 12,
+                        width: constraints.maxWidth * _progressAnimation.value,
+                        decoration: BoxDecoration(
+                          color: statusColor,
+                          borderRadius: BorderRadius.circular(6),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.withOpacity(statusColor, 0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                      );
+                    },
                   );
                 },
               ),
