@@ -1,18 +1,27 @@
 # 🍽️ Foody
 
+<div align="center">
 [![Flutter](https://img.shields.io/badge/Flutter-2.18.0+-02569B?style=for-the-badge&logo=flutter&logoColor=white)](https://flutter.dev)
 [![Dart](https://img.shields.io/badge/Dart-2.18.0+-0175C2?style=for-the-badge&logo=dart&logoColor=white)](https://dart.dev)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
-
-<div align="center">
-  <img src="assets/logo.png" alt="Foody Logo" width="200"/>
-  
-  *Your AI-powered food analysis companion*
+[![License](https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg?style=for-the-badge)](https://creativecommons.org/licenses/by-nc/4.0/)
 </div>
 
-## 📱 Overview
+<div align="center">
+  *Your AI-powered food analysis assistant*
+</div>
 
-Foody is a sophisticated Flutter application that combines image analysis with health metrics tracking. Built with modern architecture patterns and best practices, it provides users with an intuitive interface for managing their health-related data and food analysis.
+## �� Overview
+
+Foody is an intelligent food analysis and health tracking application built with Flutter. It leverages advanced AI technology to analyze food images and provide detailed nutritional information. The app helps users make informed dietary choices by:
+
+- 📸 Taking or selecting food photos for instant nutritional analysis
+- 🔍 Identifying food items and their nutritional content using AI
+- 📊 Tracking daily calorie intake and nutritional goals
+- 📈 Monitoring macronutrients (protein, carbs, fat)
+- ⭐ Providing health scores for food choices
+- 📱 Offering an intuitive, modern interface for health management
+
+Built with clean architecture and MVVM patterns, Foody ensures a robust, maintainable, and scalable codebase while delivering a seamless user experience.
 
 ## ✨ Features
 
@@ -94,7 +103,7 @@ We welcome contributions! Please follow these steps:
 
 ## 📝 License
 
-This project is licensed under the terms of the license included in the repository.
+This project is licensed under the [Creative Commons Attribution-NonCommercial 4.0 International License](https://creativecommons.org/licenses/by-nc/4.0/).
 
 ## 📞 Contact
 
