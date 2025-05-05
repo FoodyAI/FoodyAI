@@ -1,90 +1,68 @@
-# 🍽️ Foody AI App
+# Foody App
 
-A Flutter application that uses AI to analyze food images and provide health metrics insights.
+A modern food delivery and restaurant management application.
 
-## 🌟 Features
+## Description
 
-- 📸 Image Analysis: Upload and analyze food images using AI
-- 📊 Health Metrics: Track and visualize your health data
-- 🎯 User Profiles: Personalized user experience
-- 📱 Cross-Platform: Works on iOS, Android, and Web
-- 🎨 Modern UI: Beautiful and intuitive interface
+Foody App is a comprehensive solution for food delivery and restaurant management. It provides features for both customers and restaurant owners to manage orders, menus, and deliveries efficiently.
 
-## 🚀 Getting Started
+## Features
+
+- User authentication and authorization
+- Restaurant management
+- Menu management
+- Order tracking
+- Delivery management
+- Real-time updates
+- Responsive design
+
+## Getting Started
 
 ### Prerequisites
 
-- Flutter SDK (>=2.18.0)
-- Dart SDK (>=2.18.0)
-- Android Studio / Xcode (for mobile development)
-- VS Code (recommended for development)
+- Node.js (v14 or higher)
+- npm or yarn
+- MongoDB
 
 ### Installation
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/mohammadaminrez/foody.git
+git clone https://github.com/yourusername/foody.git
 ```
 
-2. Navigate to the project directory:
+2. Install dependencies:
 ```bash
 cd foody
+npm install
 ```
 
-3. Install dependencies:
+3. Set up environment variables:
 ```bash
-flutter pub get
+cp .env.example .env
 ```
 
-4. Create a `.env` file in the root directory and add your API keys:
-```
-OPENAI_API_KEY=your_api_key_here
-```
-
-5. Run the app:
+4. Start the development server:
 ```bash
-flutter run
+npm run dev
 ```
 
-## 🛠️ Built With
+## Usage
 
-- [Flutter](https://flutter.dev/) - UI Framework
-- [Provider](https://pub.dev/packages/provider) - State Management
-- [Get It](https://pub.dev/packages/get_it) - Dependency Injection
-- [Flutter Dotenv](https://pub.dev/packages/flutter_dotenv) - Environment Variables
-- [Fl Chart](https://pub.dev/packages/fl_chart) - Data Visualization
-- [Image Picker](https://pub.dev/packages/image_picker) - Image Selection
-- [Google Fonts](https://pub.dev/packages/google_fonts) - Typography
+[Add specific usage instructions and examples here]
 
-## 📱 Screenshots
-
-Comming Soon ...
-
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
-1. Fork the project
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+## License
 
-## 📄 License
+This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details.
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+## Contact
 
-## 👥 Authors
+[Add your contact information here]
 
-- **Amin Rezaei Sepehr** - *Initial work* - [mohammadaminrez](https://github.com/mohammadaminrez)
+## Acknowledgments
 
-## 🙏 Acknowledgments
-
-- Thanks to all contributors who have helped shape this project
-- Special thanks to the Flutter community for their amazing tools and resources
-
-## 📞 Contact
-
-Amin Rezaei Sepehr - [mohammadaminrez@gmail.com](mailto:mohammadaminrez@gmail.com)
-
-Project Link: [https://github.com/mohammadaminrez/foody](https://github.com/mohammadaminrez/foody)
+- [List any acknowledgments or credits here]
