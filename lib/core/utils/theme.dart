@@ -30,14 +30,14 @@ class AppTheme {
     colorScheme: lightColorScheme,
     useMaterial3: true,
     textTheme: GoogleFonts.interTextTheme(),
-    appBarTheme: AppBarTheme(
+    appBarTheme: const AppBarTheme(
       backgroundColor: AppColors.primary,
       foregroundColor: AppColors.white,
       elevation: 0,
       centerTitle: true,
-      iconTheme: const IconThemeData(color: AppColors.white),
+      iconTheme: IconThemeData(color: AppColors.white),
     ),
-    cardTheme: CardTheme(
+    cardTheme: const CardTheme(
       color: AppColors.surface,
       elevation: 2,
     ),
@@ -52,14 +52,14 @@ class AppTheme {
     textTheme: GoogleFonts.interTextTheme(
       ThemeData(brightness: Brightness.dark).textTheme,
     ),
-    appBarTheme: AppBarTheme(
+    appBarTheme: const AppBarTheme(
       backgroundColor: AppColors.black,
       foregroundColor: AppColors.white,
       elevation: 0,
       centerTitle: true,
-      iconTheme: const IconThemeData(color: AppColors.white),
+      iconTheme: IconThemeData(color: AppColors.white),
     ),
-    cardTheme: CardTheme(
+    cardTheme: const CardTheme(
       color: AppColors.darkCardBackground,
       elevation: 2,
     ),
@@ -67,12 +67,12 @@ class AppTheme {
       color: AppColors.darkDivider,
     ),
     scaffoldBackgroundColor: AppColors.darkBackground,
-    bottomNavigationBarTheme: BottomNavigationBarThemeData(
+    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
       backgroundColor: AppColors.darkSurface,
       selectedItemColor: AppColors.primary,
       unselectedItemColor: AppColors.darkTextSecondary,
     ),
-    dialogTheme: DialogTheme(
+    dialogTheme: const DialogTheme(
       backgroundColor: AppColors.darkSurface,
       titleTextStyle: TextStyle(
         color: AppColors.darkTextPrimary,

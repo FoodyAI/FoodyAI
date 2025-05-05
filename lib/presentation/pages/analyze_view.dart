@@ -7,12 +7,12 @@ class AnalyzeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: const CustomAppBar(
+    return const Scaffold(
+      appBar: CustomAppBar(
         title: 'Health Analysis',
         icon: Icons.analytics,
       ),
-      body: const HealthAnalysisContent(),
+      body: HealthAnalysisContent(),
     );
   }
 }

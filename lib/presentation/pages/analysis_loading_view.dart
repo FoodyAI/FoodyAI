@@ -148,7 +148,7 @@ class _AnalysisLoadingViewState extends State<AnalysisLoadingView>
                                   color: AppColors.primary.withOpacity(0.1),
                                   shape: BoxShape.circle,
                                 ),
-                                child: Center(
+                                child: const Center(
                                   child: Icon(
                                     Icons.analytics,
                                     size: 60,
@@ -157,7 +157,7 @@ class _AnalysisLoadingViewState extends State<AnalysisLoadingView>
                                 ),
                               ),
                               const SizedBox(height: 24),
-                              Text(
+                              const Text(
                                 'Analyzing your data...',
                                 style: TextStyle(
                                   fontSize: 20,

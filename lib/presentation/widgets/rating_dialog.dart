@@ -119,7 +119,7 @@ class _RatingDialogState extends State<RatingDialog>
                   color: AppColors.withOpacity(AppColors.primary, 0.1),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.favorite,
                   size: 48,
                   color: AppColors.primary,
@@ -139,7 +139,7 @@ class _RatingDialogState extends State<RatingDialog>
                 _hasRated
                     ? 'We appreciate your feedback!'
                     : 'Your feedback helps us improve',
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 16,
                   color: AppColors.grey600,
                 ),
@@ -213,7 +213,7 @@ class _RatingDialogState extends State<RatingDialog>
                         viewModel.handleMaybeLater();
                         Navigator.of(context).pop();
                       },
-                      child: Text(
+                      child: const Text(
                         'Maybe Later',
                         style: TextStyle(
                           color: AppColors.grey600,
@@ -224,7 +224,7 @@ class _RatingDialogState extends State<RatingDialog>
                     const SizedBox(width: 24),
                     TextButton(
                       onPressed: _dontAskAgain,
-                      child: Text(
+                      child: const Text(
                         'Don\'t Ask Again',
                         style: TextStyle(
                           color: AppColors.grey500,

@@ -4,7 +4,7 @@ import '../../core/constants/app_colors.dart';
 class AppTheme {
   static ThemeData get lightTheme {
     return ThemeData(
-      primarySwatch: MaterialColor(AppColors.primary.value, {
+      primarySwatch: MaterialColor(AppColors.primary.value, const {
         50: AppColors.primaryLight,
         100: AppColors.primaryLight,
         200: AppColors.primaryLight,
@@ -23,7 +23,7 @@ class AppTheme {
 
   static ThemeData get darkTheme {
     return ThemeData(
-      primarySwatch: MaterialColor(AppColors.primary.value, {
+      primarySwatch: MaterialColor(AppColors.primary.value, const {
         50: AppColors.primaryLight,
         100: AppColors.primaryLight,
         200: AppColors.primaryLight,

@@ -112,7 +112,7 @@ class _CalorieTrackingCardState extends State<CalorieTrackingCard>
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.onBackground,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
               ),
               Container(

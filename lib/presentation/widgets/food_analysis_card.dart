@@ -155,7 +155,7 @@ class FoodAnalysisCard extends StatelessWidget {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(
+                                const Icon(
                                   Icons.local_fire_department,
                                   size: 16,
                                   color: AppColors.orange,
@@ -163,7 +163,7 @@ class FoodAnalysisCard extends StatelessWidget {
                                 const SizedBox(width: 4),
                                 Text(
                                   '${analysis.calories.toStringAsFixed(1)} cal',
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     color: AppColors.orange,
                                     fontWeight: FontWeight.w600,
                                     fontSize: 14,
@@ -545,7 +545,7 @@ class FoodAnalysisCard extends StatelessWidget {
                                       style: TextStyle(
                                         color: Theme.of(context)
                                             .colorScheme
-                                            .onBackground
+                                            .onSurface
                                             .withOpacity(0.7),
                                         fontSize: 14,
                                       ),

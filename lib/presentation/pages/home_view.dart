@@ -295,7 +295,7 @@ class _HomeContent extends StatelessWidget {
                       }).toList(),
                     ] else if (!vm.isLoading) ...[
                       const SizedBox(height: 32),
-                      Center(
+                      const Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -304,7 +304,7 @@ class _HomeContent extends StatelessWidget {
                               size: 64,
                               color: AppColors.grey400,
                             ),
-                            const SizedBox(height: 16),
+                            SizedBox(height: 16),
                             Text(
                               'No food added yet',
                               style: TextStyle(
@@ -313,7 +313,7 @@ class _HomeContent extends StatelessWidget {
                                 color: AppColors.grey600,
                               ),
                             ),
-                            const SizedBox(height: 8),
+                            SizedBox(height: 8),
                             Text(
                               'Tap the + button to add your first meal',
                               style: TextStyle(

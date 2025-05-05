@@ -226,7 +226,7 @@ class _OnboardingViewState extends State<OnboardingView> {
             ),
           ),
           const SizedBox(height: 8),
-          Text(
+          const Text(
             'This helps us calculate your daily calorie needs',
             style: TextStyle(
               fontSize: 16,
@@ -310,7 +310,7 @@ class _OnboardingViewState extends State<OnboardingView> {
             ),
           ),
           const SizedBox(height: 8),
-          Text(
+          const Text(
             'Let\'s get to know your body better',
             style: TextStyle(
               fontSize: 16,
@@ -557,7 +557,7 @@ class _OnboardingViewState extends State<OnboardingView> {
             ),
           ),
           const SizedBox(height: 8),
-          Text(
+          const Text(
             'How active are you in your daily life?',
             style: TextStyle(
               fontSize: 16,
@@ -613,7 +613,7 @@ class _OnboardingViewState extends State<OnboardingView> {
                   ),
                   Text(
                     _getActivityDescription(level),
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 14,
                       color: AppColors.grey600,
                     ),
@@ -622,7 +622,7 @@ class _OnboardingViewState extends State<OnboardingView> {
               ),
             ),
             if (isSelected)
-              Icon(
+              const Icon(
                 Icons.check_circle,
                 color: AppColors.primary,
               ),
@@ -661,7 +661,7 @@ class _OnboardingViewState extends State<OnboardingView> {
             ),
           ),
           const SizedBox(height: 8),
-          Text(
+          const Text(
             'Review your information before submitting',
             style: TextStyle(
               fontSize: 16,
@@ -734,7 +734,7 @@ class _OnboardingViewState extends State<OnboardingView> {
         children: [
           Text(
             label,
-            style: TextStyle(
+            style: const TextStyle(
               color: AppColors.grey600,
             ),
           ),
