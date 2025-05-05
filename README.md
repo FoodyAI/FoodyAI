@@ -1,13 +1,15 @@
 # 🍽️ Foody
 
+<div align="center">
 
 [![Flutter](https://img.shields.io/badge/Flutter-2.18.0+-02569B?style=for-the-badge&logo=flutter&logoColor=white)](https://flutter.dev)
 [![Dart](https://img.shields.io/badge/Dart-2.18.0+-0175C2?style=for-the-badge&logo=dart&logoColor=white)](https://dart.dev)
 [![License](https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg?style=for-the-badge)](https://creativecommons.org/licenses/by-nc/4.0/)
 
+</div>
 
 <div align="center">
-*Your AI-powered food analysis assistant*
+Your AI-powered food analysis assistant
 </div>
 
 ##  Overview
@@ -52,7 +54,7 @@ Built with clean architecture and MVVM patterns, Foody ensures a robust, maintai
 
 1. **Clone the repository**
    ```bash
-   git clone [repository-url]
+   git clone https://github.com/mohammadaminrez/foody.git
    cd foody
    ```
 
@@ -62,8 +64,14 @@ Built with clean architecture and MVVM patterns, Foody ensures a robust, maintai
    ```
 
 3. **Configure environment**
-   - Create `.env` file in root directory
-   - Add required environment variables
+   - Create `.env` file in root directory with the following:
+     ```env
+     OPENAI_API_KEY=your_openai_api_key
+     ```
+   - Get your API key from [OpenAI Platform](https://platform.openai.com/api-keys)
+   - Replace `your_openai_api_key` with your actual OpenAI API key
+   - Never share or commit your API key to version control
+   - Keep your API key secure and private
 
 4. **Run the app**
    ```bash
