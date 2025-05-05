@@ -1,16 +1,16 @@
 # 🍽️ Foody
 
-<div align="center">
+<center>
 [![Flutter](https://img.shields.io/badge/Flutter-2.18.0+-02569B?style=for-the-badge&logo=flutter&logoColor=white)](https://flutter.dev)
 [![Dart](https://img.shields.io/badge/Dart-2.18.0+-0175C2?style=for-the-badge&logo=dart&logoColor=white)](https://dart.dev)
 [![License](https://img.shields.io/badge/License-CC%20BY--NC%204.0-lightgrey.svg?style=for-the-badge)](https://creativecommons.org/licenses/by-nc/4.0/)
-</div>
+</center>
 
 <div align="center">
-  *Your AI-powered food analysis assistant*
+*Your AI-powered food analysis assistant*
 </div>
 
-## �� Overview
+##  Overview
 
 Foody is an intelligent food analysis and health tracking application built with Flutter. It leverages advanced AI technology to analyze food images and provide detailed nutritional information. The app helps users make informed dietary choices by:
 
