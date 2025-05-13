@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../core/theme/app_colors.dart';
+import '../../core/constants/app_colors.dart';
 
 class BottomNavigation extends StatelessWidget {
   final int currentIndex;
@@ -19,7 +19,7 @@ class BottomNavigation extends StatelessWidget {
         color: Theme.of(context).scaffoldBackgroundColor,
         border: Border(
           top: BorderSide(
-            color: isDark ? AppColors.borderLight : Colors.grey.shade200,
+            color: isDark ? AppColors.darkDivider : Colors.grey.shade200,
             width: 0.5,
           ),
         ),
@@ -36,7 +36,7 @@ class BottomNavigation extends StatelessWidget {
         onTap: onTap,
         elevation: 0,
         backgroundColor: Colors.transparent,
-        selectedItemColor: AppColors.accent,
+        selectedItemColor: AppColors.primary,
         unselectedItemColor:
             isDark ? AppColors.textSecondary : Colors.grey.shade600,
         selectedLabelStyle: const TextStyle(
@@ -55,7 +55,7 @@ class BottomNavigation extends StatelessWidget {
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: currentIndex == 0
-                    ? AppColors.accent.withOpacity(0.1)
+                    ? AppColors.primary.withOpacity(0.1)
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -68,7 +68,7 @@ class BottomNavigation extends StatelessWidget {
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: currentIndex == 1
-                    ? AppColors.accent.withOpacity(0.1)
+                    ? AppColors.primary.withOpacity(0.1)
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -81,7 +81,7 @@ class BottomNavigation extends StatelessWidget {
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: currentIndex == 2
-                    ? AppColors.accent.withOpacity(0.1)
+                    ? AppColors.primary.withOpacity(0.1)
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(12),
               ),

@@ -46,6 +46,7 @@ class UserProfileViewModel extends ChangeNotifier {
     required String heightUnit,
     required ActivityLevel activityLevel,
     required bool isMetric,
+    WeightGoal? weightGoal,
   }) async {
     _isMetric = isMetric;
     final weightKg = weightUnit == 'lbs' ? weight * 0.453592 : weight;
@@ -57,6 +58,7 @@ class UserProfileViewModel extends ChangeNotifier {
       weightKg: weightKg,
       heightCm: heightCm,
       activityLevel: activityLevel,
+      weightGoal: weightGoal ?? _profile?.weightGoal ?? WeightGoal.maintain,
     );
 
     await _useCase.saveProfile(_profile!, isMetric);

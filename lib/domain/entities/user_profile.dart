@@ -21,12 +21,41 @@ enum ActivityLevel {
   }
 }
 
+enum WeightGoal {
+  lose,
+  maintain,
+  gain;
+
+  String get displayName {
+    switch (this) {
+      case WeightGoal.lose:
+        return 'Lose Weight';
+      case WeightGoal.maintain:
+        return 'Maintain Weight';
+      case WeightGoal.gain:
+        return 'Gain Weight';
+    }
+  }
+
+  double get calorieAdjustment {
+    switch (this) {
+      case WeightGoal.lose:
+        return -500.0; // 500 calorie deficit
+      case WeightGoal.maintain:
+        return 0.0;
+      case WeightGoal.gain:
+        return 500.0; // 500 calorie surplus
+    }
+  }
+}
+
 class UserProfile {
   final String gender;
   final int age;
   final double weightKg;
   final double heightCm;
   final ActivityLevel activityLevel;
+  final WeightGoal weightGoal;
 
   UserProfile({
     required this.gender,
@@ -34,6 +63,7 @@ class UserProfile {
     required this.weightKg,
     required this.heightCm,
     required this.activityLevel,
+    this.weightGoal = WeightGoal.maintain,
   });
 
   double get bmi => weightKg / ((heightCm / 100) * (heightCm / 100));
@@ -43,17 +73,25 @@ class UserProfile {
         ? 10 * weightKg + 6.25 * heightCm - 5 * age + 5
         : 10 * weightKg + 6.25 * heightCm - 5 * age - 161;
 
+    double tdee;
     switch (activityLevel) {
       case ActivityLevel.sedentary:
-        return bmr * 1.2;
+        tdee = bmr * 1.2;
+        break;
       case ActivityLevel.lightlyActive:
-        return bmr * 1.375;
+        tdee = bmr * 1.375;
+        break;
       case ActivityLevel.moderatelyActive:
-        return bmr * 1.55;
+        tdee = bmr * 1.55;
+        break;
       case ActivityLevel.veryActive:
-        return bmr * 1.725;
+        tdee = bmr * 1.725;
+        break;
       case ActivityLevel.extraActive:
-        return bmr * 1.9;
+        tdee = bmr * 1.9;
+        break;
     }
+
+    return tdee + weightGoal.calorieAdjustment;
   }
 }

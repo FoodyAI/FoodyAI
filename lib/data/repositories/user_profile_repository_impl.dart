@@ -20,6 +20,9 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
       final heightCm = prefs.getDouble('heightCm')!;
       final activityLevelIndex = prefs.getInt('activityLevel')!;
       final activityLevel = ActivityLevel.values[activityLevelIndex];
+      final weightGoalIndex =
+          prefs.getInt('weightGoal') ?? WeightGoal.maintain.index;
+      final weightGoal = WeightGoal.values[weightGoalIndex];
 
       return UserProfile(
         gender: gender,
@@ -27,6 +30,7 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
         weightKg: weightKg,
         heightCm: heightCm,
         activityLevel: activityLevel,
+        weightGoal: weightGoal,
       );
     }
     return null;
@@ -42,6 +46,7 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
       prefs.setDouble('weightKg', profile.weightKg),
       prefs.setDouble('heightCm', profile.heightCm),
       prefs.setInt('activityLevel', profile.activityLevel.index),
+      prefs.setInt('weightGoal', profile.weightGoal.index),
     ]);
   }
 
@@ -55,6 +60,7 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
       prefs.remove('weightKg'),
       prefs.remove('heightCm'),
       prefs.remove('activityLevel'),
+      prefs.remove('weightGoal'),
       prefs.remove('hasCompletedOnboarding'),
     ]);
   }

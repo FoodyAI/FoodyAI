@@ -5,16 +5,35 @@ import '../viewmodels/theme_viewmodel.dart';
 import '../../domain/entities/user_profile.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/profile_inputs.dart';
-import '../../../core/constants/app_colors.dart';
+import '../../core/constants/app_colors.dart';
 
-class ProfileView extends StatelessWidget {
+class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
+
+  @override
+  State<ProfileView> createState() => _ProfileViewState();
+}
+
+class _ProfileViewState extends State<ProfileView>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 4, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final profileVM = Provider.of<UserProfileViewModel>(context);
     final profile = profileVM.profile!;
-
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -22,273 +41,546 @@ class ProfileView extends StatelessWidget {
         title: 'Profile',
         icon: Icons.person,
       ),
-      body: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(
+      body: Column(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.darkBackground
+                  : colorScheme.surface,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: TabBar(
+              controller: _tabController,
+              labelColor: colorScheme.primary,
+              unselectedLabelColor: colorScheme.onSurface.withOpacity(0.6),
+              indicatorColor: colorScheme.primary,
+              tabs: const [
+                Tab(
+                  icon: Icon(Icons.person),
+                  text: 'Personal',
+                ),
+                Tab(
+                  icon: Icon(Icons.fitness_center),
+                  text: 'Activity',
+                ),
+                Tab(
+                  icon: Icon(Icons.track_changes),
+                  text: 'Goals',
+                ),
+                Tab(
+                  icon: Icon(Icons.settings),
+                  text: 'Settings',
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildPersonalTab(context, profileVM, profile),
+                _buildActivityTab(context, profileVM, profile),
+                _buildGoalsTab(context, profileVM, profile),
+                _buildSettingsTab(context),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPersonalTab(BuildContext context, UserProfileViewModel profileVM,
+      UserProfile profile) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          Card(
+            elevation: 4,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
             child: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Measurement Units',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurface,
+                    ),
+                  ),
+                  UnitSwitchButton(
+                    isMetric: profileVM.isMetric,
+                    onChanged: (value) {
+                      final newWeight = value
+                          ? profileVM.displayWeight * 0.453592
+                          : profileVM.displayWeight * 2.20462;
+                      final newHeight = value
+                          ? profileVM.displayHeight * 2.54
+                          : profileVM.displayHeight / 2.54;
+                      profileVM.saveProfile(
+                        gender: profileVM.profile!.gender,
+                        age: profileVM.profile!.age,
+                        weight: newWeight,
+                        weightUnit: value ? 'kg' : 'lbs',
+                        height: newHeight,
+                        heightUnit: value ? 'cm' : 'inch',
+                        activityLevel: profileVM.profile!.activityLevel,
+                        isMetric: value,
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          GridView.count(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisCount: 2,
+            mainAxisSpacing: 16,
+            crossAxisSpacing: 16,
+            childAspectRatio: 1.5,
+            children: [
+              _buildInfoCard(
+                context,
+                Icons.person,
+                'Gender',
+                profile.gender,
+                colorScheme.primary,
+                () => _showGenderDialog(context, profileVM),
+              ),
+              _buildInfoCard(
+                context,
+                Icons.cake,
+                'Age',
+                '${profile.age} years',
+                colorScheme.secondary,
+                () => _showAgeDialog(context, profileVM),
+              ),
+              _buildInfoCard(
+                context,
+                Icons.monitor_weight,
+                'Weight',
+                '${profileVM.displayWeight.toStringAsFixed(1)} ${profileVM.weightUnit}',
+                colorScheme.tertiary,
+                () => _showWeightDialog(context, profileVM),
+              ),
+              _buildInfoCard(
+                context,
+                Icons.height,
+                'Height',
+                profileVM.isMetric
+                    ? '${profileVM.displayHeight.toStringAsFixed(1)} cm'
+                    : '${(profileVM.displayHeight / 12).floor()}′${(profileVM.displayHeight % 12).round()}″',
+                colorScheme.error,
+                () => _showHeightDialog(context, profileVM),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoCard(
+    BuildContext context,
+    IconData icon,
+    String title,
+    String value,
+    Color color,
+    VoidCallback onTap,
+  ) {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                color.withOpacity(0.1),
+                color.withOpacity(0.05),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                color: color,
+                size: 32,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: color,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                value,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: color.withOpacity(0.7),
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActivityTab(BuildContext context, UserProfileViewModel profileVM,
+      UserProfile profile) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          Card(
+            elevation: 4,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Personal Info Card
-                  Card(
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                  Text(
+                    'Activity Level',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurface,
                     ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'How active are you in your daily life?',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: colorScheme.onSurface.withOpacity(0.7),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  ...ActivityLevel.values.map((level) {
+                    final isSelected = profile.activityLevel == level;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: InkWell(
+                        onTap: () {
+                          profileVM.saveProfile(
+                            gender: profile.gender,
+                            age: profile.age,
+                            weight: profileVM.displayWeight,
+                            weightUnit: profileVM.weightUnit,
+                            height: profileVM.displayHeight,
+                            heightUnit: profileVM.heightUnit,
+                            activityLevel: level,
+                            isMetric: profileVM.isMetric,
+                            weightGoal: profile.weightGoal,
+                          );
+                        },
+                        borderRadius: BorderRadius.circular(12),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? colorScheme.primary.withOpacity(0.1)
+                                : colorScheme.surface,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: isSelected
+                                  ? colorScheme.primary
+                                  : colorScheme.outline.withOpacity(0.5),
+                              width: 2,
+                            ),
+                          ),
+                          child: Row(
                             children: [
-                              Text(
-                                'Personal Information',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: colorScheme.onSurface,
+                              Icon(
+                                _getActivityIcon(level),
+                                color: isSelected
+                                    ? colorScheme.primary
+                                    : colorScheme.onSurface,
+                                size: 32,
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      level.displayName,
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: isSelected
+                                            ? colorScheme.primary
+                                            : colorScheme.onSurface,
+                                      ),
+                                    ),
+                                    Text(
+                                      _getActivityDescription(level),
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: colorScheme.onSurface
+                                            .withOpacity(0.7),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              UnitSwitchButton(
-                                isMetric: profileVM.isMetric,
-                                onChanged: (value) {
-                                  final newWeight = value
-                                      ? profileVM.displayWeight *
-                                          0.453592 // lbs to kg
-                                      : profileVM.displayWeight *
-                                          2.20462; // kg to lbs
-                                  final newHeight = value
-                                      ? profileVM.displayHeight *
-                                          2.54 // inches to cm
-                                      : profileVM.displayHeight /
-                                          2.54; // cm to inches
-                                  profileVM.saveProfile(
-                                    gender: profileVM.profile!.gender,
-                                    age: profileVM.profile!.age,
-                                    weight: newWeight,
-                                    weightUnit: value ? 'kg' : 'lbs',
-                                    height: newHeight,
-                                    heightUnit: value ? 'cm' : 'inch',
-                                    activityLevel:
-                                        profileVM.profile!.activityLevel,
-                                    isMetric: value,
-                                  );
-                                },
-                              ),
+                              if (isSelected)
+                                Icon(
+                                  Icons.check_circle,
+                                  color: colorScheme.primary,
+                                ),
                             ],
                           ),
-                          const SizedBox(height: 16),
-                          _buildInfoRow(
-                            context,
-                            Icons.person,
-                            'Gender',
-                            profile.gender,
-                            onEdit: () => _showGenderDialog(context, profileVM),
-                          ),
-                          _buildInfoRow(
-                            context,
-                            Icons.cake,
-                            'Age',
-                            '${profile.age} years',
-                            onEdit: () => _showAgeDialog(context, profileVM),
-                          ),
-                          _buildInfoRow(
-                            context,
-                            Icons.monitor_weight,
-                            'Weight',
-                            '${profileVM.displayWeight.toStringAsFixed(1)} ${profileVM.weightUnit}',
-                            onEdit: () => _showWeightDialog(context, profileVM),
-                          ),
-                          _buildInfoRow(
-                            context,
-                            Icons.height,
-                            'Height',
-                            profileVM.isMetric
-                                ? '${profileVM.displayHeight.toStringAsFixed(1)} cm'
-                                : '${(profileVM.displayHeight / 12).floor()}′${(profileVM.displayHeight % 12).round()}″',
-                            onEdit: () => _showHeightDialog(context, profileVM),
-                          ),
-                        ],
+                        ),
                       ),
+                    );
+                  }).toList(),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGoalsTab(BuildContext context, UserProfileViewModel profileVM,
+      UserProfile profile) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          Card(
+            elevation: 4,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Weight Goal',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurface,
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  // Activity Level Card
-                  Card(
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                  const SizedBox(height: 8),
+                  Text(
+                    'What would you like to achieve?',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: colorScheme.onSurface.withOpacity(0.7),
                     ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Activity Level',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: colorScheme.onSurface,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          InkWell(
-                            onTap: () =>
-                                _showActivityLevelDialog(context, profileVM),
+                  ),
+                  const SizedBox(height: 32),
+                  ...WeightGoal.values.map((goal) {
+                    final isSelected = profile.weightGoal == goal;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: InkWell(
+                        onTap: () {
+                          profileVM.saveProfile(
+                            gender: profile.gender,
+                            age: profile.age,
+                            weight: profileVM.displayWeight,
+                            weightUnit: profileVM.weightUnit,
+                            height: profileVM.displayHeight,
+                            heightUnit: profileVM.heightUnit,
+                            activityLevel: profile.activityLevel,
+                            isMetric: profileVM.isMetric,
+                            weightGoal: goal,
+                          );
+                        },
+                        borderRadius: BorderRadius.circular(12),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? colorScheme.primary.withOpacity(0.1)
+                                : colorScheme.surface,
                             borderRadius: BorderRadius.circular(12),
-                            child: Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: AppColors.withOpacity(
-                                    colorScheme.primary, 0.1),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.directions_run,
-                                    color: colorScheme.primary,
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'Activity Level',
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w500,
-                                            color: colorScheme.onSurface,
-                                          ),
-                                        ),
-                                        Text(
-                                          profile.activityLevel.displayName,
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            color: colorScheme.onSurface
-                                                .withOpacity(0.7),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Icon(
-                                    Icons.edit,
-                                    color: colorScheme.primary,
-                                  ),
-                                ],
-                              ),
+                            border: Border.all(
+                              color: isSelected
+                                  ? colorScheme.primary
+                                  : colorScheme.outline.withOpacity(0.5),
+                              width: 2,
                             ),
                           ),
-                        ],
+                          child: Row(
+                            children: [
+                              Icon(
+                                _getWeightGoalIcon(goal),
+                                color: isSelected
+                                    ? colorScheme.primary
+                                    : colorScheme.onSurface,
+                                size: 32,
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      goal.displayName,
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: isSelected
+                                            ? colorScheme.primary
+                                            : colorScheme.onSurface,
+                                      ),
+                                    ),
+                                    Text(
+                                      _getWeightGoalDescription(goal),
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: colorScheme.onSurface
+                                            .withOpacity(0.7),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              if (isSelected)
+                                Icon(
+                                  Icons.check_circle,
+                                  color: colorScheme.primary,
+                                ),
+                            ],
+                          ),
+                        ),
                       ),
+                    );
+                  }).toList(),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSettingsTab(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          Card(
+            elevation: 4,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Appearance',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurface,
                     ),
                   ),
-                  const SizedBox(height: 16),
-                  // Theme Selection Card
-                  Card(
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Customize your app experience',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: colorScheme.onSurface.withOpacity(0.7),
                     ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                  ),
+                  const SizedBox(height: 32),
+                  Consumer<ThemeViewModel>(
+                    builder: (context, themeVM, _) {
+                      return Column(
                         children: [
-                          Text(
-                            'Appearance',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: colorScheme.onSurface,
-                            ),
+                          _buildThemeOption(
+                            context,
+                            Icons.light_mode,
+                            'Light Theme',
+                            'Use light colors',
+                            themeVM.themeMode == ThemeMode.light,
+                            () {
+                              themeVM.setThemeMode(ThemeMode.light);
+                            },
                           ),
                           const SizedBox(height: 16),
-                          Consumer<ThemeViewModel>(
-                            builder: (context, themeVM, _) {
-                              final isDark = Theme.of(context).brightness ==
-                                  Brightness.dark;
-                              String themeText;
-                              IconData themeIcon;
-
-                              switch (themeVM.themeMode) {
-                                case ThemeMode.light:
-                                  themeText = 'Light';
-                                  themeIcon = Icons.light_mode;
-                                  break;
-                                case ThemeMode.dark:
-                                  themeText = 'Dark';
-                                  themeIcon = Icons.dark_mode;
-                                  break;
-                                case ThemeMode.system:
-                                  themeText = 'System';
-                                  themeIcon = isDark
-                                      ? Icons.dark_mode
-                                      : Icons.light_mode;
-                                  break;
-                              }
-
-                              return InkWell(
-                                onTap: () => _showThemeDialog(context),
-                                borderRadius: BorderRadius.circular(12),
-                                child: Container(
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.withOpacity(
-                                        colorScheme.primary, 0.1),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        themeIcon,
-                                        color: colorScheme.primary,
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(
-                                              'Theme',
-                                              style: TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.w500,
-                                                color: colorScheme.onSurface,
-                                              ),
-                                            ),
-                                            Text(
-                                              themeText,
-                                              style: TextStyle(
-                                                fontSize: 14,
-                                                color: colorScheme.onSurface
-                                                    .withOpacity(0.7),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      Icon(
-                                        Icons.edit,
-                                        color: colorScheme.primary,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
+                          _buildThemeOption(
+                            context,
+                            Icons.dark_mode,
+                            'Dark Theme',
+                            'Use dark colors',
+                            themeVM.themeMode == ThemeMode.dark,
+                            () {
+                              themeVM.setThemeMode(ThemeMode.dark);
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          _buildThemeOption(
+                            context,
+                            Icons.brightness_auto,
+                            'System Theme',
+                            'Follow system settings',
+                            themeVM.themeMode == ThemeMode.system,
+                            () {
+                              themeVM.setThemeMode(ThemeMode.system);
                             },
                           ),
                         ],
-                      ),
-                    ),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -299,64 +591,116 @@ class ProfileView extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoRow(
+  Widget _buildThemeOption(
     BuildContext context,
     IconData icon,
-    String label,
-    String value, {
-    required VoidCallback onEdit,
-  }) {
+    String title,
+    String subtitle,
+    bool isSelected,
+    VoidCallback onTap,
+  ) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: InkWell(
-        onTap: onEdit,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: AppColors.withOpacity(colorScheme.primary, 0.1),
-            borderRadius: BorderRadius.circular(12),
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? colorScheme.primary.withOpacity(0.1)
+              : colorScheme.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected
+                ? colorScheme.primary
+                : colorScheme.outline.withOpacity(0.5),
+            width: 2,
           ),
-          child: Row(
-            children: [
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              color: isSelected ? colorScheme.primary : colorScheme.onSurface,
+              size: 32,
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: isSelected
+                          ? colorScheme.primary
+                          : colorScheme.onSurface,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: colorScheme.onSurface.withOpacity(0.7),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (isSelected)
               Icon(
-                icon,
+                Icons.check_circle,
                 color: colorScheme.primary,
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      label,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: colorScheme.onSurface,
-                      ),
-                    ),
-                    Text(
-                      value,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: colorScheme.onSurface.withOpacity(0.7),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Icon(
-                Icons.edit,
-                color: colorScheme.primary,
-              ),
-            ],
-          ),
+          ],
         ),
       ),
     );
+  }
+
+  IconData _getActivityIcon(ActivityLevel level) {
+    switch (level) {
+      case ActivityLevel.sedentary:
+        return Icons.weekend;
+      case ActivityLevel.lightlyActive:
+        return Icons.directions_walk;
+      case ActivityLevel.moderatelyActive:
+        return Icons.directions_run;
+      case ActivityLevel.veryActive:
+        return Icons.fitness_center;
+      case ActivityLevel.extraActive:
+        return Icons.sports_gymnastics;
+    }
+  }
+
+  String _getActivityDescription(ActivityLevel level) {
+    switch (level) {
+      case ActivityLevel.sedentary:
+        return 'Little or no exercise';
+      case ActivityLevel.lightlyActive:
+        return 'Light exercise 1-3 days/week';
+      case ActivityLevel.moderatelyActive:
+        return 'Moderate exercise 3-5 days/week';
+      case ActivityLevel.veryActive:
+        return 'Hard exercise 6-7 days/week';
+      case ActivityLevel.extraActive:
+        return 'Very hard exercise & physical job';
+    }
+  }
+
+  String _getWeightGoalDescription(WeightGoal goal) {
+    switch (goal) {
+      case WeightGoal.lose:
+        return 'Reduce body weight';
+      case WeightGoal.maintain:
+        return 'Keep current weight';
+      case WeightGoal.gain:
+        return 'Increase body weight';
+    }
   }
 
   void _showGenderDialog(BuildContext context, UserProfileViewModel vm) {
@@ -613,168 +957,14 @@ class ProfileView extends StatelessWidget {
     );
   }
 
-  void _showActivityLevelDialog(BuildContext context, UserProfileViewModel vm) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    IconData getActivityIcon(ActivityLevel level) {
-      switch (level) {
-        case ActivityLevel.sedentary:
-          return Icons.weekend;
-        case ActivityLevel.lightlyActive:
-          return Icons.directions_walk;
-        case ActivityLevel.moderatelyActive:
-          return Icons.directions_run;
-        case ActivityLevel.veryActive:
-          return Icons.fitness_center;
-        case ActivityLevel.extraActive:
-          return Icons.sports_gymnastics;
-        default:
-          return Icons.directions_run;
-      }
+  IconData _getWeightGoalIcon(WeightGoal goal) {
+    switch (goal) {
+      case WeightGoal.lose:
+        return Icons.trending_down;
+      case WeightGoal.maintain:
+        return Icons.trending_flat;
+      case WeightGoal.gain:
+        return Icons.trending_up;
     }
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(
-          'Select Activity Level',
-          style: TextStyle(
-            color: colorScheme.onSurface,
-          ),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: ActivityLevel.values.map((level) {
-            return ListTile(
-              leading: Icon(
-                getActivityIcon(level),
-                color: colorScheme.primary,
-              ),
-              title: Text(
-                level.displayName,
-                style: TextStyle(
-                  color: colorScheme.onSurface,
-                ),
-              ),
-              trailing: Icon(
-                vm.profile!.activityLevel == level
-                    ? Icons.radio_button_checked
-                    : Icons.radio_button_unchecked,
-                color: vm.profile!.activityLevel == level
-                    ? colorScheme.primary
-                    : colorScheme.onSurface.withOpacity(0.5),
-              ),
-              onTap: () {
-                vm.saveProfile(
-                  gender: vm.profile!.gender,
-                  age: vm.profile!.age,
-                  weight: vm.displayWeight,
-                  weightUnit: vm.weightUnit,
-                  height: vm.displayHeight,
-                  heightUnit: vm.heightUnit,
-                  activityLevel: level,
-                  isMetric: vm.isMetric,
-                );
-                Navigator.pop(context);
-              },
-            );
-          }).toList(),
-        ),
-      ),
-    );
-  }
-
-  void _showThemeDialog(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final themeVM = Provider.of<ThemeViewModel>(context, listen: false);
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(
-          'Select Theme',
-          style: TextStyle(
-            color: colorScheme.onSurface,
-          ),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: Icon(
-                Icons.light_mode,
-                color: colorScheme.primary,
-              ),
-              title: Text(
-                'Light',
-                style: TextStyle(
-                  color: colorScheme.onSurface,
-                ),
-              ),
-              trailing: Icon(
-                themeVM.themeMode == ThemeMode.light
-                    ? Icons.radio_button_checked
-                    : Icons.radio_button_unchecked,
-                color: themeVM.themeMode == ThemeMode.light
-                    ? colorScheme.primary
-                    : colorScheme.onSurface.withOpacity(0.5),
-              ),
-              onTap: () {
-                themeVM.setThemeMode(ThemeMode.light);
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: Icon(
-                Icons.dark_mode,
-                color: colorScheme.primary,
-              ),
-              title: Text(
-                'Dark',
-                style: TextStyle(
-                  color: colorScheme.onSurface,
-                ),
-              ),
-              trailing: Icon(
-                themeVM.themeMode == ThemeMode.dark
-                    ? Icons.radio_button_checked
-                    : Icons.radio_button_unchecked,
-                color: themeVM.themeMode == ThemeMode.dark
-                    ? colorScheme.primary
-                    : colorScheme.onSurface.withOpacity(0.5),
-              ),
-              onTap: () {
-                themeVM.setThemeMode(ThemeMode.dark);
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: Icon(
-                Icons.brightness_auto,
-                color: colorScheme.primary,
-              ),
-              title: Text(
-                'System',
-                style: TextStyle(
-                  color: colorScheme.onSurface,
-                ),
-              ),
-              trailing: Icon(
-                themeVM.themeMode == ThemeMode.system
-                    ? Icons.radio_button_checked
-                    : Icons.radio_button_unchecked,
-                color: themeVM.themeMode == ThemeMode.system
-                    ? colorScheme.primary
-                    : colorScheme.onSurface.withOpacity(0.5),
-              ),
-              onTap: () {
-                themeVM.setThemeMode(ThemeMode.system);
-                Navigator.pop(context);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }

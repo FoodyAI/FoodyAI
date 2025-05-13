@@ -28,6 +28,7 @@ class _OnboardingViewState extends State<OnboardingView> {
   late String _heightUnit;
   late bool _isMetric;
   late ActivityLevel _activityLevel;
+  late WeightGoal _weightGoal;
 
   @override
   void initState() {
@@ -43,6 +44,7 @@ class _OnboardingViewState extends State<OnboardingView> {
       _weight = profileVM.displayWeight;
       _height = profileVM.displayHeight;
       _activityLevel = profile.activityLevel;
+      _weightGoal = profile.weightGoal;
     } else {
       _gender = 'Male';
       _age = 25;
@@ -52,6 +54,7 @@ class _OnboardingViewState extends State<OnboardingView> {
       _heightUnit = 'cm';
       _isMetric = true;
       _activityLevel = ActivityLevel.sedentary;
+      _weightGoal = WeightGoal.maintain;
     }
   }
 
@@ -118,6 +121,7 @@ class _OnboardingViewState extends State<OnboardingView> {
       heightUnit: _heightUnit,
       activityLevel: _activityLevel,
       isMetric: _isMetric,
+      weightGoal: _weightGoal,
     );
 
     // Mark onboarding as completed
@@ -552,7 +556,7 @@ class _OnboardingViewState extends State<OnboardingView> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Activity Level',
+            'Your Activity Level',
             style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,
@@ -567,16 +571,41 @@ class _OnboardingViewState extends State<OnboardingView> {
             ),
           ),
           const SizedBox(height: 32),
-          ...ActivityLevel.values.map((level) => Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: _buildActivityOption(level),
-              )),
+          ...ActivityLevel.values.map((level) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: _buildActivityLevelTile(level),
+            );
+          }),
+          const SizedBox(height: 32),
+          const Text(
+            'Your Weight Goal',
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'What would you like to achieve?',
+            style: TextStyle(
+              fontSize: 16,
+              color: AppColors.grey600,
+            ),
+          ),
+          const SizedBox(height: 32),
+          ...WeightGoal.values.map((goal) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: _buildWeightGoalTile(goal),
+            );
+          }),
         ],
       ),
     );
   }
 
-  Widget _buildActivityOption(ActivityLevel level) {
+  Widget _buildActivityLevelTile(ActivityLevel level) {
     final isSelected = _activityLevel == level;
     return InkWell(
       onTap: () => setState(() => _activityLevel = level),
@@ -649,6 +678,93 @@ class _OnboardingViewState extends State<OnboardingView> {
     }
   }
 
+  Widget _buildWeightGoalTile(WeightGoal goal) {
+    return InkWell(
+      onTap: () {
+        setState(() {
+          _weightGoal = goal;
+        });
+      },
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: _weightGoal == goal
+              ? AppColors.primary.withOpacity(0.1)
+              : AppColors.grey100,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: _weightGoal == goal ? AppColors.primary : AppColors.grey300,
+            width: 2,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              _getWeightGoalIcon(goal),
+              color:
+                  _weightGoal == goal ? AppColors.primary : AppColors.grey600,
+              size: 32,
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    goal.displayName,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: _weightGoal == goal
+                          ? AppColors.primary
+                          : AppColors.grey800,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    _getWeightGoalDescription(goal),
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppColors.grey600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (_weightGoal == goal)
+              Icon(
+                Icons.check_circle,
+                color: AppColors.primary,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  IconData _getWeightGoalIcon(WeightGoal goal) {
+    switch (goal) {
+      case WeightGoal.lose:
+        return Icons.trending_down;
+      case WeightGoal.maintain:
+        return Icons.trending_flat;
+      case WeightGoal.gain:
+        return Icons.trending_up;
+    }
+  }
+
+  String _getWeightGoalDescription(WeightGoal goal) {
+    switch (goal) {
+      case WeightGoal.lose:
+        return 'Create a calorie deficit to lose weight';
+      case WeightGoal.maintain:
+        return 'Maintain your current weight';
+      case WeightGoal.gain:
+        return 'Create a calorie surplus to gain weight';
+    }
+  }
+
   Widget _buildSummaryPage() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
@@ -695,6 +811,15 @@ class _OnboardingViewState extends State<OnboardingView> {
               _buildSummaryRow('Level', _activityLevel.displayName),
               _buildSummaryRow(
                   'Description', _getActivityDescription(_activityLevel)),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _buildSummaryCard(
+            'Weight Goal',
+            [
+              _buildSummaryRow('Goal', _weightGoal.displayName),
+              _buildSummaryRow(
+                  'Description', _getWeightGoalDescription(_weightGoal)),
             ],
           ),
         ],
