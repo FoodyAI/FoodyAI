@@ -62,9 +62,9 @@ class ProfileView extends StatelessWidget {
                                           2.20462; // kg to lbs
                                   final newHeight = value
                                       ? profileVM.displayHeight *
-                                          2.54 // inch to cm
+                                          2.54 // inches to cm
                                       : profileVM.displayHeight /
-                                          2.54; // cm to inch
+                                          2.54; // cm to inches
                                   profileVM.saveProfile(
                                     gender: profileVM.profile!.gender,
                                     age: profileVM.profile!.age,

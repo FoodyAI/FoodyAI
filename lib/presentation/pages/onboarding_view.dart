@@ -61,11 +61,13 @@ class _OnboardingViewState extends State<OnboardingView> {
       _weightUnit = _isMetric ? 'kg' : 'lbs';
       _heightUnit = _isMetric ? 'cm' : 'inch';
       if (_isMetric) {
-        _weight = _weight * 0.453592;
-        _height = _height * 2.54;
+        // Converting from imperial to metric
+        _weight = _weight * 0.453592; // lbs to kg
+        _height = _height * 2.54; // inches to cm
       } else {
-        _weight = _weight * 2.20462;
-        _height = _height / 2.54;
+        // Converting from metric to imperial
+        _weight = _weight * 2.20462; // kg to lbs
+        _height = _height / 2.54; // cm to inches
       }
     });
   }
