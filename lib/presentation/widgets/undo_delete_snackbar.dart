@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../data/models/food_analysis.dart';
 
 class UndoDeleteSnackbar {
@@ -16,10 +17,10 @@ class UndoDeleteSnackbar {
               color: Colors.white.withOpacity(0.2),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: const Icon(
-              Icons.delete_outline,
+            child: const FaIcon(
+              FontAwesomeIcons.trash,
               color: Colors.white,
-              size: 20,
+              size: 18,
             ),
           ),
           const SizedBox(width: 12),

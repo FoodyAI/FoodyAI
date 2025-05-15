@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../../core/constants/app_colors.dart';
 import 'package:flutter/services.dart';
 
@@ -10,6 +11,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool showInfoButton;
   final VoidCallback? onInfoPressed;
   final IconData? icon;
+  final bool useFontAwesome;
 
   const CustomAppBar({
     super.key,
@@ -20,6 +22,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.showInfoButton = false,
     this.onInfoPressed,
     this.icon,
+    this.useFontAwesome = true,
   });
 
   @override
@@ -40,10 +43,19 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       ),
       leading: leadingIcon != null
           ? IconButton(
-              icon: Icon(
-                leadingIcon,
-                color: isDark ? AppColors.darkTextSecondary : AppColors.grey600,
-              ),
+              icon: useFontAwesome
+                  ? FaIcon(
+                      leadingIcon,
+                      color: isDark
+                          ? AppColors.darkTextSecondary
+                          : AppColors.grey600,
+                    )
+                  : Icon(
+                      leadingIcon,
+                      color: isDark
+                          ? AppColors.darkTextSecondary
+                          : AppColors.grey600,
+                    ),
               onPressed: onLeadingPressed,
             )
           : null,
@@ -59,11 +71,17 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
                 ),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(
-                icon,
-                color: colorScheme.primary,
-                size: 24,
-              ),
+              child: useFontAwesome
+                  ? FaIcon(
+                      icon,
+                      color: colorScheme.primary,
+                      size: 22,
+                    )
+                  : Icon(
+                      icon,
+                      color: colorScheme.primary,
+                      size: 24,
+                    ),
             ),
           if (icon != null) const SizedBox(width: 12),
           Text(
@@ -80,10 +98,17 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       actions: [
         if (showInfoButton)
           IconButton(
-            icon: Icon(
-              Icons.info_outline,
-              color: isDark ? AppColors.darkTextSecondary : AppColors.grey600,
-            ),
+            icon: useFontAwesome
+                ? const FaIcon(
+                    FontAwesomeIcons.circleInfo,
+                    color: AppColors.grey600,
+                  )
+                : Icon(
+                    Icons.info_outline,
+                    color: isDark
+                        ? AppColors.darkTextSecondary
+                        : AppColors.grey600,
+                  ),
             onPressed: onInfoPressed,
           ),
         if (actions != null) ...actions!,

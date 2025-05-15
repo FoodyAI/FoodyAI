@@ -7,6 +7,7 @@ import '../../domain/entities/user_profile.dart';
 import '../widgets/profile_inputs.dart';
 import 'analysis_loading_view.dart';
 import '../../../core/constants/app_colors.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class OnboardingView extends StatefulWidget {
   const OnboardingView({Key? key}) : super(key: key);
@@ -187,7 +188,7 @@ class _OnboardingViewState extends State<OnboardingView> {
                     if (_currentPage > 0)
                       TextButton.icon(
                         onPressed: _previousPage,
-                        icon: const Icon(Icons.arrow_back),
+                        icon: const FaIcon(FontAwesomeIcons.arrowLeft),
                         label: const Text('Back'),
                       )
                     else
@@ -195,8 +196,8 @@ class _OnboardingViewState extends State<OnboardingView> {
                     ElevatedButton.icon(
                       onPressed: _nextPage,
                       icon: Icon(_currentPage == 3
-                          ? Icons.check
-                          : Icons.arrow_forward),
+                          ? FontAwesomeIcons.check
+                          : FontAwesomeIcons.arrowRight),
                       label: Text(_currentPage == 3 ? 'Submit' : 'Next'),
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(
@@ -245,7 +246,7 @@ class _OnboardingViewState extends State<OnboardingView> {
               Expanded(
                 child: _buildGenderOption(
                   'Male',
-                  Icons.male,
+                  FontAwesomeIcons.mars,
                   AppColors.blue,
                 ),
               ),
@@ -253,7 +254,7 @@ class _OnboardingViewState extends State<OnboardingView> {
               Expanded(
                 child: _buildGenderOption(
                   'Female',
-                  Icons.female,
+                  FontAwesomeIcons.venus,
                   AppColors.profile,
                 ),
               ),
@@ -282,7 +283,7 @@ class _OnboardingViewState extends State<OnboardingView> {
         ),
         child: Column(
           children: [
-            Icon(
+            FaIcon(
               icon,
               size: 48,
               color: isSelected ? color : AppColors.grey500,
@@ -335,21 +336,21 @@ class _OnboardingViewState extends State<OnboardingView> {
           // Measurements
           _buildInfoRow(
             context,
-            Icons.cake,
+            FontAwesomeIcons.cakeCandles,
             'Age',
             '$_age years',
             onEdit: () => _showAgeDialog(context),
           ),
           _buildInfoRow(
             context,
-            Icons.monitor_weight,
+            FontAwesomeIcons.weightScale,
             'Weight',
             '${_weight.toStringAsFixed(1)} $_weightUnit',
             onEdit: () => _showWeightDialog(context),
           ),
           _buildInfoRow(
             context,
-            Icons.height,
+            FontAwesomeIcons.rulerVertical,
             'Height',
             _isMetric
                 ? '${_height.toStringAsFixed(1)} cm'
@@ -383,7 +384,7 @@ class _OnboardingViewState extends State<OnboardingView> {
           ),
           child: Row(
             children: [
-              Icon(
+              FaIcon(
                 icon,
                 color: colorScheme.primary,
               ),
@@ -410,8 +411,8 @@ class _OnboardingViewState extends State<OnboardingView> {
                   ],
                 ),
               ),
-              Icon(
-                Icons.edit,
+              FaIcon(
+                FontAwesomeIcons.pencil,
                 color: colorScheme.primary,
               ),
             ],
@@ -623,8 +624,8 @@ class _OnboardingViewState extends State<OnboardingView> {
         ),
         child: Row(
           children: [
-            Icon(
-              Icons.directions_run,
+            FaIcon(
+              FontAwesomeIcons.personRunning,
               color: isSelected ? AppColors.primary : AppColors.grey500,
             ),
             const SizedBox(width: 16),
@@ -653,8 +654,8 @@ class _OnboardingViewState extends State<OnboardingView> {
               ),
             ),
             if (isSelected)
-              const Icon(
-                Icons.check_circle,
+              FaIcon(
+                FontAwesomeIcons.circleCheck,
                 color: AppColors.primary,
               ),
           ],
@@ -700,7 +701,7 @@ class _OnboardingViewState extends State<OnboardingView> {
         ),
         child: Row(
           children: [
-            Icon(
+            FaIcon(
               _getWeightGoalIcon(goal),
               color:
                   _weightGoal == goal ? AppColors.primary : AppColors.grey600,
@@ -733,8 +734,8 @@ class _OnboardingViewState extends State<OnboardingView> {
               ),
             ),
             if (_weightGoal == goal)
-              Icon(
-                Icons.check_circle,
+              FaIcon(
+                FontAwesomeIcons.circleCheck,
                 color: AppColors.primary,
               ),
           ],
@@ -746,11 +747,11 @@ class _OnboardingViewState extends State<OnboardingView> {
   IconData _getWeightGoalIcon(WeightGoal goal) {
     switch (goal) {
       case WeightGoal.lose:
-        return Icons.trending_down;
+        return FontAwesomeIcons.arrowDown;
       case WeightGoal.maintain:
-        return Icons.trending_flat;
+        return FontAwesomeIcons.arrowRight;
       case WeightGoal.gain:
-        return Icons.trending_up;
+        return FontAwesomeIcons.arrowUp;
     }
   }
 

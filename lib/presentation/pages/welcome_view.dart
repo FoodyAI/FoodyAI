@@ -4,6 +4,7 @@ import '../viewmodels/welcome_viewmodel.dart';
 import 'dart:math' as math;
 import 'dart:math';
 import '../../../core/constants/app_colors.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
@@ -63,8 +64,8 @@ class _WelcomeScreenContent extends StatelessWidget {
                                 : AppColors.withOpacity(AppColors.white, 0.1),
                             shape: BoxShape.circle,
                           ),
-                          child: Icon(
-                            Icons.restaurant_menu,
+                          child: FaIcon(
+                            FontAwesomeIcons.utensils,
                             size: 80,
                             color: isDarkMode
                                 ? AppColors.green
@@ -283,16 +284,16 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
 
   IconData _getRandomFoodIcon() {
     final icons = [
-      Icons.restaurant,
-      Icons.local_pizza,
-      Icons.icecream,
-      Icons.local_cafe,
-      Icons.local_dining,
-      Icons.fastfood,
-      Icons.cake,
-      Icons.wine_bar,
-      Icons.local_bar,
-      Icons.emoji_food_beverage,
+      FontAwesomeIcons.utensils,
+      FontAwesomeIcons.pizzaSlice,
+      FontAwesomeIcons.iceCream,
+      FontAwesomeIcons.mugHot,
+      FontAwesomeIcons.burger,
+      FontAwesomeIcons.drumstickBite,
+      FontAwesomeIcons.cakeCandles,
+      FontAwesomeIcons.wineGlass,
+      FontAwesomeIcons.martiniGlass,
+      FontAwesomeIcons.bottleWater,
     ];
     return icons[_random.nextInt(icons.length)];
   }
@@ -326,7 +327,7 @@ class _AnimatedBackgroundState extends State<AnimatedBackground>
                 top: y * MediaQuery.of(context).size.height,
                 child: Transform.rotate(
                   angle: rotation * math.pi / 180,
-                  child: Icon(
+                  child: FaIcon(
                     icon.icon,
                     size: icon.size,
                     color: widget.isDarkMode

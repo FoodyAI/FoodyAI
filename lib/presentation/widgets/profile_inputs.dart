@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../../core/constants/app_colors.dart';
 
 class UnitSwitchButton extends StatelessWidget {
@@ -210,9 +211,10 @@ class _WeightInputState extends State<WeightInput> {
                 color: colorScheme.primary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(
-                Icons.remove,
+              child: FaIcon(
+                FontAwesomeIcons.minus,
                 color: colorScheme.primary,
+                size: 16,
               ),
             ),
           ),
@@ -268,9 +270,10 @@ class _WeightInputState extends State<WeightInput> {
                 color: colorScheme.primary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(
-                Icons.add,
+              child: FaIcon(
+                FontAwesomeIcons.plus,
                 color: colorScheme.primary,
+                size: 16,
               ),
             ),
           ),
@@ -375,9 +378,10 @@ class _HeightInputState extends State<HeightInput> {
                       color: colorScheme.primary.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Icon(
-                      Icons.remove,
+                    child: FaIcon(
+                      FontAwesomeIcons.minus,
                       color: colorScheme.primary,
+                      size: 16,
                     ),
                   ),
                 ),
@@ -434,9 +438,10 @@ class _HeightInputState extends State<HeightInput> {
                       color: colorScheme.primary.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Icon(
-                      Icons.add,
+                    child: FaIcon(
+                      FontAwesomeIcons.plus,
                       color: colorScheme.primary,
+                      size: 16,
                     ),
                   ),
                 ),
@@ -449,7 +454,7 @@ class _HeightInputState extends State<HeightInput> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
-                      icon: Icon(Icons.keyboard_arrow_up,
+                      icon: FaIcon(FontAwesomeIcons.angleUp,
                           color: colorScheme.primary),
                       onPressed: () {
                         if (feet < 8) {
@@ -479,7 +484,7 @@ class _HeightInputState extends State<HeightInput> {
                       ),
                     ),
                     IconButton(
-                      icon: Icon(Icons.keyboard_arrow_down,
+                      icon: FaIcon(FontAwesomeIcons.angleDown,
                           color: colorScheme.primary),
                       onPressed: () {
                         if (feet > 0) {
@@ -497,7 +502,7 @@ class _HeightInputState extends State<HeightInput> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IconButton(
-                      icon: Icon(Icons.keyboard_arrow_up,
+                      icon: FaIcon(FontAwesomeIcons.angleUp,
                           color: colorScheme.primary),
                       onPressed: () {
                         setState(() {
@@ -530,7 +535,7 @@ class _HeightInputState extends State<HeightInput> {
                       ),
                     ),
                     IconButton(
-                      icon: Icon(Icons.keyboard_arrow_down,
+                      icon: FaIcon(FontAwesomeIcons.angleDown,
                           color: colorScheme.primary),
                       onPressed: () {
                         setState(() {

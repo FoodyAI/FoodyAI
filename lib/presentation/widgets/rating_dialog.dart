@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/image_analysis_viewmodel.dart';
 import '../../../core/constants/app_colors.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class RatingDialog extends StatefulWidget {
   const RatingDialog({super.key});
@@ -119,8 +120,8 @@ class _RatingDialogState extends State<RatingDialog>
                   color: AppColors.withOpacity(AppColors.primary, 0.1),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
-                  Icons.favorite,
+                child: const FaIcon(
+                  FontAwesomeIcons.heart,
                   size: 48,
                   color: AppColors.primary,
                 ),
@@ -160,11 +161,11 @@ class _RatingDialogState extends State<RatingDialog>
                             return Transform.scale(
                               scale:
                                   1.0 + (_starControllers[index].value * 0.1),
-                              child: Icon(
+                              child: FaIcon(
                                 index < _rating
-                                    ? Icons.star
-                                    : Icons.star_border,
-                                size: 40,
+                                    ? FontAwesomeIcons.solidStar
+                                    : FontAwesomeIcons.star,
+                                size: 36,
                                 color: index < _rating
                                     ? AppColors.warning
                                     : AppColors.grey400,

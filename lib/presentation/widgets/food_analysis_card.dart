@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'dart:io';
 import 'package:shimmer/shimmer.dart';
 import '../../data/models/food_analysis.dart';
@@ -155,9 +156,9 @@ class FoodAnalysisCard extends StatelessWidget {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(
-                                  Icons.local_fire_department,
-                                  size: 16,
+                                const FaIcon(
+                                  FontAwesomeIcons.fire,
+                                  size: 14,
                                   color: AppColors.orange,
                                 ),
                                 const SizedBox(width: 4),
@@ -178,8 +179,8 @@ class FoodAnalysisCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                Icon(
-                  Icons.chevron_right,
+                FaIcon(
+                  FontAwesomeIcons.chevronRight,
                   color: isDark ? AppColors.grey400 : AppColors.grey400,
                 ),
               ],
@@ -269,7 +270,6 @@ class FoodAnalysisCard extends StatelessWidget {
   }
 
   Widget _buildContent(BuildContext context) {
-
     return Stack(
       children: [
         SingleChildScrollView(
@@ -435,7 +435,7 @@ class FoodAnalysisCard extends StatelessWidget {
                                 analysis.calories,
                                 'cal',
                                 AppColors.orange,
-                                Icons.local_fire_department,
+                                FontAwesomeIcons.fire,
                               ),
                             ),
                             SizedBox(
@@ -445,7 +445,7 @@ class FoodAnalysisCard extends StatelessWidget {
                                 analysis.protein,
                                 'g',
                                 AppColors.blue,
-                                Icons.fitness_center,
+                                FontAwesomeIcons.dumbbell,
                               ),
                             ),
                             SizedBox(
@@ -455,7 +455,7 @@ class FoodAnalysisCard extends StatelessWidget {
                                 analysis.carbs,
                                 'g',
                                 AppColors.green,
-                                Icons.grain,
+                                FontAwesomeIcons.carrot,
                               ),
                             ),
                             SizedBox(
@@ -465,7 +465,7 @@ class FoodAnalysisCard extends StatelessWidget {
                                 analysis.fat,
                                 'g',
                                 AppColors.orange,
-                                Icons.water_drop,
+                                FontAwesomeIcons.water,
                               ),
                             ),
                           ],
@@ -517,8 +517,8 @@ class FoodAnalysisCard extends StatelessWidget {
                                           .withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
-                                child: Icon(
-                                  Icons.favorite,
+                                child: FaIcon(
+                                  FontAwesomeIcons.heart,
                                   color: _getHealthScoreColor(
                                       analysis.healthScore),
                                   size: 24,
@@ -618,10 +618,12 @@ class FoodAnalysisCard extends StatelessWidget {
                           ],
                         ),
                       ),
-                      child: const Icon(
-                        Icons.delete_outline,
-                        color: AppColors.white,
-                        size: 28,
+                      child: const Center(
+                        child: FaIcon(
+                          FontAwesomeIcons.trash,
+                          color: AppColors.white,
+                          size: 28,
+                        ),
                       ),
                     ),
                   ),
@@ -659,7 +661,11 @@ class FoodAnalysisCard extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: color, size: 24),
+          FaIcon(
+            icon,
+            color: color,
+            size: 24,
+          ),
           const SizedBox(height: 8),
           FittedBox(
             fit: BoxFit.scaleDown,

@@ -21,6 +21,7 @@ dependencies:
   http_parser: ^4.0.2
   fl_chart: ^0.65.0
   shimmer: ^3.0.0
+  font_awesome_flutter: ^10.5.0
 
 dev_dependencies:
   flutter_test:

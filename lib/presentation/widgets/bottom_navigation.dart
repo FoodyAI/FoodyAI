@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../core/constants/app_colors.dart';
 
 class BottomNavigation extends StatelessWidget {
@@ -59,7 +60,7 @@ class BottomNavigation extends StatelessWidget {
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(Icons.home_rounded),
+              child: const FaIcon(FontAwesomeIcons.house, size: 20),
             ),
             label: 'Home',
           ),
@@ -72,7 +73,7 @@ class BottomNavigation extends StatelessWidget {
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(Icons.analytics_rounded),
+              child: const FaIcon(FontAwesomeIcons.chartLine, size: 20),
             ),
             label: 'Analyze',
           ),
@@ -85,7 +86,7 @@ class BottomNavigation extends StatelessWidget {
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(Icons.person_rounded),
+              child: const FaIcon(FontAwesomeIcons.user, size: 20),
             ),
             label: 'Profile',
           ),

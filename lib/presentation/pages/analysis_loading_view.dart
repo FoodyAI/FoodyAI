@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../widgets/health_analysis_content.dart';
 import '../widgets/custom_app_bar.dart';
 import 'home_view.dart';
@@ -69,7 +70,7 @@ class _AnalysisLoadingViewState extends State<AnalysisLoadingView>
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: CustomAppBar(
         title: _showHealthChart ? 'Health Analysis' : '',
-        icon: _showHealthChart ? Icons.analytics : null,
+        icon: _showHealthChart ? FontAwesomeIcons.chartLine : null,
       ),
       body: SafeArea(
         child: AnimatedSwitcher(
@@ -149,9 +150,9 @@ class _AnalysisLoadingViewState extends State<AnalysisLoadingView>
                                   shape: BoxShape.circle,
                                 ),
                                 child: const Center(
-                                  child: Icon(
-                                    Icons.analytics,
-                                    size: 60,
+                                  child: FaIcon(
+                                    FontAwesomeIcons.chartLine,
+                                    size: 50,
                                     color: AppColors.primary,
                                   ),
                                 ),

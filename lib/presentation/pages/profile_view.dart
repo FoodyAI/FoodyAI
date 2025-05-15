@@ -6,6 +6,7 @@ import '../../domain/entities/user_profile.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/profile_inputs.dart';
 import '../../core/constants/app_colors.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
@@ -39,7 +40,7 @@ class _ProfileViewState extends State<ProfileView>
     return Scaffold(
       appBar: const CustomAppBar(
         title: 'Profile',
-        icon: Icons.person,
+        icon: FontAwesomeIcons.user,
       ),
       body: Column(
         children: [
@@ -63,19 +64,19 @@ class _ProfileViewState extends State<ProfileView>
               indicatorColor: colorScheme.primary,
               tabs: const [
                 Tab(
-                  icon: Icon(Icons.person),
+                  icon: FaIcon(FontAwesomeIcons.user),
                   text: 'Personal',
                 ),
                 Tab(
-                  icon: Icon(Icons.fitness_center),
+                  icon: FaIcon(FontAwesomeIcons.dumbbell),
                   text: 'Activity',
                 ),
                 Tab(
-                  icon: Icon(Icons.track_changes),
+                  icon: FaIcon(FontAwesomeIcons.bullseye),
                   text: 'Goals',
                 ),
                 Tab(
-                  icon: Icon(Icons.settings),
+                  icon: FaIcon(FontAwesomeIcons.gear),
                   text: 'Settings',
                 ),
               ],
@@ -159,7 +160,7 @@ class _ProfileViewState extends State<ProfileView>
             children: [
               _buildInfoCard(
                 context,
-                Icons.person,
+                FontAwesomeIcons.user,
                 'Gender',
                 profile.gender,
                 colorScheme.primary,
@@ -167,7 +168,7 @@ class _ProfileViewState extends State<ProfileView>
               ),
               _buildInfoCard(
                 context,
-                Icons.cake,
+                FontAwesomeIcons.cakeCandles,
                 'Age',
                 '${profile.age} years',
                 colorScheme.secondary,
@@ -175,7 +176,7 @@ class _ProfileViewState extends State<ProfileView>
               ),
               _buildInfoCard(
                 context,
-                Icons.monitor_weight,
+                FontAwesomeIcons.weightScale,
                 'Weight',
                 '${profileVM.displayWeight.toStringAsFixed(1)} ${profileVM.weightUnit}',
                 colorScheme.tertiary,
@@ -183,7 +184,7 @@ class _ProfileViewState extends State<ProfileView>
               ),
               _buildInfoCard(
                 context,
-                Icons.height,
+                FontAwesomeIcons.rulerVertical,
                 'Height',
                 profileVM.isMetric
                     ? '${profileVM.displayHeight.toStringAsFixed(1)} cm'
@@ -230,7 +231,7 @@ class _ProfileViewState extends State<ProfileView>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
+              FaIcon(
                 icon,
                 color: color,
                 size: 32,
@@ -331,7 +332,7 @@ class _ProfileViewState extends State<ProfileView>
                           ),
                           child: Row(
                             children: [
-                              Icon(
+                              FaIcon(
                                 _getActivityIcon(level),
                                 color: isSelected
                                     ? colorScheme.primary
@@ -365,9 +366,10 @@ class _ProfileViewState extends State<ProfileView>
                                 ),
                               ),
                               if (isSelected)
-                                Icon(
-                                  Icons.check_circle,
+                                FaIcon(
+                                  FontAwesomeIcons.circleCheck,
                                   color: colorScheme.primary,
+                                  size: 24,
                                 ),
                             ],
                           ),
@@ -455,7 +457,7 @@ class _ProfileViewState extends State<ProfileView>
                           ),
                           child: Row(
                             children: [
-                              Icon(
+                              FaIcon(
                                 _getWeightGoalIcon(goal),
                                 color: isSelected
                                     ? colorScheme.primary
@@ -489,9 +491,10 @@ class _ProfileViewState extends State<ProfileView>
                                 ),
                               ),
                               if (isSelected)
-                                Icon(
-                                  Icons.check_circle,
+                                FaIcon(
+                                  FontAwesomeIcons.circleCheck,
                                   color: colorScheme.primary,
+                                  size: 24,
                                 ),
                             ],
                           ),
@@ -548,7 +551,7 @@ class _ProfileViewState extends State<ProfileView>
                         children: [
                           _buildThemeOption(
                             context,
-                            Icons.light_mode,
+                            FontAwesomeIcons.sun,
                             'Light Theme',
                             'Use light colors',
                             themeVM.themeMode == ThemeMode.light,
@@ -559,7 +562,7 @@ class _ProfileViewState extends State<ProfileView>
                           const SizedBox(height: 16),
                           _buildThemeOption(
                             context,
-                            Icons.dark_mode,
+                            FontAwesomeIcons.moon,
                             'Dark Theme',
                             'Use dark colors',
                             themeVM.themeMode == ThemeMode.dark,
@@ -570,7 +573,7 @@ class _ProfileViewState extends State<ProfileView>
                           const SizedBox(height: 16),
                           _buildThemeOption(
                             context,
-                            Icons.brightness_auto,
+                            FontAwesomeIcons.circleHalfStroke,
                             'System Theme',
                             'Follow system settings',
                             themeVM.themeMode == ThemeMode.system,
@@ -621,7 +624,7 @@ class _ProfileViewState extends State<ProfileView>
         ),
         child: Row(
           children: [
-            Icon(
+            FaIcon(
               icon,
               color: isSelected ? colorScheme.primary : colorScheme.onSurface,
               size: 32,
@@ -652,9 +655,10 @@ class _ProfileViewState extends State<ProfileView>
               ),
             ),
             if (isSelected)
-              Icon(
-                Icons.check_circle,
+              FaIcon(
+                FontAwesomeIcons.circleCheck,
                 color: colorScheme.primary,
+                size: 24,
               ),
           ],
         ),
@@ -665,15 +669,15 @@ class _ProfileViewState extends State<ProfileView>
   IconData _getActivityIcon(ActivityLevel level) {
     switch (level) {
       case ActivityLevel.sedentary:
-        return Icons.weekend;
+        return FontAwesomeIcons.couch;
       case ActivityLevel.lightlyActive:
-        return Icons.directions_walk;
+        return FontAwesomeIcons.personWalking;
       case ActivityLevel.moderatelyActive:
-        return Icons.directions_run;
+        return FontAwesomeIcons.personRunning;
       case ActivityLevel.veryActive:
-        return Icons.fitness_center;
+        return FontAwesomeIcons.dumbbell;
       case ActivityLevel.extraActive:
-        return Icons.sports_gymnastics;
+        return FontAwesomeIcons.personBiking;
     }
   }
 
@@ -719,8 +723,8 @@ class _ProfileViewState extends State<ProfileView>
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: Icon(
-                Icons.male,
+              leading: FaIcon(
+                FontAwesomeIcons.mars,
                 color: colorScheme.primary,
               ),
               title: Text(
@@ -729,10 +733,10 @@ class _ProfileViewState extends State<ProfileView>
                   color: colorScheme.onSurface,
                 ),
               ),
-              trailing: Icon(
+              trailing: FaIcon(
                 vm.profile!.gender == 'Male'
-                    ? Icons.radio_button_checked
-                    : Icons.radio_button_unchecked,
+                    ? FontAwesomeIcons.circleCheck
+                    : FontAwesomeIcons.circle,
                 color: vm.profile!.gender == 'Male'
                     ? colorScheme.primary
                     : colorScheme.onSurface.withOpacity(0.5),
@@ -752,8 +756,8 @@ class _ProfileViewState extends State<ProfileView>
               },
             ),
             ListTile(
-              leading: Icon(
-                Icons.female,
+              leading: FaIcon(
+                FontAwesomeIcons.venus,
                 color: colorScheme.primary,
               ),
               title: Text(
@@ -762,10 +766,10 @@ class _ProfileViewState extends State<ProfileView>
                   color: colorScheme.onSurface,
                 ),
               ),
-              trailing: Icon(
+              trailing: FaIcon(
                 vm.profile!.gender == 'Female'
-                    ? Icons.radio_button_checked
-                    : Icons.radio_button_unchecked,
+                    ? FontAwesomeIcons.circleCheck
+                    : FontAwesomeIcons.circle,
                 color: vm.profile!.gender == 'Female'
                     ? colorScheme.primary
                     : colorScheme.onSurface.withOpacity(0.5),
@@ -960,11 +964,11 @@ class _ProfileViewState extends State<ProfileView>
   IconData _getWeightGoalIcon(WeightGoal goal) {
     switch (goal) {
       case WeightGoal.lose:
-        return Icons.trending_down;
+        return FontAwesomeIcons.arrowDown;
       case WeightGoal.maintain:
-        return Icons.trending_flat;
+        return FontAwesomeIcons.arrowRight;
       case WeightGoal.gain:
-        return Icons.trending_up;
+        return FontAwesomeIcons.arrowUp;
     }
   }
 }

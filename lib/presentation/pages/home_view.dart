@@ -14,6 +14,7 @@ import '../../data/models/food_analysis.dart';
 import 'analyze_view.dart';
 import 'profile_view.dart';
 import '../../../core/constants/app_colors.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -64,7 +65,7 @@ class _HomeContent extends StatelessWidget {
     return Scaffold(
       appBar: const CustomAppBar(
         title: 'Home',
-        icon: Icons.home,
+        icon: FontAwesomeIcons.house,
         showInfoButton: false,
       ),
       floatingActionButton: FloatingActionButton(
@@ -113,8 +114,10 @@ class _HomeContent extends StatelessWidget {
                                 AppColors.withOpacity(colorScheme.primary, 0.1),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: Icon(Icons.camera_alt,
-                              color: colorScheme.primary),
+                          child: FaIcon(
+                            FontAwesomeIcons.camera,
+                            color: AppColors.primary,
+                          ),
                         ),
                         title: Text(
                           'Take Picture',
@@ -141,8 +144,10 @@ class _HomeContent extends StatelessWidget {
                                 colorScheme.secondary, 0.1),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: Icon(Icons.photo_library,
-                              color: colorScheme.secondary),
+                          child: FaIcon(
+                            FontAwesomeIcons.images,
+                            color: colorScheme.secondary,
+                          ),
                         ),
                         title: Text(
                           'Upload from Gallery',
@@ -169,7 +174,7 @@ class _HomeContent extends StatelessWidget {
             },
           );
         },
-        child: const Icon(Icons.add),
+        child: const FaIcon(FontAwesomeIcons.plus),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -227,8 +232,8 @@ class _HomeContent extends StatelessWidget {
                                 color: AppColors.error,
                                 alignment: Alignment.centerRight,
                                 padding: const EdgeInsets.only(right: 16),
-                                child: const Icon(
-                                  Icons.delete,
+                                child: const FaIcon(
+                                  FontAwesomeIcons.trash,
                                   color: AppColors.white,
                                 ),
                               ),
@@ -299,8 +304,8 @@ class _HomeContent extends StatelessWidget {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(
-                              Icons.restaurant_menu,
+                            FaIcon(
+                              FontAwesomeIcons.utensils,
                               size: 64,
                               color: AppColors.grey400,
                             ),

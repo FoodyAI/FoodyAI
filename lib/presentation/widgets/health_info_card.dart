@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../domain/entities/user_profile.dart';
 import '../../../core/constants/app_colors.dart';
 
@@ -98,7 +99,7 @@ class HealthInfoCard extends StatelessWidget {
                       bmi,
                       'Body Mass Index',
                       statusColor,
-                      Icons.monitor_weight,
+                      FontAwesomeIcons.weightScale,
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -109,7 +110,7 @@ class HealthInfoCard extends StatelessWidget {
                       calories,
                       'Recommended Intake',
                       AppColors.orange,
-                      Icons.local_fire_department,
+                      FontAwesomeIcons.fire,
                     ),
                   ),
                 ],
@@ -124,8 +125,8 @@ class HealthInfoCard extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  Icon(
-                    Icons.info_outline,
+                  FaIcon(
+                    FontAwesomeIcons.circleInfo,
                     color: statusColor,
                   ),
                   const SizedBox(width: 12),
@@ -175,10 +176,10 @@ class HealthInfoCard extends StatelessWidget {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
+              FaIcon(
                 icon,
                 color: color,
-                size: 20,
+                size: 18,
               ),
               const SizedBox(width: 8),
               Flexible(
