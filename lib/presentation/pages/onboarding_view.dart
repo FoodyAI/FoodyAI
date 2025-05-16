@@ -654,7 +654,7 @@ class _OnboardingViewState extends State<OnboardingView> {
               ),
             ),
             if (isSelected)
-              FaIcon(
+              const FaIcon(
                 FontAwesomeIcons.circleCheck,
                 color: AppColors.primary,
               ),
@@ -725,7 +725,7 @@ class _OnboardingViewState extends State<OnboardingView> {
                   const SizedBox(height: 4),
                   Text(
                     _getWeightGoalDescription(goal),
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 14,
                       color: AppColors.grey600,
                     ),
@@ -734,7 +734,7 @@ class _OnboardingViewState extends State<OnboardingView> {
               ),
             ),
             if (_weightGoal == goal)
-              FaIcon(
+              const FaIcon(
                 FontAwesomeIcons.circleCheck,
                 color: AppColors.primary,
               ),
