@@ -55,7 +55,7 @@ class _HomeContent extends StatelessWidget {
     final analysisVM = Provider.of<ImageAnalysisViewModel>(context);
 
     // Calculate total calories consumed today
-    final totalCaloriesConsumed = analysisVM.savedAnalyses.fold<double>(
+    final totalCaloriesConsumed = analysisVM.filteredAnalyses.fold<double>(
       0,
       (sum, analysis) => sum + analysis.calories,
     );
@@ -215,7 +215,9 @@ class _HomeContent extends StatelessWidget {
             CalorieTrackingCard(
               totalCaloriesConsumed: totalCaloriesConsumed,
               recommendedCalories: recommendedCalories,
-              savedAnalyses: analysisVM.savedAnalyses,
+              savedAnalyses: analysisVM.filteredAnalyses,
+              selectedDate: analysisVM.selectedDate,
+              onDateSelected: (date) => analysisVM.setSelectedDate(date),
             ),
             // Image Analysis Section
             Padding(
@@ -237,8 +239,8 @@ class _HomeContent extends StatelessWidget {
                       FoodAnalysisCard(
                         analysis: vm.currentAnalysis!,
                       )
-                    else if (vm.isLoading && vm.savedAnalyses.isEmpty)
-                      const FoodAnalysisCard(
+                    else if (vm.isLoading && vm.filteredAnalyses.isEmpty)
+                      FoodAnalysisCard(
                         analysis: FoodAnalysis(
                           name: 'Loading...',
                           protein: 0,
@@ -246,14 +248,16 @@ class _HomeContent extends StatelessWidget {
                           fat: 0,
                           calories: 0,
                           healthScore: 0,
+                          date: DateTime(2024),
                         ),
                         isLoading: true,
                       ),
-                    if (vm.savedAnalyses.isNotEmpty) ...[
-                      ...vm.savedAnalyses.asMap().entries.map((entry) {
+                    if (vm.filteredAnalyses.isNotEmpty) ...[
+                      ...vm.filteredAnalyses.asMap().entries.map((entry) {
                         final index = entry.key;
                         final analysis = entry.value;
-                        final isLastItem = index == vm.savedAnalyses.length - 1;
+                        final isLastItem =
+                            index == vm.filteredAnalyses.length - 1;
                         return Column(
                           children: [
                             Dismissible(
@@ -297,8 +301,12 @@ class _HomeContent extends StatelessWidget {
                                 );
                               },
                               onDismissed: (direction) async {
+                                final analysisToRemove =
+                                    vm.filteredAnalyses[index];
+                                final fullIndex =
+                                    vm.savedAnalyses.indexOf(analysisToRemove);
                                 final removedAnalysis =
-                                    await vm.removeAnalysis(index);
+                                    await vm.removeAnalysis(fullIndex);
                                 if (removedAnalysis != null) {
                                   UndoDeleteSnackbar.show(
                                     context: context,
@@ -315,7 +323,7 @@ class _HomeContent extends StatelessWidget {
                               ),
                             ),
                             if (isLastItem && vm.isLoading)
-                              const FoodAnalysisCard(
+                              FoodAnalysisCard(
                                 analysis: FoodAnalysis(
                                   name: 'Loading...',
                                   protein: 0,
@@ -323,6 +331,7 @@ class _HomeContent extends StatelessWidget {
                                   fat: 0,
                                   calories: 0,
                                   healthScore: 0,
+                                  date: DateTime(2024),
                                 ),
                                 isLoading: true,
                               ),

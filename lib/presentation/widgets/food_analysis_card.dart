@@ -119,7 +119,7 @@ class FoodAnalysisCard extends StatelessWidget {
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
-                              '#${analysis.orderNumber}',
+                              '#${analysis.dateOrderNumber}',
                               style: TextStyle(
                                 color: Theme.of(context).primaryColor,
                                 fontWeight: FontWeight.bold,
@@ -381,7 +381,7 @@ class FoodAnalysisCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
-                            '#${analysis.orderNumber}',
+                            '#${analysis.dateOrderNumber}',
                             style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
