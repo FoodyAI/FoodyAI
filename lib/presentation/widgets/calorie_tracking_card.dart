@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:intl/intl.dart';
 import '../../data/models/food_analysis.dart';
 import '../../../core/constants/app_colors.dart';
 
@@ -7,12 +8,16 @@ class CalorieTrackingCard extends StatefulWidget {
   final double totalCaloriesConsumed;
   final double recommendedCalories;
   final List<FoodAnalysis> savedAnalyses;
+  final DateTime selectedDate;
+  final Function(DateTime) onDateSelected;
 
   const CalorieTrackingCard({
     super.key,
     required this.totalCaloriesConsumed,
     required this.recommendedCalories,
     required this.savedAnalyses,
+    required this.selectedDate,
+    required this.onDateSelected,
   });
 
   @override
@@ -81,6 +86,10 @@ class _CalorieTrackingCardState extends State<CalorieTrackingCard>
       statusColor = Colors.green; // Healthy consumption - Green for good
     }
 
+    final isToday = widget.selectedDate.year == DateTime.now().year &&
+        widget.selectedDate.month == DateTime.now().month &&
+        widget.selectedDate.day == DateTime.now().day;
+
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(20),
@@ -108,12 +117,80 @@ class _CalorieTrackingCardState extends State<CalorieTrackingCard>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Today\'s Calories',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.onSurface,
+              GestureDetector(
+                onTap: () async {
+                  final DateTime? picked = await showDatePicker(
+                    context: context,
+                    initialDate: widget.selectedDate,
+                    firstDate: DateTime(2020),
+                    lastDate: DateTime.now(),
+                  );
+                  if (picked != null) {
+                    widget.onDateSelected(picked);
+                  }
+                },
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .primary
+                            .withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        children: [
+                          Text(
+                            isToday
+                                ? 'Today\'s Calories'
+                                : '${DateFormat('d MMMM').format(widget.selectedDate)} Calories',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Icon(
+                            Icons.chevron_right,
+                            color: Theme.of(context).colorScheme.primary,
+                            size: 20,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    SizedBox(
+                      height: 40,
+                      child: isToday
+                          ? const SizedBox.shrink()
+                          : Tooltip(
+                              message: 'Go to Today',
+                              child: IconButton(
+                                onPressed: () =>
+                                    widget.onDateSelected(DateTime.now()),
+                                icon: Icon(
+                                  Icons.replay_rounded,
+                                  color:
+                                      Theme.of(context).colorScheme.secondary,
+                                  size: 20,
+                                ),
+                                style: IconButton.styleFrom(
+                                  backgroundColor: Theme.of(context)
+                                      .colorScheme
+                                      .secondary
+                                      .withOpacity(0.1),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                              ),
+                            ),
+                    ),
+                  ],
                 ),
               ),
               Container(
