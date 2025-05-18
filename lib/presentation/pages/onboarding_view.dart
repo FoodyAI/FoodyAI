@@ -20,6 +20,7 @@ class _OnboardingViewState extends State<OnboardingView> {
   final _formKey = GlobalKey<FormState>();
   final _pageController = PageController();
   int _currentPage = 0;
+  bool _hasSelectedGender = false;
 
   late String _gender;
   late int _age;
@@ -48,6 +49,7 @@ class _OnboardingViewState extends State<OnboardingView> {
       _weightGoal = profile.weightGoal;
     } else {
       _gender = 'Male';
+      _hasSelectedGender = false;
       _age = 25;
       _weight = 70;
       _weightUnit = 'kg';
@@ -194,7 +196,9 @@ class _OnboardingViewState extends State<OnboardingView> {
                     else
                       const SizedBox(width: 100),
                     ElevatedButton.icon(
-                      onPressed: _nextPage,
+                      onPressed: (_currentPage == 0 && !_hasSelectedGender)
+                          ? null
+                          : _nextPage,
                       icon: Icon(_currentPage == 3
                           ? FontAwesomeIcons.check
                           : FontAwesomeIcons.arrowRight),
@@ -268,7 +272,10 @@ class _OnboardingViewState extends State<OnboardingView> {
   Widget _buildGenderOption(String gender, IconData icon, Color color) {
     final isSelected = _gender == gender;
     return InkWell(
-      onTap: () => setState(() => _gender = gender),
+      onTap: () => setState(() {
+        _gender = gender;
+        _hasSelectedGender = true;
+      }),
       child: Container(
         padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
