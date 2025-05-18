@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import '../widgets/health_analysis_content.dart';
+import '../widgets/health_info_card.dart';
 import '../widgets/custom_app_bar.dart';
 import 'home_view.dart';
 import '../../../core/constants/app_colors.dart';
+import 'package:provider/provider.dart';
+import '../viewmodels/user_profile_viewmodel.dart';
 
 class AnalysisLoadingView extends StatefulWidget {
   const AnalysisLoadingView({super.key});
@@ -76,60 +78,76 @@ class _AnalysisLoadingViewState extends State<AnalysisLoadingView>
         child: AnimatedSwitcher(
           duration: const Duration(milliseconds: 500),
           child: _showHealthChart
-              ? HealthAnalysisContent(
-                  additionalContent: Column(
-                    children: [
-                      ElevatedButton(
-                        onPressed: () {
-                          Navigator.pushReplacement(
-                            context,
-                            PageRouteBuilder(
-                              pageBuilder:
-                                  (context, animation, secondaryAnimation) =>
-                                      const HomeView(),
-                              transitionsBuilder: (context, animation,
-                                  secondaryAnimation, child) {
-                                const begin = Offset(1.0, 0.0);
-                                const end = Offset.zero;
-                                const curve = Curves.easeInOutCubic;
-                                var tween = Tween(begin: begin, end: end)
-                                    .chain(CurveTween(curve: curve));
-                                var offsetAnimation = animation.drive(tween);
-                                return SlideTransition(
-                                  position: offsetAnimation,
-                                  child: FadeTransition(
-                                    opacity: animation,
-                                    child: child,
+              ? Builder(
+                  builder: (context) {
+                    final profileVM =
+                        Provider.of<UserProfileViewModel>(context);
+                    final profile = profileVM.profile;
+                    final isMetric = profileVM.isMetric;
+                    if (profile == null) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    return SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          HealthInfoCard(profile: profile, isMetric: isMetric),
+                          const SizedBox(height: 24),
+                          Center(
+                            child: ElevatedButton(
+                              onPressed: () {
+                                Navigator.pushReplacement(
+                                  context,
+                                  PageRouteBuilder(
+                                    pageBuilder: (context, animation,
+                                            secondaryAnimation) =>
+                                        const HomeView(),
+                                    transitionsBuilder: (context, animation,
+                                        secondaryAnimation, child) {
+                                      const begin = Offset(1.0, 0.0);
+                                      const end = Offset.zero;
+                                      const curve = Curves.easeInOutCubic;
+                                      var tween = Tween(begin: begin, end: end)
+                                          .chain(CurveTween(curve: curve));
+                                      var offsetAnimation =
+                                          animation.drive(tween);
+                                      return SlideTransition(
+                                        position: offsetAnimation,
+                                        child: FadeTransition(
+                                          opacity: animation,
+                                          child: child,
+                                        ),
+                                      );
+                                    },
+                                    transitionDuration:
+                                        const Duration(milliseconds: 800),
                                   ),
                                 );
                               },
-                              transitionDuration:
-                                  const Duration(milliseconds: 800),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                foregroundColor: AppColors.white,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 32,
+                                  vertical: 16,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                              ),
+                              child: const Text(
+                                "Let's rock it",
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: AppColors.white,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 32,
-                            vertical: 16,
                           ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                        ),
-                        child: const Text(
-                          "Let's rock it",
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        ],
                       ),
-                      const SizedBox(height: 16),
-                    ],
-                  ),
+                    );
+                  },
                 )
               : Center(
                   child: AnimatedBuilder(
