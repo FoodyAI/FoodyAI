@@ -94,6 +94,9 @@ class _RatingDialogState extends State<RatingDialog>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return ScaleTransition(
       scale: _scaleAnimation,
       child: Dialog(
@@ -101,11 +104,13 @@ class _RatingDialogState extends State<RatingDialog>
         child: Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: AppColors.white,
+            color: isDark ? AppColors.darkSurface : AppColors.white,
             borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: AppColors.withOpacity(AppColors.black, 0.1),
+                color: isDark
+                    ? AppColors.withOpacity(AppColors.black, 0.3)
+                    : AppColors.withOpacity(AppColors.black, 0.1),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               ),
@@ -117,21 +122,27 @@ class _RatingDialogState extends State<RatingDialog>
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.withOpacity(AppColors.primary, 0.1),
+                  color: AppColors.withOpacity(
+                    colorScheme.primary,
+                    isDark ? 0.2 : 0.1,
+                  ),
                   shape: BoxShape.circle,
                 ),
-                child: const FaIcon(
+                child: FaIcon(
                   FontAwesomeIcons.heart,
                   size: 48,
-                  color: AppColors.primary,
+                  color: colorScheme.primary,
                 ),
               ),
               const SizedBox(height: 24),
               Text(
                 _hasRated ? 'Thank You!' : 'How was your experience?',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
+                  color: isDark
+                      ? AppColors.darkTextPrimary
+                      : AppColors.textPrimary,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -140,9 +151,10 @@ class _RatingDialogState extends State<RatingDialog>
                 _hasRated
                     ? 'We appreciate your feedback!'
                     : 'Your feedback helps us improve',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
-                  color: AppColors.grey600,
+                  color:
+                      isDark ? AppColors.darkTextSecondary : AppColors.grey600,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -168,7 +180,9 @@ class _RatingDialogState extends State<RatingDialog>
                                 size: 36,
                                 color: index < _rating
                                     ? AppColors.warning
-                                    : AppColors.grey400,
+                                    : isDark
+                                        ? AppColors.darkTextSecondary
+                                        : AppColors.grey400,
                               ),
                             );
                           },
@@ -188,6 +202,8 @@ class _RatingDialogState extends State<RatingDialog>
                         horizontal: 32,
                         vertical: 16,
                       ),
+                      backgroundColor: colorScheme.primary,
+                      foregroundColor: AppColors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30),
                       ),
@@ -214,10 +230,12 @@ class _RatingDialogState extends State<RatingDialog>
                         viewModel.handleMaybeLater();
                         Navigator.of(context).pop();
                       },
-                      child: const Text(
+                      child: Text(
                         'Maybe Later',
                         style: TextStyle(
-                          color: AppColors.grey600,
+                          color: isDark
+                              ? AppColors.darkTextSecondary
+                              : AppColors.grey600,
                           fontSize: 16,
                         ),
                       ),
@@ -225,10 +243,12 @@ class _RatingDialogState extends State<RatingDialog>
                     const SizedBox(width: 24),
                     TextButton(
                       onPressed: _dontAskAgain,
-                      child: const Text(
+                      child: Text(
                         'Don\'t Ask Again',
                         style: TextStyle(
-                          color: AppColors.grey500,
+                          color: isDark
+                              ? AppColors.darkTextSecondary
+                              : AppColors.grey500,
                           fontSize: 16,
                         ),
                       ),
@@ -243,6 +263,8 @@ class _RatingDialogState extends State<RatingDialog>
                       horizontal: 32,
                       vertical: 16,
                     ),
+                    backgroundColor: colorScheme.primary,
+                    foregroundColor: AppColors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
                     ),
