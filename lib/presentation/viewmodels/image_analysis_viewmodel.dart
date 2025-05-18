@@ -20,16 +20,28 @@ class ImageAnalysisViewModel extends ChangeNotifier {
   String? _error;
   List<FoodAnalysis> _savedAnalyses = [];
   DateTime? _firstUseDate;
+  DateTime _selectedDate = DateTime.now();
 
   File? get selectedImage => _selectedImage;
   FoodAnalysis? get currentAnalysis => _currentAnalysis;
   bool get isLoading => _isLoading;
   String? get error => _error;
+  DateTime get selectedDate => _selectedDate;
   List<FoodAnalysis> get savedAnalyses => List.unmodifiable(_savedAnalyses);
+  List<FoodAnalysis> get filteredAnalyses => _savedAnalyses.where((analysis) {
+        return analysis.date.year == _selectedDate.year &&
+            analysis.date.month == _selectedDate.month &&
+            analysis.date.day == _selectedDate.day;
+      }).toList();
 
   ImageAnalysisViewModel() {
     _loadSavedAnalyses();
     _initializeFirstUseDate();
+  }
+
+  void setSelectedDate(DateTime date) {
+    _selectedDate = date;
+    notifyListeners();
   }
 
   Future<void> _initializeFirstUseDate() async {
@@ -109,6 +121,7 @@ class ImageAnalysisViewModel extends ChangeNotifier {
         calories: analysis.calories,
         healthScore: analysis.healthScore,
         imagePath: _selectedImage!.path,
+        date: _selectedDate,
       );
       await _saveCurrentAnalysis();
     } catch (e) {
@@ -121,6 +134,14 @@ class ImageAnalysisViewModel extends ChangeNotifier {
 
   Future<void> _saveCurrentAnalysis() async {
     if (_currentAnalysis != null) {
+      // Get the count of analyses for the current date
+      final dateCount = _savedAnalyses
+          .where((a) =>
+              a.date.year == _selectedDate.year &&
+              a.date.month == _selectedDate.month &&
+              a.date.day == _selectedDate.day)
+          .length;
+
       final analysis = FoodAnalysis(
         name: _currentAnalysis!.name,
         protein: _currentAnalysis!.protein,
@@ -130,6 +151,8 @@ class ImageAnalysisViewModel extends ChangeNotifier {
         healthScore: _currentAnalysis!.healthScore,
         imagePath: _currentAnalysis!.imagePath,
         orderNumber: _savedAnalyses.length + 1,
+        date: _selectedDate,
+        dateOrderNumber: dateCount + 1,
       );
       _savedAnalyses.add(analysis);
       await _storage.saveAnalyses(_savedAnalyses);
@@ -145,7 +168,10 @@ class ImageAnalysisViewModel extends ChangeNotifier {
   Future<FoodAnalysis?> removeAnalysis(int index) async {
     if (index >= 0 && index < _savedAnalyses.length) {
       final removedAnalysis = _savedAnalyses[index];
+      final removedDate = removedAnalysis.date;
       _savedAnalyses.removeAt(index);
+
+      // Update order numbers for all analyses
       for (int i = 0; i < _savedAnalyses.length; i++) {
         _savedAnalyses[i] = FoodAnalysis(
           name: _savedAnalyses[i].name,
@@ -156,8 +182,36 @@ class ImageAnalysisViewModel extends ChangeNotifier {
           healthScore: _savedAnalyses[i].healthScore,
           imagePath: _savedAnalyses[i].imagePath,
           orderNumber: i + 1,
+          date: _savedAnalyses[i].date,
+          dateOrderNumber: _savedAnalyses[i].dateOrderNumber,
         );
       }
+
+      // Update date order numbers for the affected date
+      final sameDateAnalyses = _savedAnalyses
+          .where((a) =>
+              a.date.year == removedDate.year &&
+              a.date.month == removedDate.month &&
+              a.date.day == removedDate.day)
+          .toList();
+
+      for (int i = 0; i < sameDateAnalyses.length; i++) {
+        final analysis = sameDateAnalyses[i];
+        final index = _savedAnalyses.indexOf(analysis);
+        _savedAnalyses[index] = FoodAnalysis(
+          name: analysis.name,
+          protein: analysis.protein,
+          carbs: analysis.carbs,
+          fat: analysis.fat,
+          calories: analysis.calories,
+          healthScore: analysis.healthScore,
+          imagePath: analysis.imagePath,
+          orderNumber: analysis.orderNumber,
+          date: analysis.date,
+          dateOrderNumber: i + 1,
+        );
+      }
+
       await _storage.saveAnalyses(_savedAnalyses);
       notifyListeners();
       return removedAnalysis;
@@ -178,9 +232,19 @@ class ImageAnalysisViewModel extends ChangeNotifier {
           healthScore: _savedAnalyses[i].healthScore,
           imagePath: _savedAnalyses[i].imagePath,
           orderNumber: i + 1,
+          date: _savedAnalyses[i].date,
+          dateOrderNumber: _savedAnalyses[i].dateOrderNumber,
         );
       }
     } else {
+      // Get the count of analyses for the current date
+      final dateCount = _savedAnalyses
+          .where((a) =>
+              a.date.year == _selectedDate.year &&
+              a.date.month == _selectedDate.month &&
+              a.date.day == _selectedDate.day)
+          .length;
+
       final newAnalysis = FoodAnalysis(
         name: analysis.name,
         protein: analysis.protein,
@@ -190,6 +254,8 @@ class ImageAnalysisViewModel extends ChangeNotifier {
         healthScore: analysis.healthScore,
         imagePath: analysis.imagePath,
         orderNumber: _savedAnalyses.length + 1,
+        date: _selectedDate,
+        dateOrderNumber: dateCount + 1,
       );
       _savedAnalyses.add(newAnalysis);
     }
