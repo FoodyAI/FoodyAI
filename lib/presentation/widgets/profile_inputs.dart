@@ -105,12 +105,8 @@ class AgeInput extends StatelessWidget {
                         currentAge.toString(),
                         style: TextStyle(
                           fontSize: 24,
-                          fontWeight: age == currentAge
-                              ? FontWeight.bold
-                              : FontWeight.normal,
-                          color: age == currentAge
-                              ? colorScheme.primary
-                              : colorScheme.onSurface.withOpacity(0.7),
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.primary,
                         ),
                       ),
                     );

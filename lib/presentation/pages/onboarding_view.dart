@@ -424,6 +424,7 @@ class _OnboardingViewState extends State<OnboardingView> {
 
   void _showAgeDialog(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    int tempAge = _age;
 
     showDialog(
       context: context,
@@ -435,8 +436,8 @@ class _OnboardingViewState extends State<OnboardingView> {
           ),
         ),
         content: AgeInput(
-          age: _age,
-          onChanged: (age) => setState(() => _age = age),
+          age: tempAge,
+          onChanged: (age) => tempAge = age,
         ),
         actions: [
           TextButton(
@@ -450,6 +451,7 @@ class _OnboardingViewState extends State<OnboardingView> {
           ),
           TextButton(
             onPressed: () {
+              setState(() => _age = tempAge);
               Navigator.pop(context);
             },
             child: Text(
@@ -466,6 +468,7 @@ class _OnboardingViewState extends State<OnboardingView> {
 
   void _showWeightDialog(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    double tempWeight = _weight;
 
     showDialog(
       context: context,
@@ -477,9 +480,9 @@ class _OnboardingViewState extends State<OnboardingView> {
           ),
         ),
         content: WeightInput(
-          weight: _weight,
+          weight: tempWeight,
           unit: _weightUnit,
-          onChanged: (weight) => setState(() => _weight = weight),
+          onChanged: (weight) => tempWeight = weight,
         ),
         actions: [
           TextButton(
@@ -493,6 +496,7 @@ class _OnboardingViewState extends State<OnboardingView> {
           ),
           TextButton(
             onPressed: () {
+              setState(() => _weight = tempWeight);
               Navigator.pop(context);
             },
             child: Text(
@@ -509,6 +513,7 @@ class _OnboardingViewState extends State<OnboardingView> {
 
   void _showHeightDialog(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    double tempHeight = _height;
 
     showDialog(
       context: context,
@@ -520,9 +525,9 @@ class _OnboardingViewState extends State<OnboardingView> {
           ),
         ),
         content: HeightInput(
-          height: _height,
+          height: tempHeight,
           isMetric: _isMetric,
-          onChanged: (height) => setState(() => _height = height),
+          onChanged: (height) => tempHeight = height,
         ),
         actions: [
           TextButton(
@@ -536,6 +541,7 @@ class _OnboardingViewState extends State<OnboardingView> {
           ),
           TextButton(
             onPressed: () {
+              setState(() => _height = tempHeight);
               Navigator.pop(context);
             },
             child: Text(
@@ -654,7 +660,7 @@ class _OnboardingViewState extends State<OnboardingView> {
               ),
             ),
             if (isSelected)
-              FaIcon(
+              const FaIcon(
                 FontAwesomeIcons.circleCheck,
                 color: AppColors.primary,
               ),
@@ -725,7 +731,7 @@ class _OnboardingViewState extends State<OnboardingView> {
                   const SizedBox(height: 4),
                   Text(
                     _getWeightGoalDescription(goal),
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 14,
                       color: AppColors.grey600,
                     ),
@@ -734,7 +740,7 @@ class _OnboardingViewState extends State<OnboardingView> {
               ),
             ),
             if (_weightGoal == goal)
-              FaIcon(
+              const FaIcon(
                 FontAwesomeIcons.circleCheck,
                 color: AppColors.primary,
               ),
