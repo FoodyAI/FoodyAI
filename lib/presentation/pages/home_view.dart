@@ -13,6 +13,7 @@ import '../widgets/custom_app_bar.dart';
 import '../../data/models/food_analysis.dart';
 import 'analyze_view.dart';
 import 'profile_view.dart';
+import 'barcode_scanner_view.dart';
 import '../../../core/constants/app_colors.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -114,7 +115,7 @@ class _HomeContent extends StatelessWidget {
                                 AppColors.withOpacity(colorScheme.primary, 0.1),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: FaIcon(
+                          child: const FaIcon(
                             FontAwesomeIcons.camera,
                             color: AppColors.primary,
                           ),
@@ -164,6 +165,36 @@ class _HomeContent extends StatelessWidget {
                           vm.pickImage(ImageSource.gallery).then((_) {
                             if (vm.selectedImage != null) vm.analyzeImage();
                           });
+                        },
+                      ),
+                      ListTile(
+                        leading: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: AppColors.withOpacity(
+                                colorScheme.tertiary, 0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: FaIcon(
+                            FontAwesomeIcons.barcode,
+                            color: colorScheme.tertiary,
+                          ),
+                        ),
+                        title: Text(
+                          'Scan Barcode',
+                          style: TextStyle(
+                            color: isDark ? AppColors.white : AppColors.black,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        onTap: () {
+                          Navigator.pop(context);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const BarcodeScannerView(),
+                            ),
+                          );
                         },
                       ),
                       const SizedBox(height: 16),
