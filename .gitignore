@@ -19,6 +19,10 @@ migrate_working_dir/
 .env.test
 .env.production
 
+# Firebase configuration
+**/google-services.json
+**/GoogleService-Info.plist
+
 # IntelliJ related
 *.iml
 *.ipr
