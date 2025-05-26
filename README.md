@@ -54,7 +54,7 @@ Built with clean architecture and MVVM patterns, Foody ensures a robust, maintai
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/mohammadaminrez/foody.git
+   git clone https://github.com/mohammadaminrez/Foody.git
    cd foody
    ```
 
