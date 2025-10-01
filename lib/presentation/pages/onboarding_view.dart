@@ -354,7 +354,7 @@ class _OnboardingViewState extends State<OnboardingView> {
   Widget _buildAIProviderCard(AIProvider provider) {
     final isSelected = _aiProvider == provider;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    
+
     return InkWell(
       onTap: () => setState(() => _aiProvider = provider),
       borderRadius: BorderRadius.circular(16),
@@ -443,8 +443,10 @@ class _OnboardingViewState extends State<OnboardingView> {
                             ),
                             decoration: BoxDecoration(
                               color: provider.isFree
-                                  ? AppColors.withOpacity(AppColors.success, 0.1)
-                                  : AppColors.withOpacity(AppColors.orange, 0.1),
+                                  ? AppColors.withOpacity(
+                                      AppColors.success, 0.1)
+                                  : AppColors.withOpacity(
+                                      AppColors.orange, 0.1),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
