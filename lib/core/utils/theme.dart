@@ -37,7 +37,7 @@ class AppTheme {
       centerTitle: true,
       iconTheme: IconThemeData(color: AppColors.white),
     ),
-    cardTheme: const CardTheme(
+    cardTheme: const CardThemeData(
       color: AppColors.surface,
       elevation: 2,
     ),
@@ -59,7 +59,7 @@ class AppTheme {
       centerTitle: true,
       iconTheme: IconThemeData(color: AppColors.white),
     ),
-    cardTheme: const CardTheme(
+    cardTheme: const CardThemeData(
       color: AppColors.darkCardBackground,
       elevation: 2,
     ),
@@ -72,7 +72,7 @@ class AppTheme {
       selectedItemColor: AppColors.primary,
       unselectedItemColor: AppColors.darkTextSecondary,
     ),
-    dialogTheme: const DialogTheme(
+    dialogTheme: const DialogThemeData(
       backgroundColor: AppColors.darkSurface,
       titleTextStyle: TextStyle(
         color: AppColors.darkTextPrimary,

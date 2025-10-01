@@ -3,16 +3,21 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../data/models/food_analysis.dart';
-import '../../data/datasources/remote/openai_service.dart';
+import '../../data/datasources/remote/ai_service.dart';
+import '../../data/datasources/remote/ai_service_factory.dart';
 import '../../data/datasources/local/food_analysis_storage.dart';
+import '../../domain/entities/ai_provider.dart';
+import '../../domain/repositories/user_profile_repository.dart';
+import '../../di/service_locator.dart';
 import '../widgets/rating_dialog.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 class ImageAnalysisViewModel extends ChangeNotifier {
-  final OpenAIService _service = OpenAIService();
   final ImagePicker _picker = ImagePicker();
   final FoodAnalysisStorage _storage = FoodAnalysisStorage();
+  final UserProfileRepository _profileRepository =
+      getIt<UserProfileRepository>();
 
   File? _selectedImage;
   FoodAnalysis? _currentAnalysis;
@@ -112,7 +117,15 @@ class ImageAnalysisViewModel extends ChangeNotifier {
     _error = null;
     notifyListeners();
     try {
-      final analysis = await _service.analyzeImage(_selectedImage!);
+      // Get user's selected AI provider
+      final profile = await _profileRepository.getProfile();
+      final aiProvider = profile?.aiProvider ?? AIProvider.openai;
+
+      // Get the appropriate AI service
+      final AIService service = AIServiceFactory.getService(aiProvider);
+
+      // Analyze the image
+      final analysis = await service.analyzeImage(_selectedImage!);
       _currentAnalysis = FoodAnalysis(
         name: analysis.name,
         protein: analysis.protein,
