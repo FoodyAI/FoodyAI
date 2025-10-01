@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../viewmodels/user_profile_viewmodel.dart';
 import '../viewmodels/theme_viewmodel.dart';
 import '../../domain/entities/user_profile.dart';
+import '../../domain/entities/ai_provider.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/profile_inputs.dart';
 import '../../core/constants/app_colors.dart';
@@ -142,6 +143,8 @@ class _ProfileViewState extends State<ProfileView>
                         heightUnit: value ? 'cm' : 'inch',
                         activityLevel: profileVM.profile!.activityLevel,
                         isMetric: value,
+                        weightGoal: profileVM.profile!.weightGoal,
+                        aiProvider: profileVM.profile!.aiProvider,
                       );
                     },
                   ),
@@ -156,7 +159,7 @@ class _ProfileViewState extends State<ProfileView>
             crossAxisCount: 2,
             mainAxisSpacing: 16,
             crossAxisSpacing: 16,
-            childAspectRatio: 1.5,
+            childAspectRatio: 1.2,
             children: [
               _buildInfoCard(
                 context,
@@ -216,7 +219,7 @@ class _ProfileViewState extends State<ProfileView>
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
@@ -230,29 +233,35 @@ class _ProfileViewState extends State<ProfileView>
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: [
               FaIcon(
                 icon,
                 color: color,
-                size: 32,
+                size: 28,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               Text(
                 title,
                 style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
                   color: color,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 2),
               Text(
                 value,
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 13,
                   color: color.withOpacity(0.7),
+                  fontWeight: FontWeight.w500,
                 ),
                 textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
@@ -312,6 +321,7 @@ class _ProfileViewState extends State<ProfileView>
                             activityLevel: level,
                             isMetric: profileVM.isMetric,
                             weightGoal: profile.weightGoal,
+                            aiProvider: profile.aiProvider,
                           );
                         },
                         borderRadius: BorderRadius.circular(12),
@@ -437,6 +447,7 @@ class _ProfileViewState extends State<ProfileView>
                             activityLevel: profile.activityLevel,
                             isMetric: profileVM.isMetric,
                             weightGoal: goal,
+                            aiProvider: profile.aiProvider,
                           );
                         },
                         borderRadius: BorderRadius.circular(12),
@@ -513,11 +524,14 @@ class _ProfileViewState extends State<ProfileView>
 
   Widget _buildSettingsTab(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final profileVM = Provider.of<UserProfileViewModel>(context);
+    final profile = profileVM.profile!;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
+          // AI Provider Section
           Card(
             elevation: 4,
             shape: RoundedRectangleBorder(
@@ -528,13 +542,158 @@ class _ProfileViewState extends State<ProfileView>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Row(
+                    children: [
+                      FaIcon(
+                        FontAwesomeIcons.brain,
+                        color: colorScheme.primary,
+                        size: 24,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'AI Provider',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.onSurface,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
                   Text(
-                    'Appearance',
+                    'Choose the AI model for food analysis',
                     style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.onSurface,
+                      fontSize: 16,
+                      color: colorScheme.onSurface.withOpacity(0.7),
                     ),
+                  ),
+                  const SizedBox(height: 24),
+                  InkWell(
+                    onTap: () => _showAIProviderDialog(context, profileVM),
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primary.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: colorScheme.primary,
+                          width: 2,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: AppColors.withOpacity(
+                                _getAIProviderColor(profile.aiProvider),
+                                0.1,
+                              ),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: FaIcon(
+                              _getAIProviderIcon(profile.aiProvider),
+                              color: _getAIProviderColor(profile.aiProvider),
+                              size: 24,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Text(
+                                      profile.aiProvider.displayName,
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: colorScheme.primary,
+                                      ),
+                                    ),
+                                    if (profile.aiProvider.isRecommended) ...[
+                                      const SizedBox(width: 8),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 6,
+                                          vertical: 2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.primary,
+                                          borderRadius: BorderRadius.circular(6),
+                                        ),
+                                        child: const Text(
+                                          'RECOMMENDED',
+                                          style: TextStyle(
+                                            fontSize: 8,
+                                            fontWeight: FontWeight.bold,
+                                            color: AppColors.white,
+                                            letterSpacing: 0.5,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  profile.aiProvider.description,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: colorScheme.onSurface.withOpacity(0.7),
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          FaIcon(
+                            FontAwesomeIcons.chevronRight,
+                            color: colorScheme.primary,
+                            size: 16,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Appearance Section
+          Card(
+            elevation: 4,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      FaIcon(
+                        FontAwesomeIcons.palette,
+                        color: colorScheme.primary,
+                        size: 24,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Appearance',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.onSurface,
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -544,7 +703,7 @@ class _ProfileViewState extends State<ProfileView>
                       color: colorScheme.onSurface.withOpacity(0.7),
                     ),
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 24),
                   Consumer<ThemeViewModel>(
                     builder: (context, themeVM, _) {
                       return Column(
@@ -751,6 +910,8 @@ class _ProfileViewState extends State<ProfileView>
                   heightUnit: vm.heightUnit,
                   activityLevel: vm.profile!.activityLevel,
                   isMetric: vm.isMetric,
+                  weightGoal: vm.profile!.weightGoal,
+                  aiProvider: vm.profile!.aiProvider,
                 );
                 Navigator.pop(context);
               },
@@ -784,6 +945,8 @@ class _ProfileViewState extends State<ProfileView>
                   heightUnit: vm.heightUnit,
                   activityLevel: vm.profile!.activityLevel,
                   isMetric: vm.isMetric,
+                  weightGoal: vm.profile!.weightGoal,
+                  aiProvider: vm.profile!.aiProvider,
                 );
                 Navigator.pop(context);
               },
@@ -834,6 +997,8 @@ class _ProfileViewState extends State<ProfileView>
                 heightUnit: vm.heightUnit,
                 activityLevel: vm.profile!.activityLevel,
                 isMetric: vm.isMetric,
+                weightGoal: vm.profile!.weightGoal,
+                aiProvider: vm.profile!.aiProvider,
               );
               Navigator.pop(context);
             },
@@ -890,6 +1055,8 @@ class _ProfileViewState extends State<ProfileView>
                 heightUnit: vm.heightUnit,
                 activityLevel: vm.profile!.activityLevel,
                 isMetric: vm.isMetric,
+                weightGoal: vm.profile!.weightGoal,
+                aiProvider: vm.profile!.aiProvider,
               );
               Navigator.pop(context);
             },
@@ -946,6 +1113,8 @@ class _ProfileViewState extends State<ProfileView>
                 heightUnit: vm.heightUnit,
                 activityLevel: vm.profile!.activityLevel,
                 isMetric: vm.isMetric,
+                weightGoal: vm.profile!.weightGoal,
+                aiProvider: vm.profile!.aiProvider,
               );
               Navigator.pop(context);
             },
@@ -970,5 +1139,202 @@ class _ProfileViewState extends State<ProfileView>
       case WeightGoal.gain:
         return FontAwesomeIcons.arrowUp;
     }
+  }
+
+  IconData _getAIProviderIcon(AIProvider provider) {
+    switch (provider) {
+      case AIProvider.openai:
+        return FontAwesomeIcons.brain;
+      case AIProvider.gemini:
+        return FontAwesomeIcons.gem;
+      case AIProvider.claude:
+        return FontAwesomeIcons.robot;
+      case AIProvider.huggingface:
+        return FontAwesomeIcons.code;
+    }
+  }
+
+  Color _getAIProviderColor(AIProvider provider) {
+    switch (provider) {
+      case AIProvider.openai:
+        return AppColors.primary;
+      case AIProvider.gemini:
+        return AppColors.blue;
+      case AIProvider.claude:
+        return AppColors.profile;
+      case AIProvider.huggingface:
+        return AppColors.orange;
+    }
+  }
+
+  void _showAIProviderDialog(
+      BuildContext context, UserProfileViewModel profileVM) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final currentProvider = profileVM.profile!.aiProvider;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            FaIcon(
+              FontAwesomeIcons.brain,
+              color: colorScheme.primary,
+              size: 20,
+            ),
+            const SizedBox(width: 12),
+            Text(
+              'Choose AI Provider',
+              style: TextStyle(
+                color: colorScheme.onSurface,
+                fontSize: 20,
+              ),
+            ),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: AIProvider.values.map((provider) {
+              final isSelected = provider == currentProvider;
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: InkWell(
+                  onTap: () {
+                    profileVM.saveProfile(
+                      gender: profileVM.profile!.gender,
+                      age: profileVM.profile!.age,
+                      weight: profileVM.displayWeight,
+                      weightUnit: profileVM.weightUnit,
+                      height: profileVM.displayHeight,
+                      heightUnit: profileVM.heightUnit,
+                      activityLevel: profileVM.profile!.activityLevel,
+                      isMetric: profileVM.isMetric,
+                      weightGoal: profileVM.profile!.weightGoal,
+                      aiProvider: provider,
+                    );
+                    Navigator.pop(context);
+                  },
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? AppColors.withOpacity(
+                              _getAIProviderColor(provider), 0.1)
+                          : (isDarkMode
+                              ? AppColors.darkCardBackground
+                              : AppColors.grey100),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isSelected
+                            ? _getAIProviderColor(provider)
+                            : AppColors.transparent,
+                        width: 2,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: AppColors.withOpacity(
+                              _getAIProviderColor(provider),
+                              0.1,
+                            ),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: FaIcon(
+                            _getAIProviderIcon(provider),
+                            color: _getAIProviderColor(provider),
+                            size: 20,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Flexible(
+                                    child: Text(
+                                      provider.displayName,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: isSelected
+                                            ? _getAIProviderColor(provider)
+                                            : (isDarkMode
+                                                ? AppColors.darkTextPrimary
+                                                : AppColors.textPrimary),
+                                      ),
+                                    ),
+                                  ),
+                                  if (provider.isRecommended) ...[
+                                    const SizedBox(width: 4),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 4,
+                                        vertical: 2,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.primary,
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: const Text(
+                                        'REC',
+                                        style: TextStyle(
+                                          fontSize: 8,
+                                          fontWeight: FontWeight.bold,
+                                          color: AppColors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                provider.pricing,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: provider.isFree
+                                      ? AppColors.success
+                                      : AppColors.orange,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (isSelected)
+                          FaIcon(
+                            FontAwesomeIcons.circleCheck,
+                            color: _getAIProviderColor(provider),
+                            size: 20,
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cancel',
+              style: TextStyle(
+                color: colorScheme.primary,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
