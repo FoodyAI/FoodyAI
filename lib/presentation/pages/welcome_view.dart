@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/welcome_viewmodel.dart';
+import '../widgets/google_signin_button.dart';
 import 'dart:math' as math;
 import 'dart:math';
 import '../../../core/constants/app_colors.dart';
@@ -142,55 +143,8 @@ class _WelcomeScreenContent extends StatelessWidget {
                           );
                         },
                         child: Center(
-                          child: ElevatedButton(
-                            onPressed: viewModel.isGoogleLoading
-                                ? null
-                                : viewModel.signInWithGoogle,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: isDarkMode
-                                  ? AppColors.green
-                                  : AppColors.white,
-                              foregroundColor: isDarkMode
-                                  ? AppColors.white
-                                  : AppColors.textPrimary,
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 32, vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              elevation: 4,
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                if (viewModel.isGoogleLoading)
-                                  SizedBox(
-                                    width: 24,
-                                    height: 24,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                          isDarkMode
-                                              ? AppColors.white
-                                              : AppColors.textPrimary),
-                                    ),
-                                  )
-                                else ...[
-                                  Image.asset(
-                                    'assets/google_logo.png',
-                                    height: 24,
-                                  ),
-                                  const SizedBox(width: 12),
-                                  const Text(
-                                    'Sign in with Google',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ],
-                            ),
+                          child: GoogleSignInButton(
+                            isLoading: viewModel.isGoogleLoading,
                           ),
                         ),
                       ),

@@ -14,6 +14,7 @@ class UserProfileViewModel extends ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get isMetric => _isMetric;
   bool get hasCompletedOnboarding => _hasCompletedOnboarding;
+  bool get isGuest => _profile?.isGuest ?? false;
 
   UserProfileViewModel(this._useCase) {
     _loadProfile();
@@ -49,6 +50,7 @@ class UserProfileViewModel extends ChangeNotifier {
     required bool isMetric,
     WeightGoal? weightGoal,
     AIProvider? aiProvider,
+    bool? isGuest,
   }) async {
     _isMetric = isMetric;
     final weightKg = weightUnit == 'lbs' ? weight * 0.453592 : weight;
@@ -62,6 +64,7 @@ class UserProfileViewModel extends ChangeNotifier {
       activityLevel: activityLevel,
       weightGoal: weightGoal ?? _profile?.weightGoal ?? WeightGoal.maintain,
       aiProvider: aiProvider ?? _profile?.aiProvider ?? AIProvider.openai,
+      isGuest: isGuest ?? _profile?.isGuest ?? true,
     );
 
     await _useCase.saveProfile(_profile!, isMetric);

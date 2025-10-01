@@ -14,6 +14,29 @@ class OpenAIService implements AIService {
     try {
       final base64Image = base64Encode(await image.readAsBytes());
 
+      final requestBody = {
+        'model': 'gpt-4o-mini',
+        'messages': [
+          {
+            'role': 'user',
+            'content': [
+              {
+                'type': 'text',
+                'text':
+                    'Analyze this food image and respond ONLY in the following JSON format: {"name": "...", "protein": ..., "carbs": ..., "fat": ..., "calories": ..., healthScore}.'
+              },
+              {
+                'type': 'image_url',
+                'image_url': {'url': 'data:image/jpeg;base64,<IMAGE_BASE64>'}
+              }
+            ]
+          }
+        ],
+        'max_tokens': 300
+      };
+
+      print('🤖 [OpenAI] Request: ${jsonEncode(requestBody)}');
+
       final response = await http.post(
         Uri.parse(_apiUrl),
         headers: {
@@ -42,9 +65,14 @@ class OpenAIService implements AIService {
         }),
       );
 
+      print('📥 [OpenAI] Response Status: ${response.statusCode}');
+      print('📥 [OpenAI] Response Body: ${response.body}');
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final content = data['choices'][0]['message']['content'];
+
+        print('📝 [OpenAI] Extracted Content: $content');
 
         // Parse the text response into a FoodAnalysis object
         try {
@@ -54,6 +82,8 @@ class OpenAIService implements AIService {
           final jsonString = match != null ? match.group(0) : content;
 
           final jsonResponse = jsonDecode(jsonString!);
+          print('✅ [OpenAI] Parsed JSON: $jsonResponse');
+          
           return FoodAnalysis(
             name: jsonResponse['name'],
             protein: jsonResponse['protein'].toDouble(),

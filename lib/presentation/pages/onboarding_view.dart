@@ -354,7 +354,7 @@ class _OnboardingViewState extends State<OnboardingView> {
   Widget _buildAIProviderCard(AIProvider provider) {
     final isSelected = _aiProvider == provider;
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    
+
     return InkWell(
       onTap: () => setState(() => _aiProvider = provider),
       borderRadius: BorderRadius.circular(16),
@@ -397,36 +397,40 @@ class _OnboardingViewState extends State<OnboardingView> {
                     children: [
                       Row(
                         children: [
-                          Text(
-                            provider.displayName,
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: isSelected
-                                  ? AppColors.primary
-                                  : (isDarkMode
-                                      ? AppColors.darkTextPrimary
-                                      : AppColors.textPrimary),
+                          Flexible(
+                            child: Text(
+                              provider.displayName,
+                              style: TextStyle(
+                                fontSize: 17,
+                                fontWeight: FontWeight.bold,
+                                color: isSelected
+                                    ? AppColors.primary
+                                    : (isDarkMode
+                                        ? AppColors.darkTextPrimary
+                                        : AppColors.textPrimary),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           if (provider.isRecommended) ...[
-                            const SizedBox(width: 8),
+                            const SizedBox(width: 6),
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
+                                horizontal: 6,
+                                vertical: 3,
                               ),
                               decoration: BoxDecoration(
                                 color: AppColors.primary,
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(6),
                               ),
                               child: const Text(
                                 'RECOMMENDED',
                                 style: TextStyle(
-                                  fontSize: 10,
+                                  fontSize: 8,
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.white,
-                                  letterSpacing: 0.5,
+                                  letterSpacing: 0.4,
                                 ),
                               ),
                             ),
@@ -443,8 +447,10 @@ class _OnboardingViewState extends State<OnboardingView> {
                             ),
                             decoration: BoxDecoration(
                               color: provider.isFree
-                                  ? AppColors.withOpacity(AppColors.success, 0.1)
-                                  : AppColors.withOpacity(AppColors.orange, 0.1),
+                                  ? AppColors.withOpacity(
+                                      AppColors.success, 0.1)
+                                  : AppColors.withOpacity(
+                                      AppColors.orange, 0.1),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
