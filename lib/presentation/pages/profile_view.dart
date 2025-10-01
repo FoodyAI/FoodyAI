@@ -6,6 +6,7 @@ import '../../domain/entities/user_profile.dart';
 import '../../domain/entities/ai_provider.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/profile_inputs.dart';
+import '../widgets/google_signin_button.dart';
 import '../../core/constants/app_colors.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -531,6 +532,86 @@ class _ProfileViewState extends State<ProfileView>
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
+          // Account Section (Guest Mode)
+          if (profileVM.isGuest)
+            Card(
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        FaIcon(
+                          FontAwesomeIcons.user,
+                          color: colorScheme.primary,
+                          size: 24,
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          'Account',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.onSurface,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'You\'re using Foody as a guest',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: colorScheme.onSurface.withOpacity(0.7),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppColors.withOpacity(colorScheme.primary, 0.05),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color:
+                              AppColors.withOpacity(colorScheme.primary, 0.2),
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          _buildAccountBenefit(
+                            context,
+                            FontAwesomeIcons.cloudArrowUp,
+                            'Sync across devices',
+                          ),
+                          const SizedBox(height: 12),
+                          _buildAccountBenefit(
+                            context,
+                            FontAwesomeIcons.shieldHalved,
+                            'Backup your history',
+                          ),
+                          const SizedBox(height: 12),
+                          _buildAccountBenefit(
+                            context,
+                            FontAwesomeIcons.chartLine,
+                            'Advanced analytics',
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    const GoogleSignInButton(
+                      isFullWidth: true,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          if (profileVM.isGuest) const SizedBox(height: 16),
           // AI Provider Section
           Card(
             elevation: 4,
@@ -569,98 +650,17 @@ class _ProfileViewState extends State<ProfileView>
                     ),
                   ),
                   const SizedBox(height: 24),
-                  InkWell(
-                    onTap: () => _showAIProviderDialog(context, profileVM),
-                    borderRadius: BorderRadius.circular(12),
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: colorScheme.primary.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: colorScheme.primary,
-                          width: 2,
-                        ),
+                  ...AIProvider.values.map((provider) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: _buildAIProviderOption(
+                        context,
+                        profileVM,
+                        profile,
+                        provider,
                       ),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: AppColors.withOpacity(
-                                _getAIProviderColor(profile.aiProvider),
-                                0.1,
-                              ),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: FaIcon(
-                              _getAIProviderIcon(profile.aiProvider),
-                              color: _getAIProviderColor(profile.aiProvider),
-                              size: 24,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Text(
-                                      profile.aiProvider.displayName,
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        color: colorScheme.primary,
-                                      ),
-                                    ),
-                                    if (profile.aiProvider.isRecommended) ...[
-                                      const SizedBox(width: 8),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 6,
-                                          vertical: 2,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: AppColors.primary,
-                                          borderRadius: BorderRadius.circular(6),
-                                        ),
-                                        child: const Text(
-                                          'RECOMMENDED',
-                                          style: TextStyle(
-                                            fontSize: 8,
-                                            fontWeight: FontWeight.bold,
-                                            color: AppColors.white,
-                                            letterSpacing: 0.5,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ],
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  profile.aiProvider.description,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: colorScheme.onSurface.withOpacity(0.7),
-                                  ),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          FaIcon(
-                            FontAwesomeIcons.chevronRight,
-                            color: colorScheme.primary,
-                            size: 16,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                    );
+                  }),
                 ],
               ),
             ),
@@ -1141,6 +1141,156 @@ class _ProfileViewState extends State<ProfileView>
     }
   }
 
+  Widget _buildAccountBenefit(
+      BuildContext context, IconData icon, String text) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Row(
+      children: [
+        FaIcon(
+          icon,
+          size: 16,
+          color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: 14,
+              color: isDark
+                  ? AppColors.darkTextSecondary
+                  : AppColors.textSecondary,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAIProviderOption(
+    BuildContext context,
+    UserProfileViewModel profileVM,
+    UserProfile profile,
+    AIProvider provider,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isSelected = profile.aiProvider == provider;
+
+    return InkWell(
+      onTap: () {
+        profileVM.saveProfile(
+          gender: profile.gender,
+          age: profile.age,
+          weight: profileVM.displayWeight,
+          weightUnit: profileVM.weightUnit,
+          height: profileVM.displayHeight,
+          heightUnit: profileVM.heightUnit,
+          activityLevel: profile.activityLevel,
+          isMetric: profileVM.isMetric,
+          weightGoal: profile.weightGoal,
+          aiProvider: provider,
+        );
+      },
+      borderRadius: BorderRadius.circular(12),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? colorScheme.primary.withOpacity(0.1)
+              : (isDark ? AppColors.darkCardBackground : colorScheme.surface),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected
+                ? colorScheme.primary
+                : colorScheme.outline.withOpacity(0.5),
+            width: 2,
+          ),
+        ),
+        child: Row(
+          children: [
+            FaIcon(
+              _getAIProviderIcon(provider),
+              color: isSelected
+                  ? colorScheme.primary
+                  : (isDark
+                      ? AppColors.darkTextPrimary
+                      : colorScheme.onSurface),
+              size: 28,
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          provider.displayName,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: isSelected
+                                ? colorScheme.primary
+                                : (isDark
+                                    ? AppColors.darkTextPrimary
+                                    : colorScheme.onSurface),
+                          ),
+                        ),
+                      ),
+                      if (provider.isRecommended) ...[
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 3,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: const Text(
+                            'RECOMMENDED',
+                            style: TextStyle(
+                              fontSize: 8,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.white,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    provider.pricing,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: provider.isFree
+                          ? AppColors.success
+                          : AppColors.orange,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (isSelected)
+              FaIcon(
+                FontAwesomeIcons.circleCheck,
+                color: colorScheme.primary,
+                size: 24,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
   IconData _getAIProviderIcon(AIProvider provider) {
     switch (provider) {
       case AIProvider.openai:
@@ -1152,189 +1302,5 @@ class _ProfileViewState extends State<ProfileView>
       case AIProvider.huggingface:
         return FontAwesomeIcons.code;
     }
-  }
-
-  Color _getAIProviderColor(AIProvider provider) {
-    switch (provider) {
-      case AIProvider.openai:
-        return AppColors.primary;
-      case AIProvider.gemini:
-        return AppColors.blue;
-      case AIProvider.claude:
-        return AppColors.profile;
-      case AIProvider.huggingface:
-        return AppColors.orange;
-    }
-  }
-
-  void _showAIProviderDialog(
-      BuildContext context, UserProfileViewModel profileVM) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final currentProvider = profileVM.profile!.aiProvider;
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            FaIcon(
-              FontAwesomeIcons.brain,
-              color: colorScheme.primary,
-              size: 20,
-            ),
-            const SizedBox(width: 12),
-            Text(
-              'Choose AI Provider',
-              style: TextStyle(
-                color: colorScheme.onSurface,
-                fontSize: 20,
-              ),
-            ),
-          ],
-        ),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: AIProvider.values.map((provider) {
-              final isSelected = provider == currentProvider;
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: InkWell(
-                  onTap: () {
-                    profileVM.saveProfile(
-                      gender: profileVM.profile!.gender,
-                      age: profileVM.profile!.age,
-                      weight: profileVM.displayWeight,
-                      weightUnit: profileVM.weightUnit,
-                      height: profileVM.displayHeight,
-                      heightUnit: profileVM.heightUnit,
-                      activityLevel: profileVM.profile!.activityLevel,
-                      isMetric: profileVM.isMetric,
-                      weightGoal: profileVM.profile!.weightGoal,
-                      aiProvider: provider,
-                    );
-                    Navigator.pop(context);
-                  },
-                  borderRadius: BorderRadius.circular(12),
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? AppColors.withOpacity(
-                              _getAIProviderColor(provider), 0.1)
-                          : (isDarkMode
-                              ? AppColors.darkCardBackground
-                              : AppColors.grey100),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: isSelected
-                            ? _getAIProviderColor(provider)
-                            : AppColors.transparent,
-                        width: 2,
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: AppColors.withOpacity(
-                              _getAIProviderColor(provider),
-                              0.1,
-                            ),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: FaIcon(
-                            _getAIProviderIcon(provider),
-                            color: _getAIProviderColor(provider),
-                            size: 20,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Flexible(
-                                    child: Text(
-                                      provider.displayName,
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                        color: isSelected
-                                            ? _getAIProviderColor(provider)
-                                            : (isDarkMode
-                                                ? AppColors.darkTextPrimary
-                                                : AppColors.textPrimary),
-                                      ),
-                                    ),
-                                  ),
-                                  if (provider.isRecommended) ...[
-                                    const SizedBox(width: 4),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 4,
-                                        vertical: 2,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: AppColors.primary,
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      child: const Text(
-                                        'REC',
-                                        style: TextStyle(
-                                          fontSize: 8,
-                                          fontWeight: FontWeight.bold,
-                                          color: AppColors.white,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                provider.pricing,
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  color: provider.isFree
-                                      ? AppColors.success
-                                      : AppColors.orange,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        if (isSelected)
-                          FaIcon(
-                            FontAwesomeIcons.circleCheck,
-                            color: _getAIProviderColor(provider),
-                            size: 20,
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Cancel',
-              style: TextStyle(
-                color: colorScheme.primary,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }

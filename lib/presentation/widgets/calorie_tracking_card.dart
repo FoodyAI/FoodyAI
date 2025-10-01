@@ -117,115 +117,138 @@ class _CalorieTrackingCardState extends State<CalorieTrackingCard>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              GestureDetector(
-                onTap: () async {
-                  final DateTime? picked = await showDatePicker(
-                    context: context,
-                    initialDate: widget.selectedDate,
-                    firstDate: DateTime(2020),
-                    lastDate: DateTime.now(),
-                  );
-                  if (picked != null) {
-                    widget.onDateSelected(picked);
-                  }
-                },
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .primary
-                            .withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Row(
-                        children: [
-                          Text(
-                            isToday
-                                ? 'Today\'s Calories'
-                                : '${DateFormat('d MMMM').format(widget.selectedDate)} Calories',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
+              Flexible(
+                flex: 2,
+                child: GestureDetector(
+                  onTap: () async {
+                    final DateTime? picked = await showDatePicker(
+                      context: context,
+                      initialDate: widget.selectedDate,
+                      firstDate: DateTime(2020),
+                      lastDate: DateTime.now(),
+                    );
+                    if (picked != null) {
+                      widget.onDateSelected(picked);
+                    }
+                  },
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Flexible(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .primary
+                                .withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(20),
                           ),
-                          const SizedBox(width: 8),
-                          Icon(
-                            Icons.chevron_right,
-                            color: Theme.of(context).colorScheme.primary,
-                            size: 20,
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    SizedBox(
-                      height: 40,
-                      child: isToday
-                          ? const SizedBox.shrink()
-                          : Tooltip(
-                              message: 'Go to Today',
-                              child: IconButton(
-                                onPressed: () =>
-                                    widget.onDateSelected(DateTime.now()),
-                                icon: Icon(
-                                  Icons.replay_rounded,
-                                  color:
-                                      Theme.of(context).colorScheme.secondary,
-                                  size: 20,
-                                ),
-                                style: IconButton.styleFrom(
-                                  backgroundColor: Theme.of(context)
-                                      .colorScheme
-                                      .secondary
-                                      .withOpacity(0.1),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Flexible(
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Text(
+                                    isToday
+                                        ? 'Today\'s Calories'
+                                        : '${DateFormat('d MMM').format(widget.selectedDate)} Calories',
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                      color:
+                                          Theme.of(context).colorScheme.primary,
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.withOpacity(statusColor, 0.2),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (remainingCalories <= 0)
-                      Padding(
-                        padding: const EdgeInsets.only(right: 8),
-                        child: Text(
-                          '🎉',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: statusColor,
+                              const SizedBox(width: 6),
+                              Icon(
+                                Icons.chevron_right,
+                                color: Theme.of(context).colorScheme.primary,
+                                size: 18,
+                              ),
+                            ],
                           ),
                         ),
                       ),
-                    Text(
-                      remainingCalories <= 0
-                          ? 'Goal Achieved!'
-                          : '${remainingCalories.toStringAsFixed(0)} left',
-                      style: TextStyle(
-                        color: statusColor,
-                        fontWeight: FontWeight.w600,
+                      const SizedBox(width: 8),
+                      SizedBox(
+                        height: 40,
+                        width: 40,
+                        child: isToday
+                            ? const SizedBox.shrink()
+                            : Tooltip(
+                                message: 'Go to Today',
+                                child: IconButton(
+                                  onPressed: () =>
+                                      widget.onDateSelected(DateTime.now()),
+                                  icon: Icon(
+                                    Icons.replay_rounded,
+                                    color:
+                                        Theme.of(context).colorScheme.secondary,
+                                    size: 20,
+                                  ),
+                                  style: IconButton.styleFrom(
+                                    backgroundColor: Theme.of(context)
+                                        .colorScheme
+                                        .secondary
+                                        .withOpacity(0.1),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                ),
+                              ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Flexible(
+                flex: 1,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.withOpacity(statusColor, 0.2),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (remainingCalories <= 0)
+                        const Padding(
+                          padding: EdgeInsets.only(right: 4),
+                          child: Text(
+                            '🎉',
+                            style: TextStyle(
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      Flexible(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            remainingCalories <= 0
+                                ? 'Goal Reached!'
+                                : '${remainingCalories.toStringAsFixed(0)} left',
+                            style: TextStyle(
+                              color: statusColor,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
