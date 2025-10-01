@@ -9,9 +9,9 @@ import 'ai_service.dart';
 /// Note: Free tier is limited; responses may vary by model. Prompt enforces JSON.
 class HuggingFaceService implements AIService {
   final String _apiKey = dotenv.env['HUGGINGFACE_API_KEY'] ?? '';
-  // Example public model; replace with a more reliable VLM endpoint if needed.
-  // Some endpoints accept raw base64 image with prompt; formats vary by model.
-  final String _model = 'liuhaotian/llava-v1.5-7b';
+  // Using a vision-language model that supports conversational format
+  // Note: May require model access approval; check HuggingFace model page
+  final String _model = 'HuggingFaceM4/idefics2-8b';
 
   @override
   Future<FoodAnalysis> analyzeImage(File image) async {
@@ -27,14 +27,21 @@ class HuggingFaceService implements AIService {
           'Units in grams; healthScore 0-10. No extra text.';
 
       final requestBody = {
-        'inputs': {
-          'prompt': prompt,
-          'image': '<IMAGE_BASE64>',
-        }
+        'inputs': prompt,
+        'parameters': {
+          'max_new_tokens': 256,
+          'temperature': 0.4,
+        },
+        'options': {
+          'use_cache': false,
+          'wait_for_model': true,
+        },
+        'image': 'data:image/jpeg;base64,<IMAGE_BASE64>',
       };
 
       print('🤖 [HuggingFace] Request: ${jsonEncode(requestBody)}');
 
+      // Using conversational format for VLM
       final response = await http.post(
         uri,
         headers: {
@@ -42,10 +49,17 @@ class HuggingFaceService implements AIService {
           'Content-Type': 'application/json',
         },
         body: jsonEncode({
-          'inputs': {
-            'prompt': prompt,
-            'image': base64Image,
-          }
+          'inputs': prompt,
+          'parameters': {
+            'max_new_tokens': 256,
+            'temperature': 0.4,
+          },
+          'options': {
+            'use_cache': false,
+            'wait_for_model': true,
+          },
+          // Send image as base64 data URL
+          'image': 'data:image/jpeg;base64,$base64Image',
         }),
       );
 
