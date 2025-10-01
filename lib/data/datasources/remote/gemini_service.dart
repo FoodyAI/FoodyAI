@@ -8,7 +8,7 @@ import 'ai_service.dart';
 class GeminiService implements AIService {
   final String _apiKey = dotenv.env['GEMINI_API_KEY'] ?? '';
   final String _apiUrl =
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
   Future<FoodAnalysis> analyzeImage(File image) async {
     try {
@@ -67,4 +67,3 @@ class GeminiService implements AIService {
     }
   }
 }
-

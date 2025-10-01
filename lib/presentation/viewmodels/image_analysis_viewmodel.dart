@@ -16,7 +16,8 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 class ImageAnalysisViewModel extends ChangeNotifier {
   final ImagePicker _picker = ImagePicker();
   final FoodAnalysisStorage _storage = FoodAnalysisStorage();
-  final UserProfileRepository _profileRepository = getIt<UserProfileRepository>();
+  final UserProfileRepository _profileRepository =
+      getIt<UserProfileRepository>();
 
   File? _selectedImage;
   FoodAnalysis? _currentAnalysis;
@@ -119,10 +120,10 @@ class ImageAnalysisViewModel extends ChangeNotifier {
       // Get user's selected AI provider
       final profile = await _profileRepository.getProfile();
       final aiProvider = profile?.aiProvider ?? AIProvider.openai;
-      
+
       // Get the appropriate AI service
       final AIService service = AIServiceFactory.getService(aiProvider);
-      
+
       // Analyze the image
       final analysis = await service.analyzeImage(_selectedImage!);
       _currentAnalysis = FoodAnalysis(
