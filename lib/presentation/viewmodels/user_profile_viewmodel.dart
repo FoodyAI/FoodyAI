@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../domain/entities/user_profile.dart';
+import '../../domain/entities/ai_provider.dart';
 import '../../domain/usecases/user_profile_usecase.dart';
 
 class UserProfileViewModel extends ChangeNotifier {
@@ -47,6 +48,7 @@ class UserProfileViewModel extends ChangeNotifier {
     required ActivityLevel activityLevel,
     required bool isMetric,
     WeightGoal? weightGoal,
+    AIProvider? aiProvider,
   }) async {
     _isMetric = isMetric;
     final weightKg = weightUnit == 'lbs' ? weight * 0.453592 : weight;
@@ -59,6 +61,7 @@ class UserProfileViewModel extends ChangeNotifier {
       heightCm: heightCm,
       activityLevel: activityLevel,
       weightGoal: weightGoal ?? _profile?.weightGoal ?? WeightGoal.maintain,
+      aiProvider: aiProvider ?? _profile?.aiProvider ?? AIProvider.openai,
     );
 
     await _useCase.saveProfile(_profile!, isMetric);
