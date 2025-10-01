@@ -573,7 +573,7 @@ class _ProfileViewState extends State<ProfileView>
                     onTap: () => _showAIProviderDialog(context, profileVM),
                     borderRadius: BorderRadius.circular(12),
                     child: Container(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
                         color: colorScheme.primary.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12),
@@ -585,53 +585,58 @@ class _ProfileViewState extends State<ProfileView>
                       child: Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.all(12),
+                            padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
                               color: AppColors.withOpacity(
                                 _getAIProviderColor(profile.aiProvider),
                                 0.1,
                               ),
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(10),
                             ),
                             child: FaIcon(
                               _getAIProviderIcon(profile.aiProvider),
                               color: _getAIProviderColor(profile.aiProvider),
-                              size: 24,
+                              size: 22,
                             ),
                           ),
-                          const SizedBox(width: 16),
+                          const SizedBox(width: 12),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Row(
                                   children: [
-                                    Text(
-                                      profile.aiProvider.displayName,
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        color: colorScheme.primary,
+                                    Flexible(
+                                      child: Text(
+                                        profile.aiProvider.displayName,
+                                        style: TextStyle(
+                                          fontSize: 17,
+                                          fontWeight: FontWeight.bold,
+                                          color: colorScheme.primary,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
                                     if (profile.aiProvider.isRecommended) ...[
-                                      const SizedBox(width: 8),
+                                      const SizedBox(width: 6),
                                       Container(
                                         padding: const EdgeInsets.symmetric(
-                                          horizontal: 6,
+                                          horizontal: 5,
                                           vertical: 2,
                                         ),
                                         decoration: BoxDecoration(
                                           color: AppColors.primary,
-                                          borderRadius: BorderRadius.circular(6),
+                                          borderRadius:
+                                              BorderRadius.circular(4),
                                         ),
                                         child: const Text(
-                                          'RECOMMENDED',
+                                          'REC',
                                           style: TextStyle(
                                             fontSize: 8,
                                             fontWeight: FontWeight.bold,
                                             color: AppColors.white,
-                                            letterSpacing: 0.5,
+                                            letterSpacing: 0.3,
                                           ),
                                         ),
                                       ),
@@ -642,8 +647,9 @@ class _ProfileViewState extends State<ProfileView>
                                 Text(
                                   profile.aiProvider.description,
                                   style: TextStyle(
-                                    fontSize: 14,
-                                    color: colorScheme.onSurface.withOpacity(0.7),
+                                    fontSize: 13,
+                                    color:
+                                        colorScheme.onSurface.withOpacity(0.7),
                                   ),
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,

@@ -63,4 +63,3 @@ extension AIProviderExtension on AIProvider {
     }
   }
 }
-
