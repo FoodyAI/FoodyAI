@@ -156,7 +156,7 @@ class _ProfileViewState extends State<ProfileView>
             crossAxisCount: 2,
             mainAxisSpacing: 16,
             crossAxisSpacing: 16,
-            childAspectRatio: 1.5,
+            childAspectRatio: 1.2,
             children: [
               _buildInfoCard(
                 context,
@@ -216,7 +216,7 @@ class _ProfileViewState extends State<ProfileView>
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
@@ -230,29 +230,35 @@ class _ProfileViewState extends State<ProfileView>
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: [
               FaIcon(
                 icon,
                 color: color,
-                size: 32,
+                size: 28,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               Text(
                 title,
                 style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
                   color: color,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 2),
               Text(
                 value,
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 13,
                   color: color.withOpacity(0.7),
+                  fontWeight: FontWeight.w500,
                 ),
                 textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
