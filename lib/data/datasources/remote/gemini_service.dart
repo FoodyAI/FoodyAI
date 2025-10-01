@@ -15,6 +15,31 @@ class GeminiService implements AIService {
     try {
       final base64Image = base64Encode(await image.readAsBytes());
 
+      final requestBody = {
+        'contents': [
+          {
+            'parts': [
+              {
+                'text':
+                    'Analyze this food image and respond ONLY in valid JSON format: {"name": "food name", "protein": number, "carbs": number, "fat": number, "calories": number, "healthScore": number}. Values should be in grams except healthScore (0-10). Do not include any markdown formatting or code blocks, just pure JSON.'
+              },
+              {
+                'inline_data': {
+                  'mime_type': 'image/jpeg',
+                  'data': '<IMAGE_BASE64>',
+                }
+              }
+            ]
+          }
+        ],
+        'generationConfig': {
+          'temperature': 0.4,
+          'maxOutputTokens': 256,
+        }
+      };
+
+      print('🤖 [Gemini] Request: ${jsonEncode(requestBody)}');
+
       final response = await http.post(
         Uri.parse('$_apiUrl?key=$_apiKey'),
         headers: {'Content-Type': 'application/json'},
@@ -42,9 +67,14 @@ class GeminiService implements AIService {
         }),
       );
 
+      print('📥 [Gemini] Response Status: ${response.statusCode}');
+      print('📥 [Gemini] Response Body: ${response.body}');
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final content = data['candidates'][0]['content']['parts'][0]['text'];
+
+        print('📝 [Gemini] Extracted Content: $content');
 
         // Extract JSON from response
         final jsonRegExp = RegExp(r'\{[\s\S]*\}');
@@ -52,6 +82,8 @@ class GeminiService implements AIService {
         final jsonString = match?.group(0) ?? content;
 
         final jsonResponse = jsonDecode(jsonString);
+        print('✅ [Gemini] Parsed JSON: $jsonResponse');
+        
         return FoodAnalysis(
           name: jsonResponse['name'],
           protein: (jsonResponse['protein'] as num).toDouble(),
