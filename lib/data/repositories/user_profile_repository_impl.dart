@@ -1,5 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../domain/entities/user_profile.dart';
+import '../../domain/entities/ai_provider.dart';
 import '../../domain/repositories/user_profile_repository.dart';
 
 class UserProfileRepositoryImpl implements UserProfileRepository {
@@ -23,6 +24,9 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
       final weightGoalIndex =
           prefs.getInt('weightGoal') ?? WeightGoal.maintain.index;
       final weightGoal = WeightGoal.values[weightGoalIndex];
+      final aiProviderIndex =
+          prefs.getInt('aiProvider') ?? AIProvider.openai.index;
+      final aiProvider = AIProvider.values[aiProviderIndex];
 
       return UserProfile(
         gender: gender,
@@ -31,6 +35,7 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
         heightCm: heightCm,
         activityLevel: activityLevel,
         weightGoal: weightGoal,
+        aiProvider: aiProvider,
       );
     }
     return null;
@@ -47,6 +52,7 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
       prefs.setDouble('heightCm', profile.heightCm),
       prefs.setInt('activityLevel', profile.activityLevel.index),
       prefs.setInt('weightGoal', profile.weightGoal.index),
+      prefs.setInt('aiProvider', profile.aiProvider.index),
     ]);
   }
 
@@ -61,6 +67,7 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
       prefs.remove('heightCm'),
       prefs.remove('activityLevel'),
       prefs.remove('weightGoal'),
+      prefs.remove('aiProvider'),
       prefs.remove('hasCompletedOnboarding'),
     ]);
   }

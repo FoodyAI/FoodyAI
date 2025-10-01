@@ -1,3 +1,5 @@
+import 'ai_provider.dart';
+
 enum ActivityLevel {
   sedentary,
   lightlyActive,
@@ -56,6 +58,7 @@ class UserProfile {
   final double heightCm;
   final ActivityLevel activityLevel;
   final WeightGoal weightGoal;
+  final AIProvider aiProvider;
 
   UserProfile({
     required this.gender,
@@ -64,6 +67,7 @@ class UserProfile {
     required this.heightCm,
     required this.activityLevel,
     this.weightGoal = WeightGoal.maintain,
+    this.aiProvider = AIProvider.openai,
   });
 
   double get bmi => weightKg / ((heightCm / 100) * (heightCm / 100));
