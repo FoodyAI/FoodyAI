@@ -6,6 +6,7 @@ import '../../domain/entities/user_profile.dart';
 import '../../domain/entities/ai_provider.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/profile_inputs.dart';
+import '../widgets/google_signin_button.dart';
 import '../../core/constants/app_colors.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -531,6 +532,91 @@ class _ProfileViewState extends State<ProfileView>
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
+          // Account Section (Guest Mode)
+          if (profileVM.isGuest)
+            Card(
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        FaIcon(
+                          FontAwesomeIcons.user,
+                          color: colorScheme.primary,
+                          size: 24,
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          'Account',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.onSurface,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'You\'re using Foody as a guest',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: colorScheme.onSurface.withOpacity(0.7),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppColors.withOpacity(colorScheme.primary, 0.05),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: AppColors.withOpacity(colorScheme.primary, 0.2),
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          _buildAccountBenefit(
+                            context,
+                            FontAwesomeIcons.cloudArrowUp,
+                            'Sync across devices',
+                          ),
+                          const SizedBox(height: 12),
+                          _buildAccountBenefit(
+                            context,
+                            FontAwesomeIcons.shieldHalved,
+                            'Backup your history',
+                          ),
+                          const SizedBox(height: 12),
+                          _buildAccountBenefit(
+                            context,
+                            FontAwesomeIcons.chartLine,
+                            'Advanced analytics',
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    GoogleSignInButton(
+                      isFullWidth: true,
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (context) => const SignInDialog(),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          if (profileVM.isGuest) const SizedBox(height: 16),
           // AI Provider Section
           Card(
             elevation: 4,
@@ -1145,6 +1231,31 @@ class _ProfileViewState extends State<ProfileView>
       case WeightGoal.gain:
         return FontAwesomeIcons.arrowUp;
     }
+  }
+
+  Widget _buildAccountBenefit(
+      BuildContext context, IconData icon, String text) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Row(
+      children: [
+        FaIcon(
+          icon,
+          size: 16,
+          color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: 14,
+              color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   IconData _getAIProviderIcon(AIProvider provider) {
