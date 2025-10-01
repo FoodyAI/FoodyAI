@@ -38,6 +38,7 @@ class WelcomeViewModel extends ChangeNotifier {
       heightUnit: 'cm',
       activityLevel: ActivityLevel.moderatelyActive,
       isMetric: true,
+      isGuest: true,
     );
 
     _isGuestLoading = false;

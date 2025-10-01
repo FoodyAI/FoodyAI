@@ -27,6 +27,7 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
       final aiProviderIndex =
           prefs.getInt('aiProvider') ?? AIProvider.openai.index;
       final aiProvider = AIProvider.values[aiProviderIndex];
+      final isGuest = prefs.getBool('isGuest') ?? true;
 
       return UserProfile(
         gender: gender,
@@ -36,6 +37,7 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
         activityLevel: activityLevel,
         weightGoal: weightGoal,
         aiProvider: aiProvider,
+        isGuest: isGuest,
       );
     }
     return null;
@@ -53,6 +55,7 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
       prefs.setInt('activityLevel', profile.activityLevel.index),
       prefs.setInt('weightGoal', profile.weightGoal.index),
       prefs.setInt('aiProvider', profile.aiProvider.index),
+      prefs.setBool('isGuest', profile.isGuest),
     ]);
   }
 
@@ -68,6 +71,7 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
       prefs.remove('activityLevel'),
       prefs.remove('weightGoal'),
       prefs.remove('aiProvider'),
+      prefs.remove('isGuest'),
       prefs.remove('hasCompletedOnboarding'),
     ]);
   }

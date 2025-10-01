@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../viewmodels/image_analysis_viewmodel.dart';
 import '../viewmodels/user_profile_viewmodel.dart';
 import '../widgets/food_analysis_card.dart';
@@ -10,6 +11,7 @@ import '../widgets/calorie_tracking_card.dart';
 import '../widgets/bottom_navigation.dart';
 import '../widgets/undo_delete_snackbar.dart';
 import '../widgets/custom_app_bar.dart';
+import '../widgets/google_signin_button.dart';
 import '../../data/models/food_analysis.dart';
 import 'analyze_view.dart';
 import 'profile_view.dart';
@@ -45,8 +47,62 @@ class _HomeViewState extends State<HomeView> {
   }
 }
 
-class _HomeContent extends StatelessWidget {
+class _HomeContent extends StatefulWidget {
   const _HomeContent();
+
+  @override
+  State<_HomeContent> createState() => _HomeContentState();
+}
+
+class _HomeContentState extends State<_HomeContent> {
+  bool _bannerDismissed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadBannerState();
+  }
+
+  Future<void> _loadBannerState() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _bannerDismissed = prefs.getBool('guest_banner_dismissed') ?? false;
+    });
+  }
+
+  Future<void> _dismissBanner() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('guest_banner_dismissed', true);
+    setState(() {
+      _bannerDismissed = true;
+    });
+    
+    // Inform user where to find sign-in later
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Row(
+            children: [
+              FaIcon(
+                FontAwesomeIcons.circleInfo,
+                size: 16,
+                color: AppColors.white,
+              ),
+              SizedBox(width: 10),
+              Expanded(
+                child: Text('You can sign in anytime from Profile → Settings'),
+              ),
+            ],
+          ),
+          duration: const Duration(seconds: 3),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -211,6 +267,9 @@ class _HomeContent extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Guest Sign-In Banner (Top)
+            if (profileVM.isGuest && !_bannerDismissed)
+              _buildGuestBanner(context),
             // Calorie Tracking Section
             CalorieTrackingCard(
               totalCaloriesConsumed: totalCaloriesConsumed,
@@ -380,4 +439,93 @@ class _HomeContent extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildGuestBanner(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppColors.withOpacity(colorScheme.primary, 0.1),
+            AppColors.withOpacity(colorScheme.secondary, 0.1),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.withOpacity(colorScheme.primary, 0.3),
+          width: 1.5,
+        ),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppColors.withOpacity(colorScheme.primary, 0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: FaIcon(
+                  FontAwesomeIcons.cloudArrowUp,
+                  color: colorScheme.primary,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Guest Mode',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? AppColors.white : AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Sign in to sync & backup your data',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: isDark
+                            ? AppColors.darkTextSecondary
+                            : AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                icon: const FaIcon(
+                  FontAwesomeIcons.xmark,
+                  size: 16,
+                ),
+                onPressed: _dismissBanner,
+                style: IconButton.styleFrom(
+                  foregroundColor: isDark
+                      ? AppColors.darkTextSecondary
+                      : AppColors.textSecondary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          const GoogleSignInButton(
+            isFullWidth: true,
+            isCompact: true,
+          ),
+        ],
+      ),
+    );
+  }
+
 }
