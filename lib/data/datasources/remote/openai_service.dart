@@ -3,8 +3,9 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../../models/food_analysis.dart';
+import 'ai_service.dart';
 
-class OpenAIService {
+class OpenAIService implements AIService {
   final String _apiKey = dotenv.env['OPENAI_API_KEY'] ?? '';
   final String _apiUrl = 'https://api.openai.com/v1/chat/completions';
 
