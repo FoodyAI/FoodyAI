@@ -63,7 +63,7 @@ class GoogleSignInButton extends StatelessWidget {
   }
 
   void _handleSignIn(BuildContext context) {
-    // TODO: Implement actual Google Sign In
+    // Show coming soon message
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('Google Sign-In coming soon!'),
@@ -71,6 +71,16 @@ class GoogleSignInButton extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Shared function to show Google Sign-In coming soon message
+void showGoogleSignInComingSoon(BuildContext context) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(
+      content: Text('Google Sign-In coming soon!'),
+      duration: Duration(seconds: 2),
+    ),
+  );
 }
 
 /// Dialog to show sign-in benefits and prompt
