@@ -9,6 +9,7 @@ class OpenAIService implements AIService {
   final String _apiKey = dotenv.env['OPENAI_API_KEY'] ?? '';
   final String _apiUrl = 'https://api.openai.com/v1/chat/completions';
 
+  @override
   Future<FoodAnalysis> analyzeImage(File image) async {
     try {
       final base64Image = base64Encode(await image.readAsBytes());
