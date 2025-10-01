@@ -10,6 +10,7 @@ class GeminiService implements AIService {
   final String _apiUrl =
       'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
 
+  @override
   Future<FoodAnalysis> analyzeImage(File image) async {
     try {
       final base64Image = base64Encode(await image.readAsBytes());
