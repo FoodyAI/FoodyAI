@@ -21,7 +21,7 @@ class HuggingFaceService implements AIService {
       final bytes = await image.readAsBytes();
       final base64Image = base64Encode(bytes);
 
-      final prompt = 'Analyze this food image and respond ONLY as valid JSON: '
+      const prompt = 'Analyze this food image and respond ONLY as valid JSON: '
           '{"name": "food name", "protein": number, "carbs": number, '
           '"fat": number, "calories": number, "healthScore": number}. '
           'Units in grams; healthScore 0-10. No extra text.';

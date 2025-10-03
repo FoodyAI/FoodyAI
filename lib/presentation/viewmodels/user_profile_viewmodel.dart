@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../domain/entities/user_profile.dart';
 import '../../domain/entities/ai_provider.dart';
 import '../../domain/usecases/user_profile_usecase.dart';
+import '../../core/events/profile_update_event.dart';
+import 'dart:async';
 
 class UserProfileViewModel extends ChangeNotifier {
   final UserProfileUseCase _useCase;
@@ -9,6 +11,7 @@ class UserProfileViewModel extends ChangeNotifier {
   bool _isLoading = true;
   bool _isMetric = true;
   bool _hasCompletedOnboarding = false;
+  StreamSubscription? _profileUpdateSubscription;
 
   UserProfile? get profile => _profile;
   bool get isLoading => _isLoading;
@@ -18,6 +21,9 @@ class UserProfileViewModel extends ChangeNotifier {
 
   UserProfileViewModel(this._useCase) {
     _loadProfile();
+    _profileUpdateSubscription = ProfileUpdateEvent.stream.listen((_) {
+      _loadProfile();
+    });
   }
 
   Future<void> _loadProfile() async {
@@ -82,6 +88,16 @@ class UserProfileViewModel extends ChangeNotifier {
     _profile = null;
     _hasCompletedOnboarding = false;
     notifyListeners();
+  }
+
+  Future<void> refreshProfile() async {
+    await _loadProfile();
+  }
+
+  @override
+  void dispose() {
+    _profileUpdateSubscription?.cancel();
+    super.dispose();
   }
 
   // Helper methods for unit conversion

@@ -7,4 +7,6 @@ abstract class UserProfileRepository {
   Future<bool> getIsMetric();
   Future<bool> getHasCompletedOnboarding();
   Future<void> setHasCompletedOnboarding(bool value);
+  Future<bool> getHasChosenAIProvider();
+  Future<void> setHasChosenAIProvider(bool value);
 }

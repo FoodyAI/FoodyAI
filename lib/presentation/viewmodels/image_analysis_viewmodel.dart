@@ -7,9 +7,13 @@ import '../../data/datasources/remote/ai_service.dart';
 import '../../data/datasources/remote/ai_service_factory.dart';
 import '../../data/datasources/local/food_analysis_storage.dart';
 import '../../domain/entities/ai_provider.dart';
+import '../../domain/entities/user_profile.dart';
 import '../../domain/repositories/user_profile_repository.dart';
 import '../../di/service_locator.dart';
 import '../widgets/rating_dialog.dart';
+import '../pages/ai_provider_selection_page.dart';
+import '../../core/events/profile_update_event.dart';
+import '../../data/services/subscription_service.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -113,16 +117,76 @@ class ImageAnalysisViewModel extends ChangeNotifier {
 
   Future<void> analyzeImage() async {
     if (_selectedImage == null) return;
+    
+    // Check if user can perform analysis (usage limits)
+    final canAnalyze = await SubscriptionService.canPerformAnalysis();
+    if (!canAnalyze) {
+      _error = 'You\'ve reached your monthly analysis limit. Upgrade to Premium for unlimited access.';
+      notifyListeners();
+      return;
+    }
+    
     _isLoading = true;
     _error = null;
     notifyListeners();
     try {
       // Get user's selected AI provider
       final profile = await _profileRepository.getProfile();
-      final aiProvider = profile?.aiProvider ?? AIProvider.openai;
+      final hasChosenAIProvider = await _profileRepository.getHasChosenAIProvider();
+      AIProvider? aiProvider = profile?.aiProvider;
+      
+      // If user hasn't explicitly chosen an AI provider yet, show selection dialog
+      if (!hasChosenAIProvider) {
+        _isLoading = false;
+        notifyListeners();
+        
+        final context = navigatorKey.currentContext;
+        if (context != null) {
+          final selectedProvider = await Navigator.of(context).push<AIProvider>(
+            MaterialPageRoute(
+              builder: (context) => const AIProviderSelectionPage(),
+            ),
+          );
+          
+          if (selectedProvider == null) {
+            // User cancelled, don't proceed with analysis
+            return;
+          }
+          
+          // Save the selected AI provider to user profile
+          await _profileRepository.saveProfile(
+            UserProfile(
+              gender: profile?.gender ?? 'Not specified',
+              age: profile?.age ?? 25,
+              weightKg: profile?.weightKg ?? 70,
+              heightCm: profile?.heightCm ?? 170,
+              activityLevel: profile?.activityLevel ?? ActivityLevel.moderatelyActive,
+              weightGoal: profile?.weightGoal ?? WeightGoal.maintain,
+              aiProvider: selectedProvider,
+              isGuest: profile?.isGuest ?? true,
+            ),
+            true, // isMetric
+          );
+          
+          // Mark that user has chosen an AI provider
+          await _profileRepository.setHasChosenAIProvider(true);
+          
+          // Notify that profile has been updated
+          ProfileUpdateEvent.notifyUpdate();
+          
+          aiProvider = selectedProvider;
+        } else {
+          // Fallback to default if no context
+          aiProvider = AIProvider.openai;
+        }
+        
+        // Restart loading
+        _isLoading = true;
+        notifyListeners();
+      }
 
       // Get the appropriate AI service
-      final AIService service = AIServiceFactory.getService(aiProvider);
+      final AIService service = AIServiceFactory.getService(aiProvider!);
 
       // Analyze the image
       final analysis = await service.analyzeImage(_selectedImage!);
@@ -137,6 +201,12 @@ class ImageAnalysisViewModel extends ChangeNotifier {
         date: _selectedDate,
       );
       await _saveCurrentAnalysis();
+      
+      // Increment usage counter for free users
+      final tier = await SubscriptionService.getSubscriptionTier();
+      if (tier == SubscriptionTier.free) {
+        await SubscriptionService.incrementFreeAnalysesUsed();
+      }
     } catch (e) {
       _error = e.toString();
     } finally {
