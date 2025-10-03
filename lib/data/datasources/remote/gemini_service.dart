@@ -72,25 +72,61 @@ class GeminiService implements AIService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        final content = data['candidates'][0]['content']['parts'][0]['text'];
 
-        print('📝 [Gemini] Extracted Content: $content');
+        // Gemini can return multiple shapes. Try to safely extract text.
+        String? contentText;
+        try {
+          final candidates = (data['candidates'] as List?) ?? const [];
+          if (candidates.isNotEmpty) {
+            final first = candidates.first;
+            // Newer shape: candidates[0].content.parts[0].text
+            final parts =
+                (((first as Map?)?['content'] as Map?)?['parts'] as List?) ??
+                    const [];
+            if (parts.isNotEmpty) {
+              contentText = (parts.first as Map?)?['text'] as String?;
+            }
+            // Older/alt shape: candidates[0].content[0].text
+            if (contentText == null) {
+              final altParts = ((first?['content'] as List?) ?? const []);
+              if (altParts.isNotEmpty) {
+                contentText = (altParts.first as Map?)?['text'] as String?;
+              }
+            }
+          }
+        } catch (_) {
+          // fall through to parse from entire body
+        }
 
-        // Extract JSON from response
+        // Fallback: some models may return JSON directly in a field like candidates[0].content[0].text
+        contentText ??= response.body;
+
+        print('📝 [Gemini] Extracted Content: $contentText');
+
+        // Extract JSON from the content safely
         final jsonRegExp = RegExp(r'\{[\s\S]*\}');
-        final match = jsonRegExp.firstMatch(content);
-        final jsonString = match?.group(0) ?? content;
+        final match = jsonRegExp.firstMatch(contentText);
+        final jsonString = match?.group(0) ?? contentText;
 
-        final jsonResponse = jsonDecode(jsonString);
+        final Map<String, dynamic> jsonResponse = jsonDecode(jsonString);
         print('✅ [Gemini] Parsed JSON: $jsonResponse');
-        
+
+        double _numToDouble(dynamic v, {double fallback = 0}) {
+          if (v is num) return v.toDouble();
+          if (v is String) {
+            final parsed = double.tryParse(v);
+            if (parsed != null) return parsed;
+          }
+          return fallback;
+        }
+
         return FoodAnalysis(
-          name: jsonResponse['name'],
-          protein: (jsonResponse['protein'] as num).toDouble(),
-          carbs: (jsonResponse['carbs'] as num).toDouble(),
-          fat: (jsonResponse['fat'] as num).toDouble(),
-          calories: (jsonResponse['calories'] as num).toDouble(),
-          healthScore: (jsonResponse['healthScore'] as num).toDouble(),
+          name: (jsonResponse['name'] ?? 'Unknown') as String,
+          protein: _numToDouble(jsonResponse['protein']),
+          carbs: _numToDouble(jsonResponse['carbs']),
+          fat: _numToDouble(jsonResponse['fat']),
+          calories: _numToDouble(jsonResponse['calories']),
+          healthScore: _numToDouble(jsonResponse['healthScore']),
         );
       } else {
         throw Exception('Failed to analyze image: ${response.body}');

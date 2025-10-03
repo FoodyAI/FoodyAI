@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/user_profile_viewmodel.dart';
 import '../../domain/entities/user_profile.dart';
-import '../../domain/entities/ai_provider.dart';
 import '../widgets/profile_inputs.dart';
 import 'analysis_loading_view.dart';
 import '../../../core/constants/app_colors.dart';
@@ -32,7 +31,6 @@ class _OnboardingViewState extends State<OnboardingView> {
   late bool _isMetric;
   late ActivityLevel _activityLevel;
   late WeightGoal _weightGoal;
-  late AIProvider _aiProvider;
 
   @override
   void initState() {
@@ -49,7 +47,6 @@ class _OnboardingViewState extends State<OnboardingView> {
       _height = profileVM.displayHeight;
       _activityLevel = profile.activityLevel;
       _weightGoal = profile.weightGoal;
-      _aiProvider = profile.aiProvider;
     } else {
       _gender = 'Male';
       _hasSelectedGender = false;
@@ -61,7 +58,6 @@ class _OnboardingViewState extends State<OnboardingView> {
       _isMetric = true;
       _activityLevel = ActivityLevel.sedentary;
       _weightGoal = WeightGoal.maintain;
-      _aiProvider = AIProvider.openai;
     }
   }
 
@@ -83,18 +79,16 @@ class _OnboardingViewState extends State<OnboardingView> {
   }
 
   void _nextPage() {
-    if (_currentPage < 4) {
+    if (_currentPage < 3) {
       if (_currentPage == 0) {
         // Save gender page
         if (!_formKey.currentState!.validate()) return;
         _formKey.currentState!.save();
       } else if (_currentPage == 1) {
-        // AI selection page - no validation needed
-      } else if (_currentPage == 2) {
         // Save measurements page
         if (!_formKey.currentState!.validate()) return;
         _formKey.currentState!.save();
-      } else if (_currentPage == 3) {
+      } else if (_currentPage == 2) {
         // Save activity page
         if (!_formKey.currentState!.validate()) return;
         _formKey.currentState!.save();
@@ -131,7 +125,6 @@ class _OnboardingViewState extends State<OnboardingView> {
       activityLevel: _activityLevel,
       isMetric: _isMetric,
       weightGoal: _weightGoal,
-      aiProvider: _aiProvider,
     );
 
     // Mark onboarding as completed
@@ -157,7 +150,7 @@ class _OnboardingViewState extends State<OnboardingView> {
                 padding: const EdgeInsets.all(16.0),
                 child: Row(
                   children: List.generate(
-                    5,
+                    4,
                     (index) => Expanded(
                       child: Container(
                         height: 4,
@@ -182,7 +175,6 @@ class _OnboardingViewState extends State<OnboardingView> {
                   physics: const NeverScrollableScrollPhysics(),
                   children: [
                     _buildGenderPage(),
-                    _buildAISelectionPage(),
                     _buildMeasurementsPage(),
                     _buildActivityPage(),
                     _buildSummaryPage(),
@@ -318,207 +310,6 @@ class _OnboardingViewState extends State<OnboardingView> {
     );
   }
 
-  Widget _buildAISelectionPage() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Choose Your AI',
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Select the AI model for analyzing your food images',
-            style: TextStyle(
-              fontSize: 16,
-              color: AppColors.grey600,
-            ),
-          ),
-          const SizedBox(height: 32),
-          ...AIProvider.values.map((provider) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: _buildAIProviderCard(provider),
-            );
-          }),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAIProviderCard(AIProvider provider) {
-    final isSelected = _aiProvider == provider;
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-
-    return InkWell(
-      onTap: () => setState(() => _aiProvider = provider),
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.withOpacity(AppColors.primary, 0.1)
-              : (isDarkMode ? AppColors.darkCardBackground : AppColors.grey100),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isSelected ? AppColors.primary : AppColors.transparent,
-            width: 2,
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppColors.withOpacity(
-                      _getAIProviderColor(provider),
-                      0.1,
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: FaIcon(
-                    _getAIProviderIcon(provider),
-                    color: _getAIProviderColor(provider),
-                    size: 24,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              provider.displayName,
-                              style: TextStyle(
-                                fontSize: 17,
-                                fontWeight: FontWeight.bold,
-                                color: isSelected
-                                    ? AppColors.primary
-                                    : (isDarkMode
-                                        ? AppColors.darkTextPrimary
-                                        : AppColors.textPrimary),
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          if (provider.isRecommended) ...[
-                            const SizedBox(width: 6),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 3,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppColors.primary,
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: const Text(
-                                'RECOMMENDED',
-                                style: TextStyle(
-                                  fontSize: 8,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.white,
-                                  letterSpacing: 0.4,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: provider.isFree
-                                  ? AppColors.withOpacity(
-                                      AppColors.success, 0.1)
-                                  : AppColors.withOpacity(
-                                      AppColors.orange, 0.1),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              provider.pricing,
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: provider.isFree
-                                    ? AppColors.success
-                                    : AppColors.orange,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                if (isSelected)
-                  const FaIcon(
-                    FontAwesomeIcons.circleCheck,
-                    color: AppColors.primary,
-                    size: 24,
-                  ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              provider.description,
-              style: TextStyle(
-                fontSize: 14,
-                color: isDarkMode
-                    ? AppColors.darkTextSecondary
-                    : AppColors.textSecondary,
-                height: 1.4,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  IconData _getAIProviderIcon(AIProvider provider) {
-    switch (provider) {
-      case AIProvider.openai:
-        return FontAwesomeIcons.brain;
-      case AIProvider.gemini:
-        return FontAwesomeIcons.gem;
-      case AIProvider.claude:
-        return FontAwesomeIcons.robot;
-      case AIProvider.huggingface:
-        return FontAwesomeIcons.code;
-    }
-  }
-
-  Color _getAIProviderColor(AIProvider provider) {
-    switch (provider) {
-      case AIProvider.openai:
-        return AppColors.primary;
-      case AIProvider.gemini:
-        return AppColors.blue;
-      case AIProvider.claude:
-        return AppColors.profile;
-      case AIProvider.huggingface:
-        return AppColors.orange;
-    }
-  }
 
   Widget _buildMeasurementsPage() {
     return SingleChildScrollView(
@@ -948,8 +739,8 @@ class _OnboardingViewState extends State<OnboardingView> {
                   const SizedBox(height: 4),
                   Text(
                     _getWeightGoalDescription(goal),
-                    style: const TextStyle(
-                      fontSize: 14,
+                    style: TextStyle(
+                      fontSize: MediaQuery.of(context).size.width * 0.035,
                       color: AppColors.grey600,
                     ),
                   ),
@@ -1046,14 +837,6 @@ class _OnboardingViewState extends State<OnboardingView> {
                   'Description', _getWeightGoalDescription(_weightGoal)),
             ],
           ),
-          const SizedBox(height: 16),
-          _buildSummaryCard(
-            'AI Provider',
-            [
-              _buildSummaryRow('Model', _aiProvider.displayName),
-              _buildSummaryRow('Pricing', _aiProvider.pricing),
-            ],
-          ),
         ],
       ),
     );
@@ -1089,7 +872,7 @@ class _OnboardingViewState extends State<OnboardingView> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             label,
@@ -1097,10 +880,15 @@ class _OnboardingViewState extends State<OnboardingView> {
               color: AppColors.grey600,
             ),
           ),
-          Text(
-            value,
-            style: const TextStyle(
-              fontWeight: FontWeight.w500,
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                fontWeight: FontWeight.w500,
+                fontSize: MediaQuery.of(context).size.width * 0.035,
+              ),
             ),
           ),
         ],

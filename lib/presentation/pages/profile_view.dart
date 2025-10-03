@@ -494,7 +494,7 @@ class _ProfileViewState extends State<ProfileView>
                                     Text(
                                       _getWeightGoalDescription(goal),
                                       style: TextStyle(
-                                        fontSize: 14,
+                                        fontSize: MediaQuery.of(context).size.width * 0.035,
                                         color: colorScheme.onSurface
                                             .withOpacity(0.7),
                                       ),
