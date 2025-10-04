@@ -17,6 +17,7 @@ class _ConnectionBannerState extends State<ConnectionBanner> {
   bool _showBanner = false;
   bool _wasDisconnected = false;
   bool _showBlackBanner = false;
+  bool _isAnimatingOut = false;
 
   @override
   void didUpdateWidget(ConnectionBanner oldWidget) {
@@ -30,11 +31,20 @@ class _ConnectionBannerState extends State<ConnectionBanner> {
         _showBlackBanner = false;
       });
 
-      // Hide banner after 2 seconds
+      // Hide banner after 2 seconds with slide down animation
       Future.delayed(const Duration(seconds: 2), () {
         if (mounted) {
           setState(() {
-            _showBanner = false;
+            _isAnimatingOut = true;
+          });
+          // Complete hide after animation
+          Future.delayed(const Duration(milliseconds: 500), () {
+            if (mounted) {
+              setState(() {
+                _showBanner = false;
+                _isAnimatingOut = false;
+              });
+            }
           });
         }
       });
@@ -46,7 +56,7 @@ class _ConnectionBannerState extends State<ConnectionBanner> {
         _showBlackBanner = false;
       });
 
-      // Change to black after 3 seconds
+      // Change to black after 3 seconds with smooth transition
       Future.delayed(const Duration(seconds: 3), () {
         if (mounted && !widget.isConnected) {
           setState(() {
@@ -55,11 +65,28 @@ class _ConnectionBannerState extends State<ConnectionBanner> {
         }
       });
     } else {
-      // Connected and no previous disconnection
-      setState(() {
-        _showBanner = false;
-        _showBlackBanner = false;
-      });
+      // Connected and no previous disconnection - slide down and hide
+      if (_showBanner) {
+        setState(() {
+          _isAnimatingOut = true;
+        });
+        // Complete hide after animation
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (mounted) {
+            setState(() {
+              _showBanner = false;
+              _showBlackBanner = false;
+              _isAnimatingOut = false;
+            });
+          }
+        });
+      } else {
+        setState(() {
+          _showBanner = false;
+          _showBlackBanner = false;
+          _isAnimatingOut = false;
+        });
+      }
     }
   }
 
@@ -68,18 +95,20 @@ class _ConnectionBannerState extends State<ConnectionBanner> {
     if (!_showBanner) return const SizedBox.shrink();
 
     return AnimatedSlide(
-      offset: _showBanner ? Offset.zero : const Offset(0, 1),
-      duration: const Duration(milliseconds: 400),
-      curve: Curves.easeInOutCubic,
+      offset: _isAnimatingOut ? const Offset(0, 1) : Offset.zero,
+      duration: const Duration(milliseconds: 500),
+      curve: _isAnimatingOut ? Curves.easeInCubic : Curves.easeOutCubic,
       child: AnimatedOpacity(
-        opacity: _showBanner ? 1.0 : 0.0,
-        duration: const Duration(milliseconds: 300),
-        child: Container(
+        opacity: _isAnimatingOut ? 0.0 : 1.0,
+        duration: const Duration(milliseconds: 400),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
-            color: _wasDisconnected
-                ? Colors.green
+            color: _wasDisconnected 
+                ? Colors.green 
                 : (_showBlackBanner ? Colors.black : AppColors.error),
             boxShadow: const [
               BoxShadow(
