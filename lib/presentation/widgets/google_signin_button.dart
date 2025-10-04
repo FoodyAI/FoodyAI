@@ -21,7 +21,7 @@ class GoogleSignInButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    
+
     final button = ElevatedButton.icon(
       onPressed: isLoading ? null : (onPressed ?? () => _handleSignIn(context)),
       icon: isLoading
@@ -47,19 +47,29 @@ class GoogleSignInButton extends StatelessWidget {
         ),
       ),
       style: ElevatedButton.styleFrom(
-        backgroundColor: isDarkMode ? AppColors.green : AppColors.white,
+        backgroundColor: isDarkMode
+            ? Theme.of(context).colorScheme.surface
+            : AppColors.white,
         foregroundColor: isDarkMode ? AppColors.white : AppColors.textPrimary,
-        padding: isCompact 
+        padding: isCompact
             ? const EdgeInsets.symmetric(horizontal: 12, vertical: 8)
             : const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(isCompact ? 10 : 12),
+          side: BorderSide(
+            color: isDarkMode
+                ? AppColors.withOpacity(AppColors.primary, 0.2)
+                : AppColors.grey300,
+            width: 1,
+          ),
         ),
-        elevation: isCompact ? 0 : 2,
+        elevation: 0,
       ),
     );
 
-    return isFullWidth ? SizedBox(width: double.infinity, child: button) : button;
+    return isFullWidth
+        ? SizedBox(width: double.infinity, child: button)
+        : button;
   }
 
   void _handleSignIn(BuildContext context) {
@@ -116,11 +126,14 @@ class SignInDialog extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          _buildBenefit(isDark, FontAwesomeIcons.cloudArrowUp, 'Sync data across devices'),
+          _buildBenefit(isDark, FontAwesomeIcons.cloudArrowUp,
+              'Sync data across devices'),
           const SizedBox(height: 8),
-          _buildBenefit(isDark, FontAwesomeIcons.shieldHalved, 'Backup your food history'),
+          _buildBenefit(isDark, FontAwesomeIcons.shieldHalved,
+              'Backup your food history'),
           const SizedBox(height: 8),
-          _buildBenefit(isDark, FontAwesomeIcons.chartLine, 'Access advanced analytics'),
+          _buildBenefit(
+              isDark, FontAwesomeIcons.chartLine, 'Access advanced analytics'),
           const SizedBox(height: 20),
           const GoogleSignInButton(isFullWidth: true),
         ],
@@ -151,7 +164,9 @@ class SignInDialog extends StatelessWidget {
             text,
             style: TextStyle(
               fontSize: 13,
-              color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+              color: isDark
+                  ? AppColors.darkTextSecondary
+                  : AppColors.textSecondary,
             ),
           ),
         ),
@@ -159,4 +174,3 @@ class SignInDialog extends StatelessWidget {
     );
   }
 }
-
