@@ -175,7 +175,7 @@ class _WelcomeScreenContent extends StatelessWidget {
                                   horizontal: 24, vertical: 12),
                             ),
                             child: Text(
-                              'Continue as Guest',
+                              'Skip for now',
                               style: TextStyle(
                                 color: isDarkMode
                                     ? AppColors.withOpacity(
