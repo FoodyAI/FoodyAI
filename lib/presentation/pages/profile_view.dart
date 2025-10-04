@@ -114,89 +114,74 @@ class _ProfileViewState extends State<ProfileView>
               borderRadius: BorderRadius.circular(16),
             ),
             child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Measurement Units',
+                    'Personal Information',
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 24,
                       fontWeight: FontWeight.bold,
                       color: colorScheme.onSurface,
                     ),
                   ),
-                  UnitSwitchButton(
-                    isMetric: profileVM.isMetric,
-                    onChanged: (value) {
-                      final newWeight = value
-                          ? profileVM.displayWeight * 0.453592
-                          : profileVM.displayWeight * 2.20462;
-                      final newHeight = value
-                          ? profileVM.displayHeight * 2.54
-                          : profileVM.displayHeight / 2.54;
-                      profileVM.saveProfile(
-                        gender: profileVM.profile!.gender,
-                        age: profileVM.profile!.age,
-                        weight: newWeight,
-                        weightUnit: value ? 'kg' : 'lbs',
-                        height: newHeight,
-                        heightUnit: value ? 'cm' : 'inch',
-                        activityLevel: profileVM.profile!.activityLevel,
-                        isMetric: value,
-                        weightGoal: profileVM.profile!.weightGoal,
-                        aiProvider: profileVM.profile!.aiProvider,
-                      );
-                    },
+                  const SizedBox(height: 8),
+                  Text(
+                    'Manage your personal details and preferences',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: colorScheme.onSurface.withOpacity(0.7),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  GridView.count(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    crossAxisCount: 2,
+                    mainAxisSpacing: 16,
+                    crossAxisSpacing: 16,
+                    childAspectRatio: 1.2,
+                    children: [
+                      _buildInfoCard(
+                        context,
+                        FontAwesomeIcons.user,
+                        'Gender',
+                        profile.gender,
+                        colorScheme.primary,
+                        () => _showGenderDialog(context, profileVM),
+                      ),
+                      _buildInfoCard(
+                        context,
+                        FontAwesomeIcons.cakeCandles,
+                        'Age',
+                        '${profile.age} years',
+                        colorScheme.secondary,
+                        () => _showAgeDialog(context, profileVM),
+                      ),
+                      _buildInfoCard(
+                        context,
+                        FontAwesomeIcons.weightScale,
+                        'Weight',
+                        '${profileVM.displayWeight.toStringAsFixed(1)} ${profileVM.weightUnit}',
+                        colorScheme.tertiary,
+                        () => _showWeightDialog(context, profileVM),
+                      ),
+                      _buildInfoCard(
+                        context,
+                        FontAwesomeIcons.rulerVertical,
+                        'Height',
+                        profileVM.isMetric
+                            ? '${profileVM.displayHeight.toStringAsFixed(1)} cm'
+                            : '${(profileVM.displayHeight / 12).floor()}′${(profileVM.displayHeight % 12).round()}″',
+                        colorScheme.error,
+                        () => _showHeightDialog(context, profileVM),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
-          ),
-          const SizedBox(height: 16),
-          GridView.count(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisCount: 2,
-            mainAxisSpacing: 16,
-            crossAxisSpacing: 16,
-            childAspectRatio: 1.2,
-            children: [
-              _buildInfoCard(
-                context,
-                FontAwesomeIcons.user,
-                'Gender',
-                profile.gender,
-                colorScheme.primary,
-                () => _showGenderDialog(context, profileVM),
-              ),
-              _buildInfoCard(
-                context,
-                FontAwesomeIcons.cakeCandles,
-                'Age',
-                '${profile.age} years',
-                colorScheme.secondary,
-                () => _showAgeDialog(context, profileVM),
-              ),
-              _buildInfoCard(
-                context,
-                FontAwesomeIcons.weightScale,
-                'Weight',
-                '${profileVM.displayWeight.toStringAsFixed(1)} ${profileVM.weightUnit}',
-                colorScheme.tertiary,
-                () => _showWeightDialog(context, profileVM),
-              ),
-              _buildInfoCard(
-                context,
-                FontAwesomeIcons.rulerVertical,
-                'Height',
-                profileVM.isMetric
-                    ? '${profileVM.displayHeight.toStringAsFixed(1)} cm'
-                    : '${(profileVM.displayHeight / 12).floor()}′${(profileVM.displayHeight % 12).round()}″',
-                colorScheme.error,
-                () => _showHeightDialog(context, profileVM),
-              ),
-            ],
           ),
         ],
       ),
@@ -222,15 +207,16 @@ class _ProfileViewState extends State<ProfileView>
         child: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                color.withOpacity(0.1),
-                color.withOpacity(0.05),
-              ],
-            ),
+            color: Theme.of(context).brightness == Brightness.dark 
+                ? Theme.of(context).colorScheme.surface
+                : AppColors.white,
             borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.darkDivider
+                  : AppColors.grey300,
+              width: 1,
+            ),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -238,7 +224,9 @@ class _ProfileViewState extends State<ProfileView>
             children: [
               FaIcon(
                 icon,
-                color: color,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.darkTextPrimary
+                    : AppColors.textPrimary,
                 size: 28,
               ),
               const SizedBox(height: 6),
@@ -247,7 +235,9 @@ class _ProfileViewState extends State<ProfileView>
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: color,
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.darkTextPrimary
+                      : AppColors.textPrimary,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -257,7 +247,9 @@ class _ProfileViewState extends State<ProfileView>
                 value,
                 style: TextStyle(
                   fontSize: 13,
-                  color: color.withOpacity(0.7),
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.darkTextSecondary
+                      : AppColors.textSecondary,
                   fontWeight: FontWeight.w500,
                 ),
                 textAlign: TextAlign.center,
@@ -494,7 +486,9 @@ class _ProfileViewState extends State<ProfileView>
                                     Text(
                                       _getWeightGoalDescription(goal),
                                       style: TextStyle(
-                                        fontSize: MediaQuery.of(context).size.width * 0.035,
+                                        fontSize:
+                                            MediaQuery.of(context).size.width *
+                                                0.035,
                                         color: colorScheme.onSurface
                                             .withOpacity(0.7),
                                       ),
@@ -561,14 +555,6 @@ class _ProfileViewState extends State<ProfileView>
                           ),
                         ),
                       ],
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'You\'re using Foody as a guest',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: colorScheme.onSurface.withOpacity(0.7),
-                      ),
                     ),
                     const SizedBox(height: 20),
                     Container(
@@ -666,6 +652,96 @@ class _ProfileViewState extends State<ProfileView>
             ),
           ),
           const SizedBox(height: 16),
+          // Measurement Units Section
+          Card(
+            elevation: 4,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      FaIcon(
+                        FontAwesomeIcons.ruler,
+                        color: colorScheme.primary,
+                        size: 24,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Measurement Units',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.onSurface,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Choose your preferred measurement system',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: colorScheme.onSurface.withOpacity(0.7),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  _buildMeasurementOption(
+                    context,
+                    FontAwesomeIcons.globe,
+                    'Metric (kg, cm)',
+                    'Use kilograms and centimeters',
+                    profileVM.isMetric,
+                    () {
+                      final newWeight = profileVM.displayWeight * 0.453592;
+                      final newHeight = profileVM.displayHeight * 2.54;
+                      profileVM.saveProfile(
+                        gender: profileVM.profile!.gender,
+                        age: profileVM.profile!.age,
+                        weight: newWeight,
+                        weightUnit: 'kg',
+                        height: newHeight,
+                        heightUnit: 'cm',
+                        activityLevel: profileVM.profile!.activityLevel,
+                        isMetric: true,
+                        weightGoal: profileVM.profile!.weightGoal,
+                        aiProvider: profileVM.profile!.aiProvider,
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  _buildMeasurementOption(
+                    context,
+                    FontAwesomeIcons.flag,
+                    'Imperial (lbs, ft)',
+                    'Use pounds and feet/inches',
+                    !profileVM.isMetric,
+                    () {
+                      final newWeight = profileVM.displayWeight * 2.20462;
+                      final newHeight = profileVM.displayHeight / 2.54;
+                      profileVM.saveProfile(
+                        gender: profileVM.profile!.gender,
+                        age: profileVM.profile!.age,
+                        weight: newWeight,
+                        weightUnit: 'lbs',
+                        height: newHeight,
+                        heightUnit: 'inch',
+                        activityLevel: profileVM.profile!.activityLevel,
+                        isMetric: false,
+                        weightGoal: profileVM.profile!.weightGoal,
+                        aiProvider: profileVM.profile!.aiProvider,
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
           // Appearance Section
           Card(
             elevation: 4,
@@ -749,6 +825,78 @@ class _ProfileViewState extends State<ProfileView>
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildMeasurementOption(
+    BuildContext context,
+    IconData icon,
+    String title,
+    String subtitle,
+    bool isSelected,
+    VoidCallback onTap,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? colorScheme.primary.withOpacity(0.1)
+              : colorScheme.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected
+                ? colorScheme.primary
+                : colorScheme.outline.withOpacity(0.5),
+            width: 2,
+          ),
+        ),
+        child: Row(
+          children: [
+            FaIcon(
+              icon,
+              color: isSelected ? colorScheme.primary : colorScheme.onSurface,
+              size: 32,
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: isSelected
+                          ? colorScheme.primary
+                          : colorScheme.onSurface,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: colorScheme.onSurface.withOpacity(0.7),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (isSelected)
+              FaIcon(
+                FontAwesomeIcons.circleCheck,
+                color: colorScheme.primary,
+                size: 24,
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -1200,7 +1348,7 @@ class _ProfileViewState extends State<ProfileView>
         decoration: BoxDecoration(
           color: isSelected
               ? colorScheme.primary.withOpacity(0.1)
-              : (isDark ? AppColors.darkCardBackground : colorScheme.surface),
+              : colorScheme.surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSelected
