@@ -73,7 +73,6 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
       prefs.remove('aiProvider'),
       prefs.remove('isGuest'),
       prefs.remove('hasCompletedOnboarding'),
-      prefs.remove('hasChosenAIProvider'),
     ]);
   }
 
@@ -93,17 +92,5 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
   Future<void> setHasCompletedOnboarding(bool value) async {
     final prefs = await _preferences;
     await prefs.setBool('hasCompletedOnboarding', value);
-  }
-
-  @override
-  Future<bool> getHasChosenAIProvider() async {
-    final prefs = await _preferences;
-    return prefs.getBool('hasChosenAIProvider') ?? false;
-  }
-
-  @override
-  Future<void> setHasChosenAIProvider(bool value) async {
-    final prefs = await _preferences;
-    await prefs.setBool('hasChosenAIProvider', value);
   }
 }
