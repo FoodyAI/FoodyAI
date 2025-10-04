@@ -24,6 +24,8 @@ dependencies:
   font_awesome_flutter: ^10.5.0
   mobile_scanner: ^3.5.6
   intl: ^0.18.1
+  connectivity_plus: ^5.0.2
+  internet_connection_checker: ^1.0.0+1
 
 dev_dependencies:
   flutter_test:
