@@ -111,7 +111,7 @@ class GeminiService implements AIService {
         final Map<String, dynamic> jsonResponse = jsonDecode(jsonString);
         print('✅ [Gemini] Parsed JSON: $jsonResponse');
 
-        double _numToDouble(dynamic v, {double fallback = 0}) {
+        double numToDouble(dynamic v, {double fallback = 0}) {
           if (v is num) return v.toDouble();
           if (v is String) {
             final parsed = double.tryParse(v);
@@ -122,11 +122,11 @@ class GeminiService implements AIService {
 
         return FoodAnalysis(
           name: (jsonResponse['name'] ?? 'Unknown') as String,
-          protein: _numToDouble(jsonResponse['protein']),
-          carbs: _numToDouble(jsonResponse['carbs']),
-          fat: _numToDouble(jsonResponse['fat']),
-          calories: _numToDouble(jsonResponse['calories']),
-          healthScore: _numToDouble(jsonResponse['healthScore']),
+          protein: numToDouble(jsonResponse['protein']),
+          carbs: numToDouble(jsonResponse['carbs']),
+          fat: numToDouble(jsonResponse['fat']),
+          calories: numToDouble(jsonResponse['calories']),
+          healthScore: numToDouble(jsonResponse['healthScore']),
         );
       } else {
         throw Exception('Failed to analyze image: ${response.body}');
