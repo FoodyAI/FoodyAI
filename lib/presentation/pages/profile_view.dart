@@ -1222,7 +1222,9 @@ class _ProfileViewState extends State<ProfileView>
 
   void _showHeightDialog(BuildContext context, UserProfileViewModel vm) {
     final colorScheme = Theme.of(context).colorScheme;
-    double selectedHeight = vm.displayHeight;
+    // HeightInput widget expects height in cm for both metric and imperial
+    // For imperial, it will convert cm to feet/inches internally
+    double selectedHeight = vm.isMetric ? vm.displayHeight : vm.displayHeight * 2.54;
 
     showDialog(
       context: context,
@@ -1252,12 +1254,14 @@ class _ProfileViewState extends State<ProfileView>
           ),
           TextButton(
             onPressed: () {
+              // Convert back to the correct unit for saving
+              double heightToSave = vm.isMetric ? selectedHeight : selectedHeight / 2.54;
               vm.saveProfile(
                 gender: vm.profile!.gender,
                 age: vm.profile!.age,
                 weight: vm.displayWeight,
                 weightUnit: vm.weightUnit,
-                height: selectedHeight,
+                height: heightToSave,
                 heightUnit: vm.heightUnit,
                 activityLevel: vm.profile!.activityLevel,
                 isMetric: vm.isMetric,
