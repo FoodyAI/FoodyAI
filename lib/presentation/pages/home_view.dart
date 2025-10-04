@@ -11,7 +11,7 @@ import '../widgets/calorie_tracking_card.dart';
 import '../widgets/bottom_navigation.dart';
 import '../widgets/undo_delete_snackbar.dart';
 import '../widgets/custom_app_bar.dart';
-import '../widgets/google_signin_button.dart';
+import '../widgets/guest_signin_banner.dart';
 import '../../data/models/food_analysis.dart';
 import 'analyze_view.dart';
 import 'profile_view.dart';
@@ -71,14 +71,16 @@ class _HomeContentState extends State<_HomeContent> {
   }
 
   Future<void> _dismissBanner() async {
+    // Save the dismissal state
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('guest_banner_dismissed', true);
-    setState(() {
-      _bannerDismissed = true;
-    });
     
-    // Inform user where to find sign-in later
     if (mounted) {
+      setState(() {
+        _bannerDismissed = true;
+      });
+      
+      // Inform user where to find sign-in later
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Row(
@@ -269,7 +271,9 @@ class _HomeContentState extends State<_HomeContent> {
           children: [
             // Guest Sign-In Banner (Top)
             if (profileVM.isGuest && !_bannerDismissed)
-              _buildGuestBanner(context),
+              GuestSignInBanner(
+                onDismiss: _dismissBanner,
+              ),
             // Calorie Tracking Section
             CalorieTrackingCard(
               totalCaloriesConsumed: totalCaloriesConsumed,
@@ -367,13 +371,7 @@ class _HomeContentState extends State<_HomeContent> {
                                 final removedAnalysis =
                                     await vm.removeAnalysis(fullIndex);
                                 if (removedAnalysis != null) {
-                                  UndoDeleteSnackbar.show(
-                                    context: context,
-                                    removedAnalysis: removedAnalysis,
-                                    onUndo: () {
-                                      vm.addAnalysis(removedAnalysis);
-                                    },
-                                  );
+                                  _showUndoSnackbar(removedAnalysis, vm);
                                 }
                               },
                               child: FoodAnalysisCard(
@@ -440,92 +438,15 @@ class _HomeContentState extends State<_HomeContent> {
     );
   }
 
-  Widget _buildGuestBanner(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppColors.withOpacity(colorScheme.primary, 0.1),
-            AppColors.withOpacity(colorScheme.secondary, 0.1),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppColors.withOpacity(colorScheme.primary, 0.3),
-          width: 1.5,
-        ),
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: AppColors.withOpacity(colorScheme.primary, 0.15),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: FaIcon(
-                  FontAwesomeIcons.cloudArrowUp,
-                  color: colorScheme.primary,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Guest Mode',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? AppColors.white : AppColors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Sign in to sync & backup your data',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: isDark
-                            ? AppColors.darkTextSecondary
-                            : AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              IconButton(
-                icon: const FaIcon(
-                  FontAwesomeIcons.xmark,
-                  size: 16,
-                ),
-                onPressed: _dismissBanner,
-                style: IconButton.styleFrom(
-                  foregroundColor: isDark
-                      ? AppColors.darkTextSecondary
-                      : AppColors.textSecondary,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          const GoogleSignInButton(
-            isFullWidth: true,
-            isCompact: true,
-          ),
-        ],
-      ),
-    );
+  void _showUndoSnackbar(FoodAnalysis removedAnalysis, ImageAnalysisViewModel vm) {
+    if (mounted) {
+      UndoDeleteSnackbar.show(
+        context: context,
+        removedAnalysis: removedAnalysis,
+        onUndo: () {
+          vm.addAnalysis(removedAnalysis);
+        },
+      );
+    }
   }
-
 }
