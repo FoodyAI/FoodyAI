@@ -12,6 +12,7 @@ import '../widgets/bottom_navigation.dart';
 import '../widgets/undo_delete_snackbar.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/guest_signin_banner.dart';
+import '../widgets/connection_banner.dart';
 import '../../data/models/food_analysis.dart';
 import 'analyze_view.dart';
 import 'profile_view.dart';
@@ -20,7 +21,9 @@ import '../../../core/constants/app_colors.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class HomeView extends StatefulWidget {
-  const HomeView({super.key});
+  final ConnectionBanner? connectionBanner;
+  
+  const HomeView({super.key, this.connectionBanner});
 
   @override
   State<HomeView> createState() => _HomeViewState();
@@ -39,9 +42,15 @@ class _HomeViewState extends State<HomeView> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: _pages[_currentIndex],
-      bottomNavigationBar: BottomNavigation(
-        currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
+      bottomNavigationBar: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (widget.connectionBanner != null) widget.connectionBanner!,
+          BottomNavigation(
+            currentIndex: _currentIndex,
+            onTap: (index) => setState(() => _currentIndex = index),
+          ),
+        ],
       ),
     );
   }

@@ -8,6 +8,8 @@ import 'presentation/viewmodels/theme_viewmodel.dart';
 import 'presentation/pages/welcome_view.dart';
 import 'presentation/pages/home_view.dart';
 import 'core/utils/theme.dart';
+import 'core/services/connection_service.dart';
+import 'presentation/widgets/connection_banner.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -44,8 +46,33 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class AppNavigator extends StatelessWidget {
+class AppNavigator extends StatefulWidget {
   const AppNavigator({super.key});
+
+  @override
+  State<AppNavigator> createState() => _AppNavigatorState();
+}
+
+class _AppNavigatorState extends State<AppNavigator> {
+  final ConnectionService _connectionService = ConnectionService();
+  bool _isConnected = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _connectionService.startMonitoring();
+    _connectionService.connectionStream.listen((isConnected) {
+      setState(() {
+        _isConnected = isConnected;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _connectionService.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +92,11 @@ class AppNavigator extends StatelessWidget {
       return const WelcomeScreen();
     }
 
-    // If onboarding is completed, show home
-    return const HomeView();
+    // If onboarding is completed, show home with connection banner
+    return HomeView(
+      connectionBanner: ConnectionBanner(
+        isConnected: _isConnected,
+      ),
+    );
   }
 }
