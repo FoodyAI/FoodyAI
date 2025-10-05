@@ -10,7 +10,7 @@ void main() {
       final card = CalorieTrackingCard(
         totalCaloriesConsumed: 1200,
         recommendedCalories: 2000,
-        savedAnalyses: [],
+        savedAnalyses: const [],
         selectedDate: DateTime.now(),
         onDateSelected: (date) {},
       );
@@ -35,7 +35,7 @@ void main() {
       final card = CalorieTrackingCard(
         totalCaloriesConsumed: 1200,
         recommendedCalories: 2000,
-        savedAnalyses: [],
+        savedAnalyses: const [],
         selectedDate: DateTime.now(),
         onDateSelected: (date) {},
       );
@@ -59,7 +59,7 @@ void main() {
       final card = CalorieTrackingCard(
         totalCaloriesConsumed: 1200,
         recommendedCalories: 2000,
-        savedAnalyses: [],
+        savedAnalyses: const [],
         selectedDate: DateTime.now(),
         onDateSelected: (date) {},
       );
@@ -84,7 +84,7 @@ void main() {
       final card = CalorieTrackingCard(
         totalCaloriesConsumed: 1200,
         recommendedCalories: 2000,
-        savedAnalyses: [],
+        savedAnalyses: const [],
         selectedDate: DateTime.now(),
         onDateSelected: (date) {},
       );
@@ -109,7 +109,7 @@ void main() {
       final card = CalorieTrackingCard(
         totalCaloriesConsumed: 0,
         recommendedCalories: 2000,
-        savedAnalyses: [],
+        savedAnalyses: const [],
         selectedDate: DateTime.now(),
         onDateSelected: (date) {},
       );
@@ -134,7 +134,7 @@ void main() {
       final card = CalorieTrackingCard(
         totalCaloriesConsumed: 2500,
         recommendedCalories: 2000,
-        savedAnalyses: [],
+        savedAnalyses: const [],
         selectedDate: DateTime.now(),
         onDateSelected: (date) {},
       );
@@ -159,7 +159,7 @@ void main() {
       final card = CalorieTrackingCard(
         totalCaloriesConsumed: 1200,
         recommendedCalories: 2000,
-        savedAnalyses: [],
+        savedAnalyses: const [],
         selectedDate: DateTime.now(),
         onDateSelected: (date) {},
       );

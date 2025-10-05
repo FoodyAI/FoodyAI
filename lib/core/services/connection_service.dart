@@ -7,7 +7,7 @@ class ConnectionService {
   factory ConnectionService() => _instance;
   ConnectionService._internal();
 
-  StreamController<bool> _connectionController = StreamController<bool>.broadcast();
+  final StreamController<bool> _connectionController = StreamController<bool>.broadcast();
   StreamSubscription? _connectivitySubscription;
   StreamSubscription? _internetSubscription;
   bool _isConnected = true;

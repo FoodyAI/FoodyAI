@@ -129,10 +129,10 @@ void main() {
         (WidgetTester tester) async {
       // Test unit conversion on different screen sizes
       final screenSizes = [
-        Size(320, 568), // iPhone SE
-        Size(375, 667), // iPhone 8
-        Size(414, 896), // iPhone 11
-        Size(768, 1024), // iPad
+        const Size(320, 568), // iPhone SE
+        const Size(375, 667), // iPhone 8
+        const Size(414, 896), // iPhone 11
+        const Size(768, 1024), // iPad
       ];
 
       for (final size in screenSizes) {

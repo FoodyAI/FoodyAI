@@ -8,7 +8,7 @@ void main() {
       const expectedKg = 70.0;
       
       // Act
-      final result = weightLbs * 0.453592;
+      const result = weightLbs * 0.453592;
       
       // Assert
       expect(result, closeTo(expectedKg, 0.01));
@@ -20,7 +20,7 @@ void main() {
       const expectedLbs = 154.32;
       
       // Act
-      final result = weightKg * 2.20462;
+      const result = weightKg * 2.20462;
       
       // Assert
       expect(result, closeTo(expectedLbs, 0.01));
@@ -32,7 +32,7 @@ void main() {
       const expectedCm = 175.0;
       
       // Act
-      final result = heightInches * 2.54;
+      const result = heightInches * 2.54;
       
       // Assert
       expect(result, closeTo(expectedCm, 0.01));
@@ -44,7 +44,7 @@ void main() {
       const expectedInches = 68.9;
       
       // Act
-      final result = heightCm / 2.54;
+      const result = heightCm / 2.54;
       
       // Assert
       expect(result, closeTo(expectedInches, 0.01));
@@ -56,7 +56,7 @@ void main() {
       const expectedKg = 136.08;
       
       // Act
-      final result = weightLbs * 0.453592;
+      const result = weightLbs * 0.453592;
       
       // Assert
       expect(result, closeTo(expectedKg, 0.01));
@@ -68,7 +68,7 @@ void main() {
       const expectedLbs = 88.18;
       
       // Act
-      final result = weightKg * 2.20462;
+      const result = weightKg * 2.20462;
       
       // Assert
       expect(result, closeTo(expectedLbs, 0.01));
@@ -80,7 +80,7 @@ void main() {
       const expectedCm = 203.2;
       
       // Act
-      final result = heightInches * 2.54;
+      const result = heightInches * 2.54;
       
       // Assert
       expect(result, closeTo(expectedCm, 0.01));
@@ -92,7 +92,7 @@ void main() {
       const expectedInches = 55.12;
       
       // Act
-      final result = heightCm / 2.54;
+      const result = heightCm / 2.54;
       
       // Assert
       expect(result, closeTo(expectedInches, 0.01));
