@@ -123,9 +123,7 @@ class ImageAnalysisViewModel extends ChangeNotifier {
       AIProvider? aiProvider = profile?.aiProvider;
       
       // If no AI provider is set, use default
-      if (aiProvider == null) {
-        aiProvider = AIProvider.gemini; // Default to Gemini (free)
-      }
+      aiProvider ??= AIProvider.gemini;
 
       // Get the appropriate AI service
       final AIService service = AIServiceFactory.getService(aiProvider);

@@ -13,7 +13,7 @@ void main() {
 
       // Act - Pump the widget
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: button,
           ),
@@ -32,7 +32,7 @@ void main() {
 
       // Act
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: button,
           ),
@@ -79,7 +79,7 @@ void main() {
 
       // Act
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: button,
           ),
@@ -103,7 +103,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData.light(),
-          home: Scaffold(
+          home: const Scaffold(
             body: button,
           ),
         ),
@@ -114,7 +114,7 @@ void main() {
           tester.widget<ElevatedButton>(find.byType(ElevatedButton));
       expect(elevatedButton.style?.elevation, equals(0));
       expect(
-          elevatedButton.style?.backgroundColor, isA<MaterialStateProperty>());
+          elevatedButton.style?.backgroundColor, isA<WidgetStateProperty>());
     });
 
     testWidgets('should have correct styling in dark theme',
@@ -128,7 +128,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData.dark(),
-          home: Scaffold(
+          home: const Scaffold(
             body: button,
           ),
         ),
@@ -139,7 +139,7 @@ void main() {
           tester.widget<ElevatedButton>(find.byType(ElevatedButton));
       expect(elevatedButton.style?.elevation, equals(0));
       expect(
-          elevatedButton.style?.backgroundColor, isA<MaterialStateProperty>());
+          elevatedButton.style?.backgroundColor, isA<WidgetStateProperty>());
     });
 
     testWidgets('should have correct text styling',
@@ -151,7 +151,7 @@ void main() {
 
       // Act
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: button,
           ),

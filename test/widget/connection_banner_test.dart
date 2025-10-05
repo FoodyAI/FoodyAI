@@ -13,7 +13,7 @@ void main() {
 
       // Act - Pump the widget
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: banner,
           ),
@@ -34,7 +34,7 @@ void main() {
 
       // Act - Pump the widget
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: banner,
           ),
@@ -55,7 +55,7 @@ void main() {
 
       // Act
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: banner,
           ),
@@ -79,7 +79,7 @@ void main() {
 
       // Act
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: banner,
           ),
@@ -102,7 +102,7 @@ void main() {
 
       // Act
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: banner,
           ),
@@ -122,7 +122,7 @@ void main() {
 
       // Act
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: banner,
           ),
