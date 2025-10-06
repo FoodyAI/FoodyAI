@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../core/constants/app_colors.dart';
+import '../../services/auth_service.dart';
 
 class GoogleSignInButton extends StatelessWidget {
   final VoidCallback? onPressed;
@@ -72,14 +73,45 @@ class GoogleSignInButton extends StatelessWidget {
         : button;
   }
 
-  void _handleSignIn(BuildContext context) {
-    // Show coming soon message
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Google Sign-In coming soon!'),
-        duration: Duration(seconds: 2),
-      ),
-    );
+  Future<void> _handleSignIn(BuildContext context) async {
+    try {
+      final authService = AuthService();
+      final user = await authService.signInWithGoogle();
+      
+      if (user != null) {
+        // Successfully signed in
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Welcome, ${user.displayName ?? user.email}!'),
+              backgroundColor: AppColors.success,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      } else {
+        // User cancelled or error occurred
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Sign-in cancelled'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      // Handle error
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Sign-in failed: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
   }
 }
 
@@ -135,7 +167,13 @@ class SignInDialog extends StatelessWidget {
           _buildBenefit(
               isDark, FontAwesomeIcons.chartLine, 'Access advanced analytics'),
           const SizedBox(height: 20),
-          const GoogleSignInButton(isFullWidth: true),
+          GoogleSignInButton(
+            isFullWidth: true,
+            onPressed: () async {
+              Navigator.pop(context); // Close dialog first
+              await _handleSignInFromDialog(context);
+            },
+          ),
         ],
       ),
       actions: [
@@ -172,5 +210,46 @@ class SignInDialog extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  Future<void> _handleSignInFromDialog(BuildContext context) async {
+    try {
+      final authService = AuthService();
+      final user = await authService.signInWithGoogle();
+      
+      if (user != null) {
+        // Successfully signed in
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Welcome, ${user.displayName ?? user.email}!'),
+              backgroundColor: AppColors.success,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      } else {
+        // User cancelled or error occurred
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Sign-in cancelled'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      // Handle error
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Sign-in failed: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
   }
 }
