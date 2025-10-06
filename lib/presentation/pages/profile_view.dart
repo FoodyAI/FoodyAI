@@ -9,6 +9,7 @@ import '../widgets/profile_inputs.dart';
 import '../widgets/google_signin_button.dart';
 import '../../core/constants/app_colors.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'auth_test_page.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
@@ -592,6 +593,25 @@ class _ProfileViewState extends State<ProfileView>
                     const SizedBox(height: 20),
                     const GoogleSignInButton(
                       isFullWidth: true,
+                    ),
+                    const SizedBox(height: 16),
+                    // Test Authentication Button
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const AuthTestPage(),
+                          ),
+                        );
+                      },
+                      icon: const FaIcon(FontAwesomeIcons.flask),
+                      label: const Text('Test Authentication'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.info,
+                        foregroundColor: AppColors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
                     ),
                   ],
                 ),
