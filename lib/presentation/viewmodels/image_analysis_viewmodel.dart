@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../data/models/food_analysis.dart';
 import '../../data/datasources/remote/ai_service.dart';
 import '../../data/datasources/remote/ai_service_factory.dart';
@@ -9,6 +10,7 @@ import '../../data/datasources/local/food_analysis_storage.dart';
 import '../../domain/entities/ai_provider.dart';
 import '../../domain/repositories/user_profile_repository.dart';
 import '../../di/service_locator.dart';
+import '../../services/sync_service.dart';
 import '../widgets/rating_dialog.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -18,6 +20,8 @@ class ImageAnalysisViewModel extends ChangeNotifier {
   final FoodAnalysisStorage _storage = FoodAnalysisStorage();
   final UserProfileRepository _profileRepository =
       getIt<UserProfileRepository>();
+  final SyncService _syncService = SyncService();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   File? _selectedImage;
   FoodAnalysis? _currentAnalysis;
@@ -277,6 +281,12 @@ class ImageAnalysisViewModel extends ChangeNotifier {
       _savedAnalyses.add(newAnalysis);
     }
     await _storage.saveAnalyses(_savedAnalyses);
+    
+    // Sync with AWS if user is signed in
+    if (_auth.currentUser != null) {
+      await _syncService.saveFoodAnalysisToAWS(analysis);
+    }
+    
     notifyListeners();
   }
 
