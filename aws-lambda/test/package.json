@@ -1,0 +1,18 @@
+{
+  "name": "foody-aws-tests",
+  "version": "1.0.0",
+  "description": "Testing utilities for Foody AWS backend",
+  "scripts": {
+    "test:db": "node check-database.js",
+    "test:api": "./test-api.sh",
+    "test:lambda": "node test-lambda-local.js",
+    "test:all": "npm run test:lambda && npm run test:api && npm run test:db"
+  },
+  "keywords": ["aws", "lambda", "testing"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "pg": "^8.11.3"
+  }
+}
+
