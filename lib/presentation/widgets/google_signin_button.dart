@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../services/auth_service.dart';
+import '../viewmodels/auth_viewmodel.dart';
 
 class GoogleSignInButton extends StatelessWidget {
   final VoidCallback? onPressed;
@@ -75,15 +77,19 @@ class GoogleSignInButton extends StatelessWidget {
 
   Future<void> _handleSignIn(BuildContext context) async {
     try {
-      final authService = AuthService();
-      final user = await authService.signInWithGoogle();
+      print('Starting Google Sign-In...');
+      final authVM = Provider.of<AuthViewModel>(context, listen: false);
       
-      if (user != null) {
-        // Successfully signed in
+      // Call the sign-in method through AuthViewModel
+      final success = await authVM.signInWithGoogle();
+      
+      if (success) {
+        // Successfully signed in - UI will update automatically via Provider
+        print('Sign-in successful, showing success message');
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Welcome, ${user.displayName ?? user.email}!'),
+              content: Text('Welcome, ${authVM.userDisplayName ?? authVM.userEmail}!'),
               backgroundColor: AppColors.success,
               duration: const Duration(seconds: 3),
             ),
@@ -91,6 +97,7 @@ class GoogleSignInButton extends StatelessWidget {
         }
       } else {
         // User cancelled or error occurred
+        print('Sign-in cancelled or failed');
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -102,6 +109,7 @@ class GoogleSignInButton extends StatelessWidget {
       }
     } catch (e) {
       // Handle error
+      print('Sign-in error: $e');
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -214,15 +222,19 @@ class SignInDialog extends StatelessWidget {
 
   Future<void> _handleSignInFromDialog(BuildContext context) async {
     try {
-      final authService = AuthService();
-      final user = await authService.signInWithGoogle();
+      print('Starting Google Sign-In from dialog...');
+      final authVM = Provider.of<AuthViewModel>(context, listen: false);
       
-      if (user != null) {
-        // Successfully signed in
+      // Call the sign-in method through AuthViewModel
+      final success = await authVM.signInWithGoogle();
+      
+      if (success) {
+        // Successfully signed in - UI will update automatically via Provider
+        print('Dialog sign-in successful, showing success message');
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Welcome, ${user.displayName ?? user.email}!'),
+              content: Text('Welcome, ${authVM.userDisplayName ?? authVM.userEmail}!'),
               backgroundColor: AppColors.success,
               duration: const Duration(seconds: 3),
             ),
@@ -230,6 +242,7 @@ class SignInDialog extends StatelessWidget {
         }
       } else {
         // User cancelled or error occurred
+        print('Dialog sign-in cancelled or failed');
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -241,6 +254,7 @@ class SignInDialog extends StatelessWidget {
       }
     } catch (e) {
       // Handle error
+      print('Dialog sign-in error: $e');
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

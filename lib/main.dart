@@ -6,6 +6,7 @@ import 'di/service_locator.dart';
 import 'presentation/viewmodels/user_profile_viewmodel.dart';
 import 'presentation/viewmodels/image_analysis_viewmodel.dart';
 import 'presentation/viewmodels/theme_viewmodel.dart';
+import 'presentation/viewmodels/auth_viewmodel.dart';
 import 'presentation/pages/welcome_view.dart';
 import 'presentation/pages/home_view.dart';
 import 'core/utils/theme.dart';
@@ -34,6 +35,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => getIt<UserProfileViewModel>()),
         ChangeNotifierProvider(create: (_) => ImageAnalysisViewModel()),
         ChangeNotifierProvider(create: (_) => ThemeViewModel()),
+        ChangeNotifierProvider(create: (_) => getIt<AuthViewModel>()),
       ],
       child: Consumer<ThemeViewModel>(
         builder: (context, themeVM, _) {

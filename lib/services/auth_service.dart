@@ -47,11 +47,18 @@ class AuthService {
       
       if (googleUser == null) {
         // User cancelled the sign-in
+        print('Google Sign-In cancelled by user');
         return null;
       }
       
       // Obtain the auth details from the request
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      
+      // Check if we have valid tokens
+      if (googleAuth.accessToken == null || googleAuth.idToken == null) {
+        print('Google Sign-In failed: Missing tokens');
+        return null;
+      }
       
       // Create a new credential
       final credential = GoogleAuthProvider.credential(
@@ -61,9 +68,15 @@ class AuthService {
       
       // Sign in to Firebase with the Google credential
       UserCredential result = await _auth.signInWithCredential(credential);
+      print('Google Sign-In successful: ${result.user?.email}');
       return result.user;
     } catch (e) {
       print('Error signing in with Google: $e');
+      // Even if there's an error, check if user is already signed in
+      if (_auth.currentUser != null) {
+        print('User is already signed in: ${_auth.currentUser?.email}');
+        return _auth.currentUser;
+      }
       return null;
     }
   }

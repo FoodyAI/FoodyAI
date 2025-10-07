@@ -2,14 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/user_profile_viewmodel.dart';
 import '../viewmodels/theme_viewmodel.dart';
+import '../viewmodels/auth_viewmodel.dart';
 import '../../domain/entities/user_profile.dart';
 import '../../domain/entities/ai_provider.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/profile_inputs.dart';
 import '../widgets/google_signin_button.dart';
+import '../widgets/sign_out_button.dart';
 import '../../core/constants/app_colors.dart';
+import '../../services/auth_service.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'auth_test_page.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
@@ -208,7 +210,7 @@ class _ProfileViewState extends State<ProfileView>
         child: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Theme.of(context).brightness == Brightness.dark 
+            color: Theme.of(context).brightness == Brightness.dark
                 ? Theme.of(context).colorScheme.surface
                 : AppColors.white,
             borderRadius: BorderRadius.circular(16),
@@ -522,42 +524,123 @@ class _ProfileViewState extends State<ProfileView>
     final colorScheme = Theme.of(context).colorScheme;
     final profileVM = Provider.of<UserProfileViewModel>(context);
     final profile = profileVM.profile!;
+    final authVM = Provider.of<AuthViewModel>(context);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          // Account Section (Guest Mode)
-          if (profileVM.isGuest)
-            Card(
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        FaIcon(
-                          FontAwesomeIcons.user,
-                          color: colorScheme.primary,
-                          size: 24,
+          // Account Section
+          Card(
+            elevation: 4,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      FaIcon(
+                        FontAwesomeIcons.user,
+                        color: colorScheme.primary,
+                        size: 24,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Account',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.onSurface,
                         ),
-                        const SizedBox(width: 12),
-                        Text(
-                          'Account',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: colorScheme.onSurface,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Show user details if signed in, otherwise show guest benefits
+                  if (authVM.isSignedIn) ...[
+                    // User Details Section
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppColors.withOpacity(colorScheme.primary, 0.05),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color:
+                              AppColors.withOpacity(colorScheme.primary, 0.2),
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          // User Profile Info
+                          Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 30,
+                                backgroundImage: authVM.userPhotoURL != null
+                                    ? NetworkImage(authVM.userPhotoURL!)
+                                    : null,
+                                child: authVM.userPhotoURL == null
+                                    ? FaIcon(
+                                        FontAwesomeIcons.user,
+                                        size: 24,
+                                        color: colorScheme.primary,
+                                      )
+                                    : null,
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // User Name - Dynamic text size to fit content
+                                    FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      alignment: Alignment.centerLeft,
+                                      child: Text(
+                                        authVM.userDisplayName ?? 'User',
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                          color: colorScheme.onSurface,
+                                        ),
+                                        maxLines: 1,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    // User Email - Dynamic text size to fit content
+                                    FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      alignment: Alignment.centerLeft,
+                                      child: Text(
+                                        authVM.userEmail ?? '',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: colorScheme.onSurface
+                                              .withOpacity(0.7),
+                                        ),
+                                        maxLines: 1,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 16),
+                          // Sign Out Button
+                          const SignOutButtonWithAuth(
+                            isFullWidth: true,
+                          ),
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: 20),
+                  ] else ...[
+                    // Guest Benefits Section
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
@@ -594,29 +677,11 @@ class _ProfileViewState extends State<ProfileView>
                     const GoogleSignInButton(
                       isFullWidth: true,
                     ),
-                    const SizedBox(height: 16),
-                    // Test Authentication Button
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const AuthTestPage(),
-                          ),
-                        );
-                      },
-                      icon: const FaIcon(FontAwesomeIcons.flask),
-                      label: const Text('Test Authentication'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.info,
-                        foregroundColor: AppColors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
-                    ),
                   ],
-                ),
+                ],
               ),
             ),
+          ),
           if (profileVM.isGuest) const SizedBox(height: 16),
           // AI Provider Section
           Card(
@@ -1244,7 +1309,8 @@ class _ProfileViewState extends State<ProfileView>
     final colorScheme = Theme.of(context).colorScheme;
     // HeightInput widget expects height in cm for both metric and imperial
     // For imperial, it will convert cm to feet/inches internally
-    double selectedHeight = vm.isMetric ? vm.displayHeight : vm.displayHeight * 2.54;
+    double selectedHeight =
+        vm.isMetric ? vm.displayHeight : vm.displayHeight * 2.54;
 
     showDialog(
       context: context,
@@ -1275,7 +1341,8 @@ class _ProfileViewState extends State<ProfileView>
           TextButton(
             onPressed: () {
               // Convert back to the correct unit for saving
-              double heightToSave = vm.isMetric ? selectedHeight : selectedHeight / 2.54;
+              double heightToSave =
+                  vm.isMetric ? selectedHeight : selectedHeight / 2.54;
               vm.saveProfile(
                 gender: vm.profile!.gender,
                 age: vm.profile!.age,

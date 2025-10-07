@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../viewmodels/image_analysis_viewmodel.dart';
 import '../viewmodels/user_profile_viewmodel.dart';
+import '../viewmodels/auth_viewmodel.dart';
 import '../widgets/food_analysis_card.dart';
 import '../widgets/calorie_tracking_card.dart';
 import '../widgets/bottom_navigation.dart';
@@ -14,6 +15,7 @@ import '../widgets/custom_app_bar.dart';
 import '../widgets/guest_signin_banner.dart';
 import '../widgets/connection_banner.dart';
 import '../../data/models/food_analysis.dart';
+import '../../services/auth_service.dart';
 import 'analyze_view.dart';
 import 'profile_view.dart';
 import 'barcode_scanner_view.dart';
@@ -31,6 +33,7 @@ class HomeView extends StatefulWidget {
 
 class _HomeViewState extends State<HomeView> {
   int _currentIndex = 0;
+  bool _bannerDismissed = false;
 
   final List<Widget> _pages = [
     const _HomeContent(),
@@ -115,11 +118,31 @@ class _HomeContentState extends State<_HomeContent> {
     }
   }
 
+  Future<void> _resetBanner() async {
+    // Reset the dismissal state when user signs out
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('guest_banner_dismissed', false);
+    
+    if (mounted) {
+      setState(() {
+        _bannerDismissed = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final profileVM = Provider.of<UserProfileViewModel>(context);
     final profile = profileVM.profile!;
     final analysisVM = Provider.of<ImageAnalysisViewModel>(context);
+    final authVM = Provider.of<AuthViewModel>(context);
+
+    // Reset banner when user signs out
+    if (!authVM.isSignedIn && _bannerDismissed) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _resetBanner();
+      });
+    }
 
     // Calculate total calories consumed today
     final totalCaloriesConsumed = analysisVM.filteredAnalyses.fold<double>(
@@ -278,8 +301,8 @@ class _HomeContentState extends State<_HomeContent> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Guest Sign-In Banner (Top)
-            if (profileVM.isGuest && !_bannerDismissed)
+            // Guest Sign-In Banner (Top) - Show if user is not signed in with Firebase and banner not dismissed
+            if (!authVM.isSignedIn && !_bannerDismissed)
               GuestSignInBanner(
                 onDismiss: _dismissBanner,
               ),
