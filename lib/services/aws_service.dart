@@ -118,6 +118,36 @@ class AWSService {
     }
   }
 
+  // Save user profile with custom data
+  Future<Map<String, dynamic>?> saveUserProfileWithData(Map<String, dynamic> data) async {
+    try {
+      final idToken = await _getIdToken();
+      if (idToken == null) {
+        throw Exception('User not authenticated');
+      }
+
+      final response = await _dio.post(
+        '/users',
+        data: data,
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $idToken',
+            'Content-Type': 'application/json',
+          },
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        return response.data;
+      } else {
+        throw Exception('Failed to save user profile: ${response.statusMessage}');
+      }
+    } catch (e) {
+      print('Error saving user profile: $e');
+      return null;
+    }
+  }
+
   // Save food analysis result
   Future<Map<String, dynamic>?> saveFoodAnalysis({
     required String userId,
