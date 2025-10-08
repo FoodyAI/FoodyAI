@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
-import '../../services/auth_service.dart';
 import '../viewmodels/auth_viewmodel.dart';
 
 class GoogleSignInButton extends StatelessWidget {

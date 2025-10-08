@@ -23,9 +23,7 @@ class ThemeViewModel extends ChangeNotifier {
     String? savedTheme = _prefs.getString('user_theme_preference');
     
     // If not found, try the regular theme_mode key
-    if (savedTheme == null) {
-      savedTheme = _prefs.getString(_themeKey);
-    }
+    savedTheme ??= _prefs.getString(_themeKey);
     
     if (savedTheme != null) {
       // Convert string to ThemeMode

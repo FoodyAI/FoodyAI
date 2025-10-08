@@ -110,23 +110,30 @@ class SyncService {
         final prefs = await SharedPreferences.getInstance();
 
         // Save to local storage
-        if (user['gender'] != null)
+        if (user['gender'] != null) {
           prefs.setString('user_gender', user['gender']);
+        }
         if (user['age'] != null) prefs.setInt('user_age', user['age']);
-        if (user['weight'] != null)
+        if (user['weight'] != null) {
           prefs.setDouble('user_weight', user['weight']);
-        if (user['height'] != null)
+        }
+        if (user['height'] != null) {
           prefs.setDouble('user_height', user['height']);
-        if (user['activity_level'] != null)
+        }
+        if (user['activity_level'] != null) {
           prefs.setString('user_activity_level', user['activity_level']);
+        }
         if (user['goal'] != null) prefs.setString('user_goal', user['goal']);
-        if (user['daily_calories'] != null)
+        if (user['daily_calories'] != null) {
           prefs.setInt('user_daily_calories', user['daily_calories']);
+        }
         if (user['bmi'] != null) prefs.setDouble('user_bmi', user['bmi']);
-        if (user['theme_preference'] != null)
+        if (user['theme_preference'] != null) {
           prefs.setString('user_theme_preference', user['theme_preference']);
-        if (user['ai_provider'] != null)
+        }
+        if (user['ai_provider'] != null) {
           prefs.setString('user_ai_provider', user['ai_provider']);
+        }
 
         print('User profile loaded from AWS successfully');
       }
