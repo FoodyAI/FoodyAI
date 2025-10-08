@@ -31,12 +31,18 @@ class ThemeViewModel extends ChangeNotifier {
   Future<void> setThemeMode(ThemeMode mode) async {
     if (_themeMode == mode) return;
     _themeMode = mode;
-    await _prefs.setString(_themeKey, mode.toString());
+    final themeString = _themeModeToString(mode);
+    
+    // Save to both keys
+    await Future.wait([
+      _prefs.setString(_themeKey, mode.toString()),
+      _prefs.setString('user_theme_preference', themeString),
+    ]);
     
     // Sync theme preference to AWS if user is signed in
     if (_auth.currentUser != null) {
       await _syncService.updateUserProfileInAWS(
-        themePreference: _themeModeToString(mode),
+        themePreference: themeString,
       );
     }
     

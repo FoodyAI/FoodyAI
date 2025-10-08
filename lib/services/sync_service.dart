@@ -183,23 +183,28 @@ class SyncService {
       final displayName = user.displayName;
       final photoUrl = user.photoURL;
 
-      await _awsService.saveUserProfile(
-        userId: userId,
-        email: email,
-        displayName: displayName,
-        photoUrl: photoUrl,
-        gender: gender,
-        age: age,
-        weight: weight,
-        height: height,
-        activityLevel: activityLevel,
-        goal: goal,
-        dailyCalories: dailyCalories,
-        bmi: bmi,
-        themePreference: themePreference,
-        aiProvider: aiProvider,
-        measurementUnit: measurementUnit,
-      );
+      // Build request data with only provided fields
+      final Map<String, dynamic> requestData = {
+        'userId': userId,
+        'email': email,
+        'displayName': displayName,
+        'photoUrl': photoUrl,
+      };
+
+      // Only add fields that are not null
+      if (gender != null) requestData['gender'] = gender;
+      if (age != null) requestData['age'] = age;
+      if (weight != null) requestData['weight'] = weight;
+      if (height != null) requestData['height'] = height;
+      if (activityLevel != null) requestData['activityLevel'] = activityLevel;
+      if (goal != null) requestData['goal'] = goal;
+      if (dailyCalories != null) requestData['dailyCalories'] = dailyCalories;
+      if (bmi != null) requestData['bmi'] = bmi;
+      if (themePreference != null) requestData['themePreference'] = themePreference;
+      if (aiProvider != null) requestData['aiProvider'] = aiProvider;
+      if (measurementUnit != null) requestData['measurementUnit'] = measurementUnit;
+
+      await _awsService.saveUserProfileWithData(requestData);
 
       print('User profile updated in AWS successfully');
     } catch (e) {
