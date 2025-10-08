@@ -78,7 +78,7 @@ class UserProfileViewModel extends ChangeNotifier {
     );
 
     await _useCase.saveProfile(_profile!, isMetric);
-    
+
     // Sync with AWS if user is signed in
     if (_auth.currentUser != null) {
       await _syncService.updateUserProfileInAWS(
@@ -93,7 +93,7 @@ class UserProfileViewModel extends ChangeNotifier {
         measurementUnit: isMetric ? 'metric' : 'imperial',
       );
     }
-    
+
     notifyListeners();
   }
 

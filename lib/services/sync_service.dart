@@ -32,6 +32,7 @@ class SyncService {
       final themePreference =
           prefs.getString('user_theme_preference') ?? 'system';
       final aiProvider = prefs.getString('user_ai_provider') ?? 'openai';
+      final measurementUnit = prefs.getString('user_measurement_unit') ?? 'metric';
 
       // Save to AWS
       await _awsService.saveUserProfile(
@@ -49,6 +50,7 @@ class SyncService {
         bmi: bmi,
         themePreference: themePreference,
         aiProvider: aiProvider,
+        measurementUnit: measurementUnit,
       );
 
       print('User profile synced to AWS successfully');

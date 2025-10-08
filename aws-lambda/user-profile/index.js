@@ -52,70 +52,168 @@ exports.handler = async (event) => {
     } else if (httpMethod === 'POST') {
       // Create or update user profile
       const userData = JSON.parse(body);
-      const {
-        userId,
-        email,
-        displayName,
-        photoUrl,
-        gender,
-        age,
-        weight,
-        height,
-        activityLevel,
-        goal,
-        dailyCalories,
-        bmi,
-        themePreference,
-        aiProvider,
-        measurementUnit
-      } = userData;
+      const { userId, email } = userData;
       
-      const query = `
-        INSERT INTO users (
-          user_id, email, display_name, photo_url, gender, age, weight, height,
-          activity_level, goal, daily_calories, bmi, theme_preference, ai_provider, measurement_unit, created_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
-        ON CONFLICT (user_id) DO UPDATE SET
-          email = EXCLUDED.email,
-          display_name = EXCLUDED.display_name,
-          photo_url = EXCLUDED.photo_url,
-          gender = EXCLUDED.gender,
-          age = EXCLUDED.age,
-          weight = EXCLUDED.weight,
-          height = EXCLUDED.height,
-          activity_level = EXCLUDED.activity_level,
-          goal = EXCLUDED.goal,
-          daily_calories = EXCLUDED.daily_calories,
-          bmi = EXCLUDED.bmi,
-          theme_preference = EXCLUDED.theme_preference,
-          ai_provider = EXCLUDED.ai_provider,
-          measurement_unit = EXCLUDED.measurement_unit,
-          updated_at = EXCLUDED.updated_at
-        RETURNING user_id
-      `;
+      if (!userId || !email) {
+        return {
+          statusCode: 400,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*'
+          },
+          body: JSON.stringify({
+            success: false,
+            error: 'userId and email are required'
+          })
+        };
+      }
       
-      const values = [
-        userId, email, displayName, photoUrl, gender, age, weight, height,
-        activityLevel, goal, dailyCalories, bmi, themePreference, aiProvider, measurementUnit,
-        new Date(), new Date()
-      ];
+      // Check if user exists
+      const existingUser = await pool.query(
+        'SELECT user_id FROM users WHERE user_id = $1',
+        [userId]
+      );
       
-      const result = await pool.query(query, values);
-      
-      return {
-        statusCode: 200,
-        headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Headers': 'Content-Type,Authorization',
-          'Access-Control-Allow-Methods': 'GET,POST,OPTIONS'
-        },
-        body: JSON.stringify({
-          success: true,
-          userId: result.rows[0].user_id,
-          message: 'User profile saved successfully'
-        })
-      };
+      if (existingUser.rows.length === 0) {
+        // NEW USER: Insert with all provided values
+        const query = `
+          INSERT INTO users (
+            user_id, email, display_name, photo_url, gender, age, weight, height,
+            activity_level, goal, daily_calories, bmi, theme_preference, ai_provider, 
+            measurement_unit, created_at, updated_at
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+          RETURNING user_id
+        `;
+        
+        const values = [
+          userId,
+          email,
+          userData.displayName || null,
+          userData.photoUrl || null,
+          userData.gender || null,
+          userData.age || null,
+          userData.weight || null,
+          userData.height || null,
+          userData.activityLevel || null,
+          userData.goal || null,
+          userData.dailyCalories || null,
+          userData.bmi || null,
+          userData.themePreference || 'system',
+          userData.aiProvider || 'openai',
+          userData.measurementUnit || 'metric',
+          new Date(),
+          new Date()
+        ];
+        
+        const result = await pool.query(query, values);
+        
+        return {
+          statusCode: 200,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+            'Access-Control-Allow-Methods': 'GET,POST,OPTIONS'
+          },
+          body: JSON.stringify({
+            success: true,
+            userId: result.rows[0].user_id,
+            message: 'User profile created successfully'
+          })
+        };
+      } else {
+        // EXISTING USER: Only update fields that are provided
+        const updateFields = [];
+        const updateValues = [];
+        let paramIndex = 1;
+        
+        // Build dynamic UPDATE query based on provided fields
+        if (userData.displayName !== undefined) {
+          updateFields.push(`display_name = $${paramIndex++}`);
+          updateValues.push(userData.displayName);
+        }
+        if (userData.photoUrl !== undefined) {
+          updateFields.push(`photo_url = $${paramIndex++}`);
+          updateValues.push(userData.photoUrl);
+        }
+        if (userData.gender !== undefined) {
+          updateFields.push(`gender = $${paramIndex++}`);
+          updateValues.push(userData.gender);
+        }
+        if (userData.age !== undefined) {
+          updateFields.push(`age = $${paramIndex++}`);
+          updateValues.push(userData.age);
+        }
+        if (userData.weight !== undefined) {
+          updateFields.push(`weight = $${paramIndex++}`);
+          updateValues.push(userData.weight);
+        }
+        if (userData.height !== undefined) {
+          updateFields.push(`height = $${paramIndex++}`);
+          updateValues.push(userData.height);
+        }
+        if (userData.activityLevel !== undefined) {
+          updateFields.push(`activity_level = $${paramIndex++}`);
+          updateValues.push(userData.activityLevel);
+        }
+        if (userData.goal !== undefined) {
+          updateFields.push(`goal = $${paramIndex++}`);
+          updateValues.push(userData.goal);
+        }
+        if (userData.dailyCalories !== undefined) {
+          updateFields.push(`daily_calories = $${paramIndex++}`);
+          updateValues.push(userData.dailyCalories);
+        }
+        if (userData.bmi !== undefined) {
+          updateFields.push(`bmi = $${paramIndex++}`);
+          updateValues.push(userData.bmi);
+        }
+        if (userData.themePreference !== undefined) {
+          updateFields.push(`theme_preference = $${paramIndex++}`);
+          updateValues.push(userData.themePreference);
+        }
+        if (userData.aiProvider !== undefined) {
+          updateFields.push(`ai_provider = $${paramIndex++}`);
+          updateValues.push(userData.aiProvider);
+        }
+        if (userData.measurementUnit !== undefined) {
+          updateFields.push(`measurement_unit = $${paramIndex++}`);
+          updateValues.push(userData.measurementUnit);
+        }
+        
+        // Always update email and timestamp
+        updateFields.push(`email = $${paramIndex++}`);
+        updateValues.push(email);
+        updateFields.push(`updated_at = $${paramIndex++}`);
+        updateValues.push(new Date());
+        
+        // Add userId as the last parameter for WHERE clause
+        updateValues.push(userId);
+        
+        const query = `
+          UPDATE users 
+          SET ${updateFields.join(', ')}
+          WHERE user_id = $${paramIndex}
+          RETURNING user_id
+        `;
+        
+        const result = await pool.query(query, updateValues);
+        
+        return {
+          statusCode: 200,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+            'Access-Control-Allow-Methods': 'GET,POST,OPTIONS'
+          },
+          body: JSON.stringify({
+            success: true,
+            userId: result.rows[0].user_id,
+            message: 'User profile updated successfully'
+          })
+        };
+      }
     }
     
     return {
