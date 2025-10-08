@@ -10,7 +10,6 @@ import '../widgets/profile_inputs.dart';
 import '../widgets/google_signin_button.dart';
 import '../widgets/sign_out_button.dart';
 import '../../core/constants/app_colors.dart';
-import '../../services/auth_service.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class ProfileView extends StatefulWidget {
