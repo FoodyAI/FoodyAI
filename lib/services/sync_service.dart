@@ -29,7 +29,8 @@ class SyncService {
       final goal = prefs.getString('user_goal');
       final dailyCalories = prefs.getInt('user_daily_calories');
       final bmi = prefs.getDouble('user_bmi');
-      final themePreference = prefs.getString('user_theme_preference') ?? 'system';
+      final themePreference =
+          prefs.getString('user_theme_preference') ?? 'system';
       final aiProvider = prefs.getString('user_ai_provider') ?? 'openai';
 
       // Save to AWS
@@ -64,15 +65,15 @@ class SyncService {
 
       final userId = user.uid;
       final prefs = await SharedPreferences.getInstance();
-      
+
       // Get local food analyses
       final analysesJson = prefs.getString('food_analyses');
       if (analysesJson != null) {
         final List<dynamic> analysesList = jsonDecode(analysesJson);
-        
+
         for (final analysisData in analysesList) {
           final analysis = FoodAnalysis.fromJson(analysisData);
-          
+
           // Save to AWS
           await _awsService.saveFoodAnalysis(
             userId: userId,
@@ -85,7 +86,7 @@ class SyncService {
             healthScore: analysis.healthScore.toInt(),
           );
         }
-        
+
         print('Food analyses synced to AWS successfully');
       }
     } catch (e) {
@@ -101,23 +102,30 @@ class SyncService {
 
       final userId = user.uid;
       final profileData = await _awsService.getUserProfile(userId);
-      
+
       if (profileData != null && profileData['success'] == true) {
         final user = profileData['user'];
         final prefs = await SharedPreferences.getInstance();
-        
+
         // Save to local storage
-        if (user['gender'] != null) prefs.setString('user_gender', user['gender']);
+        if (user['gender'] != null)
+          prefs.setString('user_gender', user['gender']);
         if (user['age'] != null) prefs.setInt('user_age', user['age']);
-        if (user['weight'] != null) prefs.setDouble('user_weight', user['weight']);
-        if (user['height'] != null) prefs.setDouble('user_height', user['height']);
-        if (user['activity_level'] != null) prefs.setString('user_activity_level', user['activity_level']);
+        if (user['weight'] != null)
+          prefs.setDouble('user_weight', user['weight']);
+        if (user['height'] != null)
+          prefs.setDouble('user_height', user['height']);
+        if (user['activity_level'] != null)
+          prefs.setString('user_activity_level', user['activity_level']);
         if (user['goal'] != null) prefs.setString('user_goal', user['goal']);
-        if (user['daily_calories'] != null) prefs.setInt('user_daily_calories', user['daily_calories']);
+        if (user['daily_calories'] != null)
+          prefs.setInt('user_daily_calories', user['daily_calories']);
         if (user['bmi'] != null) prefs.setDouble('user_bmi', user['bmi']);
-        if (user['theme_preference'] != null) prefs.setString('user_theme_preference', user['theme_preference']);
-        if (user['ai_provider'] != null) prefs.setString('user_ai_provider', user['ai_provider']);
-        
+        if (user['theme_preference'] != null)
+          prefs.setString('user_theme_preference', user['theme_preference']);
+        if (user['ai_provider'] != null)
+          prefs.setString('user_ai_provider', user['ai_provider']);
+
         print('User profile loaded from AWS successfully');
       }
     } catch (e) {
@@ -132,7 +140,7 @@ class SyncService {
       if (user == null) return;
 
       final userId = user.uid;
-      
+
       await _awsService.saveFoodAnalysis(
         userId: userId,
         imageUrl: analysis.imagePath ?? '',
@@ -143,7 +151,7 @@ class SyncService {
         fat: analysis.fat,
         healthScore: analysis.healthScore.toInt(),
       );
-      
+
       print('Food analysis saved to AWS successfully');
     } catch (e) {
       print('Error saving food analysis to AWS: $e');
@@ -188,10 +196,35 @@ class SyncService {
         themePreference: themePreference,
         aiProvider: aiProvider,
       );
-      
+
       print('User profile updated in AWS successfully');
     } catch (e) {
       print('Error updating user profile in AWS: $e');
+    }
+  }
+
+  // Update only theme preference in AWS
+  Future<void> updateThemePreferenceInAWS(String themePreference) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) return;
+
+      final userId = user.uid;
+      final email = user.email ?? '';
+      final displayName = user.displayName;
+      final photoUrl = user.photoURL;
+
+      await _awsService.saveUserProfile(
+        userId: userId,
+        email: email,
+        displayName: displayName,
+        photoUrl: photoUrl,
+        themePreference: themePreference,
+      );
+
+      print('User profile synced to AWS successfully');
+    } catch (e) {
+      print('Error syncing user profile: $e');
     }
   }
 }
