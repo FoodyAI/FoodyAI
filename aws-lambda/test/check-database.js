@@ -35,6 +35,17 @@ async function checkDatabase() {
     console.log('   Tables:', tablesResult.rows.map(row => row.table_name).join(', '));
     console.log('');
     
+    // Check users table columns
+    console.log('📊 Users Table Columns:');
+    const columnsResult = await client.query(`
+      SELECT column_name, data_type 
+      FROM information_schema.columns 
+      WHERE table_name = 'users'
+      ORDER BY ordinal_position
+    `);
+    console.log('   Columns:', columnsResult.rows.map(col => `${col.column_name} (${col.data_type})`).join(', '));
+    console.log('');
+    
     // Check users table
     console.log('👥 Users Table:');
     const usersResult = await client.query('SELECT COUNT(*) as user_count FROM users');
@@ -43,7 +54,7 @@ async function checkDatabase() {
     // Show recent users (if any)
     if (parseInt(usersResult.rows[0].user_count) > 0) {
       const recentUsers = await client.query(`
-        SELECT user_id, email, display_name, created_at 
+        SELECT user_id, email, display_name, created_at, measurement_unit 
         FROM users 
         ORDER BY created_at DESC 
         LIMIT 5
@@ -53,6 +64,7 @@ async function checkDatabase() {
         console.log(`     - ${user.display_name || 'No name'} (${user.email})`);
         console.log(`       User ID: ${user.user_id}`);
         console.log(`       Created: ${user.created_at}`);
+        console.log(`       Measurement Unit: ${user.measurement_unit || 'Not set'}`);
       });
     } else {
       console.log('   No users found yet');
