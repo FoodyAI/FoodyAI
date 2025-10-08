@@ -69,7 +69,7 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
       prefs.setString('user_activity_level', profile.activityLevel.name),
       prefs.setString('user_goal', profile.weightGoal.name),
       prefs.setString('user_ai_provider', profile.aiProvider.name),
-      prefs.setString('user_theme_preference', 'system'), // Default theme
+      // Don't set theme preference here - let ThemeViewModel handle it
       prefs.setDouble('user_bmi', bmi),
       prefs.setInt('user_daily_calories', dailyCalories),
       prefs.setString(
