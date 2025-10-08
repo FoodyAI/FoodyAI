@@ -43,6 +43,7 @@ class AWSService {
     double? bmi,
     String? themePreference,
     String? aiProvider,
+    String? measurementUnit,
   }) async {
     try {
       final idToken = await _getIdToken();
@@ -52,22 +53,23 @@ class AWSService {
 
       final response = await _dio.post(
         '/users',
-        data: {
-          'userId': userId,
-          'email': email,
-          'displayName': displayName,
-          'photoUrl': photoUrl,
-          'gender': gender,
-          'age': age,
-          'weight': weight,
-          'height': height,
-          'activityLevel': activityLevel,
-          'goal': goal,
-          'dailyCalories': dailyCalories,
-          'bmi': bmi,
-          'themePreference': themePreference,
-          'aiProvider': aiProvider,
-        },
+            data: {
+              'userId': userId,
+              'email': email,
+              'displayName': displayName,
+              'photoUrl': photoUrl,
+              'gender': gender,
+              'age': age,
+              'weight': weight,
+              'height': height,
+              'activityLevel': activityLevel,
+              'goal': goal,
+              'dailyCalories': dailyCalories,
+              'bmi': bmi,
+              'themePreference': themePreference,
+              'aiProvider': aiProvider,
+              'measurementUnit': measurementUnit,
+            },
         options: Options(
           headers: {
             'Authorization': 'Bearer $idToken',

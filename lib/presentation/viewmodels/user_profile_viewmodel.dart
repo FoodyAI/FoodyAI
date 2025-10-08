@@ -90,6 +90,7 @@ class UserProfileViewModel extends ChangeNotifier {
         goal: weightGoal?.name,
         themePreference: 'system', // Default theme preference
         aiProvider: aiProvider?.name,
+        measurementUnit: isMetric ? 'metric' : 'imperial',
       );
     }
     

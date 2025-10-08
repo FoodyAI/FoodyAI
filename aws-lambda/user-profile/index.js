@@ -66,14 +66,15 @@ exports.handler = async (event) => {
         dailyCalories,
         bmi,
         themePreference,
-        aiProvider
+        aiProvider,
+        measurementUnit
       } = userData;
       
       const query = `
         INSERT INTO users (
           user_id, email, display_name, photo_url, gender, age, weight, height,
-          activity_level, goal, daily_calories, bmi, theme_preference, ai_provider, created_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+          activity_level, goal, daily_calories, bmi, theme_preference, ai_provider, measurement_unit, created_at, updated_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
         ON CONFLICT (user_id) DO UPDATE SET
           email = EXCLUDED.email,
           display_name = EXCLUDED.display_name,
@@ -88,13 +89,14 @@ exports.handler = async (event) => {
           bmi = EXCLUDED.bmi,
           theme_preference = EXCLUDED.theme_preference,
           ai_provider = EXCLUDED.ai_provider,
+          measurement_unit = EXCLUDED.measurement_unit,
           updated_at = EXCLUDED.updated_at
         RETURNING user_id
       `;
       
       const values = [
         userId, email, displayName, photoUrl, gender, age, weight, height,
-        activityLevel, goal, dailyCalories, bmi, themePreference, aiProvider,
+        activityLevel, goal, dailyCalories, bmi, themePreference, aiProvider, measurementUnit,
         new Date(), new Date()
       ];
       

@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS users (
     bmi DECIMAL(4,2),
     theme_preference VARCHAR(20) DEFAULT 'system',
     ai_provider VARCHAR(50) DEFAULT 'openai',
+    measurement_unit VARCHAR(20) DEFAULT 'metric',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

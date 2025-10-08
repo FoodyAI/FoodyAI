@@ -170,6 +170,7 @@ class SyncService {
     double? bmi,
     String? themePreference,
     String? aiProvider,
+    String? measurementUnit,
   }) async {
     try {
       final user = _auth.currentUser;
@@ -195,36 +196,12 @@ class SyncService {
         bmi: bmi,
         themePreference: themePreference,
         aiProvider: aiProvider,
+        measurementUnit: measurementUnit,
       );
 
       print('User profile updated in AWS successfully');
     } catch (e) {
       print('Error updating user profile in AWS: $e');
-    }
-  }
-
-  // Update only theme preference in AWS
-  Future<void> updateThemePreferenceInAWS(String themePreference) async {
-    try {
-      final user = _auth.currentUser;
-      if (user == null) return;
-
-      final userId = user.uid;
-      final email = user.email ?? '';
-      final displayName = user.displayName;
-      final photoUrl = user.photoURL;
-
-      await _awsService.saveUserProfile(
-        userId: userId,
-        email: email,
-        displayName: displayName,
-        photoUrl: photoUrl,
-        themePreference: themePreference,
-      );
-
-      print('User profile synced to AWS successfully');
-    } catch (e) {
-      print('Error syncing user profile: $e');
     }
   }
 }
