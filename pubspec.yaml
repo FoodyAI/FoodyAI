@@ -17,7 +17,7 @@ dependencies:
   get_it: ^7.6.0
   shared_preferences: ^2.2.2
   image_picker: ^1.0.2
-  http: ^1.1.0
+  http: ^1.5.0
   flutter_dotenv: ^5.1.0
   flutter_spinkit: ^5.2.0
   meta: ^1.9.1
@@ -30,6 +30,7 @@ dependencies:
   intl: ^0.18.1
   connectivity_plus: ^5.0.2
   internet_connection_checker: ^1.0.0+1
+  dio: ^5.9.0
 
 dev_dependencies:
   flutter_test:

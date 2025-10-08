@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../domain/entities/user_profile.dart';
 import '../../domain/entities/ai_provider.dart';
 import '../../domain/usecases/user_profile_usecase.dart';
 import '../../core/events/profile_update_event.dart';
+import '../../services/sync_service.dart';
 import 'dart:async';
 
 class UserProfileViewModel extends ChangeNotifier {
   final UserProfileUseCase _useCase;
+  final SyncService _syncService = SyncService();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   UserProfile? _profile;
   bool _isLoading = true;
   bool _isMetric = true;
@@ -74,6 +79,26 @@ class UserProfileViewModel extends ChangeNotifier {
     );
 
     await _useCase.saveProfile(_profile!, isMetric);
+
+    // Sync with AWS if user is signed in
+    if (_auth.currentUser != null) {
+      // Get actual theme preference from SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      final themePreference = prefs.getString('user_theme_preference') ?? 'system';
+      
+      await _syncService.updateUserProfileInAWS(
+        gender: gender,
+        age: age,
+        weight: weightKg,
+        height: heightCm,
+        activityLevel: activityLevel.name,
+        goal: weightGoal?.name,
+        themePreference: themePreference,
+        aiProvider: aiProvider?.name,
+        measurementUnit: isMetric ? 'metric' : 'imperial',
+      );
+    }
+
     notifyListeners();
   }
 
