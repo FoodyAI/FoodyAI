@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../services/auth_service.dart';
+import '../../services/sync_service.dart';
 
 class AuthViewModel extends ChangeNotifier {
   final AuthService _authService = AuthService();
+  final SyncService _syncService = SyncService();
   User? _user;
   bool _isLoading = false;
 
@@ -23,6 +25,12 @@ class AuthViewModel extends ChangeNotifier {
     // Listen to Firebase Auth state changes
     _authService.authStateChanges.listen((User? user) {
       _user = user;
+      if (user != null) {
+        // User signed in - sync with AWS
+        _syncService.syncUserProfileOnSignIn();
+        _syncService.syncFoodAnalysesOnSignIn();
+        _syncService.loadUserProfileFromAWS();
+      }
       notifyListeners();
     });
   }
