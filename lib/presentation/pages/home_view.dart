@@ -15,7 +15,6 @@ import '../widgets/custom_app_bar.dart';
 import '../widgets/guest_signin_banner.dart';
 import '../widgets/connection_banner.dart';
 import '../../data/models/food_analysis.dart';
-import '../../services/auth_service.dart';
 import 'analyze_view.dart';
 import 'profile_view.dart';
 import 'barcode_scanner_view.dart';
