@@ -18,14 +18,38 @@ class ThemeViewModel extends ChangeNotifier {
 
   Future<void> _loadThemeMode() async {
     _prefs = await SharedPreferences.getInstance();
-    final savedTheme = _prefs.getString(_themeKey);
-    if (savedTheme != null) {
-      _themeMode = ThemeMode.values.firstWhere(
-        (mode) => mode.toString() == savedTheme,
-        orElse: () => ThemeMode.system,
-      );
-      notifyListeners();
+    
+    // First try to load from user_theme_preference (for AWS sync)
+    String? savedTheme = _prefs.getString('user_theme_preference');
+    
+    // If not found, try the regular theme_mode key
+    if (savedTheme == null) {
+      savedTheme = _prefs.getString(_themeKey);
     }
+    
+    if (savedTheme != null) {
+      // Convert string to ThemeMode
+      if (savedTheme == 'light') {
+        _themeMode = ThemeMode.light;
+      } else if (savedTheme == 'dark') {
+        _themeMode = ThemeMode.dark;
+      } else if (savedTheme == 'system') {
+        _themeMode = ThemeMode.system;
+      } else {
+        // Fallback for old format (ThemeMode.light.toString() etc.)
+        _themeMode = ThemeMode.values.firstWhere(
+          (mode) => mode.toString() == savedTheme,
+          orElse: () => ThemeMode.system,
+        );
+      }
+    } else {
+      // No theme preference found, use system as default
+      _themeMode = ThemeMode.system;
+      // Initialize the user_theme_preference key with default value
+      await _prefs.setString('user_theme_preference', 'system');
+    }
+    
+    notifyListeners();
   }
 
   Future<void> setThemeMode(ThemeMode mode) async {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../domain/entities/user_profile.dart';
 import '../../domain/entities/ai_provider.dart';
 import '../../domain/usecases/user_profile_usecase.dart';
@@ -81,6 +82,10 @@ class UserProfileViewModel extends ChangeNotifier {
 
     // Sync with AWS if user is signed in
     if (_auth.currentUser != null) {
+      // Get actual theme preference from SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      final themePreference = prefs.getString('user_theme_preference') ?? 'system';
+      
       await _syncService.updateUserProfileInAWS(
         gender: gender,
         age: age,
@@ -88,7 +93,7 @@ class UserProfileViewModel extends ChangeNotifier {
         height: heightCm,
         activityLevel: activityLevel.name,
         goal: weightGoal?.name,
-        themePreference: 'system', // Default theme preference
+        themePreference: themePreference,
         aiProvider: aiProvider?.name,
         measurementUnit: isMetric ? 'metric' : 'imperial',
       );
