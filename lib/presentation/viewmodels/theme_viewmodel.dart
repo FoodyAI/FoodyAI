@@ -35,8 +35,8 @@ class ThemeViewModel extends ChangeNotifier {
     
     // Sync theme preference to AWS if user is signed in
     if (_auth.currentUser != null) {
-      await _syncService.updateThemePreferenceInAWS(
-        _themeModeToString(mode),
+      await _syncService.updateUserProfileInAWS(
+        themePreference: _themeModeToString(mode),
       );
     }
     
