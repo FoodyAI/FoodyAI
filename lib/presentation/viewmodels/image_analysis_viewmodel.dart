@@ -1,12 +1,12 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../data/models/food_analysis.dart';
 import '../../data/datasources/remote/ai_service.dart';
 import '../../data/datasources/remote/ai_service_factory.dart';
 import '../../data/datasources/local/food_analysis_storage.dart';
+import '../../data/services/sqlite_service.dart';
 import '../../domain/entities/ai_provider.dart';
 import '../../domain/repositories/user_profile_repository.dart';
 import '../../di/service_locator.dart';
@@ -18,6 +18,7 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 class ImageAnalysisViewModel extends ChangeNotifier {
   final ImagePicker _picker = ImagePicker();
   final FoodAnalysisStorage _storage = FoodAnalysisStorage();
+  final SQLiteService _sqliteService = SQLiteService();
   final UserProfileRepository _profileRepository =
       getIt<UserProfileRepository>();
   final SyncService _syncService = SyncService();
@@ -54,12 +55,10 @@ class ImageAnalysisViewModel extends ChangeNotifier {
   }
 
   Future<void> _initializeFirstUseDate() async {
-    final prefs = await SharedPreferences.getInstance();
-    final firstUseTimestamp = prefs.getInt('first_use_date');
+    final firstUseTimestamp = await _sqliteService.getFirstUseDate();
     if (firstUseTimestamp == null) {
       _firstUseDate = DateTime.now();
-      await prefs.setInt(
-          'first_use_date', _firstUseDate!.millisecondsSinceEpoch);
+      await _sqliteService.setFirstUseDate(_firstUseDate!.millisecondsSinceEpoch);
     } else {
       _firstUseDate = DateTime.fromMillisecondsSinceEpoch(firstUseTimestamp);
     }
@@ -71,9 +70,8 @@ class ImageAnalysisViewModel extends ChangeNotifier {
   }
 
   Future<void> _checkAndShowRating() async {
-    final prefs = await SharedPreferences.getInstance();
-    final hasSubmittedRating = prefs.getBool('has_submitted_rating') ?? false;
-    final maybeLaterTimestamp = prefs.getInt('maybe_later_timestamp');
+    final hasSubmittedRating = await _sqliteService.getHasSubmittedRating();
+    final maybeLaterTimestamp = await _sqliteService.getMaybeLaterTimestamp();
 
     if (hasSubmittedRating) return;
 
@@ -299,8 +297,6 @@ class ImageAnalysisViewModel extends ChangeNotifier {
 
   // Add method to handle "Maybe Later" response
   Future<void> handleMaybeLater() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(
-        'maybe_later_timestamp', DateTime.now().millisecondsSinceEpoch);
+    await _sqliteService.setMaybeLaterTimestamp(DateTime.now().millisecondsSinceEpoch);
   }
 }

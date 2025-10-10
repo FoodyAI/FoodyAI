@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../../data/services/sqlite_service.dart';
 import '../viewmodels/image_analysis_viewmodel.dart';
 import '../viewmodels/user_profile_viewmodel.dart';
 import '../viewmodels/auth_viewmodel.dart';
@@ -23,7 +23,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class HomeView extends StatefulWidget {
   final ConnectionBanner? connectionBanner;
-  
+
   const HomeView({super.key, this.connectionBanner});
 
   @override
@@ -32,7 +32,6 @@ class HomeView extends StatefulWidget {
 
 class _HomeViewState extends State<HomeView> {
   int _currentIndex = 0;
-  final bool _bannerDismissed = false;
 
   final List<Widget> _pages = [
     const _HomeContent(),
@@ -67,6 +66,7 @@ class _HomeContent extends StatefulWidget {
 
 class _HomeContentState extends State<_HomeContent> {
   bool _bannerDismissed = false;
+  final SQLiteService _sqliteService = SQLiteService();
 
   @override
   void initState() {
@@ -75,22 +75,21 @@ class _HomeContentState extends State<_HomeContent> {
   }
 
   Future<void> _loadBannerState() async {
-    final prefs = await SharedPreferences.getInstance();
+    final dismissed = await _sqliteService.getGuestBannerDismissed();
     setState(() {
-      _bannerDismissed = prefs.getBool('guest_banner_dismissed') ?? false;
+      _bannerDismissed = dismissed;
     });
   }
 
   Future<void> _dismissBanner() async {
     // Save the dismissal state
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('guest_banner_dismissed', true);
-    
+    await _sqliteService.setGuestBannerDismissed(true);
+
     if (mounted) {
       setState(() {
         _bannerDismissed = true;
       });
-      
+
       // Inform user where to find sign-in later
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -119,9 +118,8 @@ class _HomeContentState extends State<_HomeContent> {
 
   Future<void> _resetBanner() async {
     // Reset the dismissal state when user signs out
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('guest_banner_dismissed', false);
-    
+    await _sqliteService.setGuestBannerDismissed(false);
+
     if (mounted) {
       setState(() {
         _bannerDismissed = false;
@@ -469,7 +467,8 @@ class _HomeContentState extends State<_HomeContent> {
     );
   }
 
-  void _showUndoSnackbar(FoodAnalysis removedAnalysis, ImageAnalysisViewModel vm) {
+  void _showUndoSnackbar(
+      FoodAnalysis removedAnalysis, ImageAnalysisViewModel vm) {
     if (mounted) {
       UndoDeleteSnackbar.show(
         context: context,

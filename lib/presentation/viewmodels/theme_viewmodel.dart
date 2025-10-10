@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../services/sync_service.dart';
+import '../../data/services/sqlite_service.dart';
 
 class ThemeViewModel extends ChangeNotifier {
-  static const String _themeKey = 'theme_mode';
-  late SharedPreferences _prefs;
   ThemeMode _themeMode = ThemeMode.system;
   final SyncService _syncService = SyncService();
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final SQLiteService _sqliteService = SQLiteService();
 
   ThemeMode get themeMode => _themeMode;
 
@@ -17,13 +16,7 @@ class ThemeViewModel extends ChangeNotifier {
   }
 
   Future<void> _loadThemeMode() async {
-    _prefs = await SharedPreferences.getInstance();
-    
-    // First try to load from user_theme_preference (for AWS sync)
-    String? savedTheme = _prefs.getString('user_theme_preference');
-    
-    // If not found, try the regular theme_mode key
-    savedTheme ??= _prefs.getString(_themeKey);
+    final savedTheme = await _sqliteService.getThemePreference();
     
     if (savedTheme != null) {
       // Convert string to ThemeMode
@@ -43,8 +36,8 @@ class ThemeViewModel extends ChangeNotifier {
     } else {
       // No theme preference found, use system as default
       _themeMode = ThemeMode.system;
-      // Initialize the user_theme_preference key with default value
-      await _prefs.setString('user_theme_preference', 'system');
+      // Initialize the theme preference with default value
+      await _sqliteService.setThemePreference('system');
     }
     
     notifyListeners();
@@ -55,11 +48,8 @@ class ThemeViewModel extends ChangeNotifier {
     _themeMode = mode;
     final themeString = _themeModeToString(mode);
     
-    // Save to both keys
-    await Future.wait([
-      _prefs.setString(_themeKey, mode.toString()),
-      _prefs.setString('user_theme_preference', themeString),
-    ]);
+    // Save to SQLite
+    await _sqliteService.setThemePreference(themeString);
     
     // Sync theme preference to AWS if user is signed in
     if (_auth.currentUser != null) {

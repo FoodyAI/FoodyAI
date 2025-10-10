@@ -15,7 +15,8 @@ dependencies:
   google_sign_in: ^6.1.6  
   provider: ^6.0.5
   get_it: ^7.6.0
-  shared_preferences: ^2.2.2
+  sqflite: ^2.3.0
+  path: ^1.8.3
   image_picker: ^1.0.2
   http: ^1.5.0
   flutter_dotenv: ^5.1.0
