@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/image_analysis_viewmodel.dart';
+import '../../data/services/sqlite_service.dart';
 import '../../../core/constants/app_colors.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -19,6 +19,7 @@ class _RatingDialogState extends State<RatingDialog>
   int _rating = 0;
   bool _hasRated = false;
   late List<AnimationController> _starControllers;
+  final SQLiteService _sqliteService = SQLiteService();
 
   @override
   void initState() {
@@ -77,16 +78,14 @@ class _RatingDialogState extends State<RatingDialog>
 
   Future<void> _submitRating() async {
     if (_rating > 0) {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setInt('app_rating', _rating);
-      await prefs.setBool('has_submitted_rating', true);
+      await _sqliteService.setAppSetting('app_rating', _rating.toString());
+      await _sqliteService.setHasSubmittedRating(true);
       setState(() => _hasRated = true);
     }
   }
 
   Future<void> _dontAskAgain() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('has_submitted_rating', true);
+    await _sqliteService.setHasSubmittedRating(true);
     if (mounted) {
       Navigator.of(context).pop();
     }

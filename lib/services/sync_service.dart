@@ -1,12 +1,12 @@
-import 'dart:convert';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'aws_service.dart';
 import '../data/models/food_analysis.dart';
+import '../data/services/sqlite_service.dart';
 
 class SyncService {
   final AWSService _awsService = AWSService();
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final SQLiteService _sqliteService = SQLiteService();
 
   // Sync user profile when signing in
   Future<void> syncUserProfileOnSignIn() async {
@@ -19,20 +19,23 @@ class SyncService {
       final displayName = user.displayName;
       final photoUrl = user.photoURL;
 
-      // Get local profile data
-      final prefs = await SharedPreferences.getInstance();
-      final gender = prefs.getString('user_gender');
-      final age = prefs.getInt('user_age');
-      final weight = prefs.getDouble('user_weight');
-      final height = prefs.getDouble('user_height');
-      final activityLevel = prefs.getString('user_activity_level');
-      final goal = prefs.getString('user_goal');
-      final dailyCalories = prefs.getInt('user_daily_calories');
-      final bmi = prefs.getDouble('user_bmi');
+      // Get local profile data from SQLite
+      final profile = await _sqliteService.getUserProfile();
+      if (profile == null) return;
+
+      final gender = profile.gender;
+      final age = profile.age;
+      final weight = profile.weightKg;
+      final height = profile.heightCm;
+      final activityLevel = profile.activityLevel.name;
+      final goal = profile.weightGoal.name;
+      final dailyCalories = profile.dailyCalories.round();
+      final bmi = profile.bmi;
       final themePreference =
-          prefs.getString('user_theme_preference') ?? 'system';
-      final aiProvider = prefs.getString('user_ai_provider') ?? 'openai';
-      final measurementUnit = prefs.getString('user_measurement_unit') ?? 'metric';
+          await _sqliteService.getThemePreference() ?? 'system';
+      final aiProvider = profile.aiProvider.name;
+      final measurementUnit =
+          await _sqliteService.getIsMetric() ? 'metric' : 'imperial';
 
       // Save to AWS
       await _awsService.saveUserProfile(
@@ -66,31 +69,25 @@ class SyncService {
       if (user == null) return;
 
       final userId = user.uid;
-      final prefs = await SharedPreferences.getInstance();
 
-      // Get local food analyses
-      final analysesJson = prefs.getString('food_analyses');
-      if (analysesJson != null) {
-        final List<dynamic> analysesList = jsonDecode(analysesJson);
+      // Get local food analyses from SQLite
+      final analyses = await _sqliteService.getFoodAnalyses();
 
-        for (final analysisData in analysesList) {
-          final analysis = FoodAnalysis.fromJson(analysisData);
-
-          // Save to AWS
-          await _awsService.saveFoodAnalysis(
-            userId: userId,
-            imageUrl: analysis.imagePath ?? '',
-            foodName: analysis.name,
-            calories: analysis.calories.toInt(),
-            protein: analysis.protein,
-            carbs: analysis.carbs,
-            fat: analysis.fat,
-            healthScore: analysis.healthScore.toInt(),
-          );
-        }
-
-        print('Food analyses synced to AWS successfully');
+      for (final analysis in analyses) {
+        // Save to AWS
+        await _awsService.saveFoodAnalysis(
+          userId: userId,
+          imageUrl: analysis.imagePath ?? '',
+          foodName: analysis.name,
+          calories: analysis.calories.toInt(),
+          protein: analysis.protein,
+          carbs: analysis.carbs,
+          fat: analysis.fat,
+          healthScore: analysis.healthScore.toInt(),
+        );
       }
+
+      print('Food analyses synced to AWS successfully');
     } catch (e) {
       print('Error syncing food analyses: $e');
     }
@@ -106,33 +103,45 @@ class SyncService {
       final profileData = await _awsService.getUserProfile(userId);
 
       if (profileData != null && profileData['success'] == true) {
-        final user = profileData['user'];
-        final prefs = await SharedPreferences.getInstance();
+        final userData = profileData['user'];
 
-        // Save to local storage
-        if (user['gender'] != null) {
-          prefs.setString('user_gender', user['gender']);
+        // Save to SQLite
+        if (userData['gender'] != null) {
+          await _sqliteService.setAppSetting('user_gender', userData['gender']);
         }
-        if (user['age'] != null) prefs.setInt('user_age', user['age']);
-        if (user['weight'] != null) {
-          prefs.setDouble('user_weight', user['weight']);
+        if (userData['age'] != null) {
+          await _sqliteService.setAppSetting(
+              'user_age', userData['age'].toString());
         }
-        if (user['height'] != null) {
-          prefs.setDouble('user_height', user['height']);
+        if (userData['weight'] != null) {
+          await _sqliteService.setAppSetting(
+              'user_weight', userData['weight'].toString());
         }
-        if (user['activity_level'] != null) {
-          prefs.setString('user_activity_level', user['activity_level']);
+        if (userData['height'] != null) {
+          await _sqliteService.setAppSetting(
+              'user_height', userData['height'].toString());
         }
-        if (user['goal'] != null) prefs.setString('user_goal', user['goal']);
-        if (user['daily_calories'] != null) {
-          prefs.setInt('user_daily_calories', user['daily_calories']);
+        if (userData['activity_level'] != null) {
+          await _sqliteService.setAppSetting(
+              'user_activity_level', userData['activity_level']);
         }
-        if (user['bmi'] != null) prefs.setDouble('user_bmi', user['bmi']);
-        if (user['theme_preference'] != null) {
-          prefs.setString('user_theme_preference', user['theme_preference']);
+        if (userData['goal'] != null) {
+          await _sqliteService.setAppSetting('user_goal', userData['goal']);
         }
-        if (user['ai_provider'] != null) {
-          prefs.setString('user_ai_provider', user['ai_provider']);
+        if (userData['daily_calories'] != null) {
+          await _sqliteService.setAppSetting(
+              'user_daily_calories', userData['daily_calories'].toString());
+        }
+        if (userData['bmi'] != null) {
+          await _sqliteService.setAppSetting(
+              'user_bmi', userData['bmi'].toString());
+        }
+        if (userData['theme_preference'] != null) {
+          await _sqliteService.setThemePreference(userData['theme_preference']);
+        }
+        if (userData['ai_provider'] != null) {
+          await _sqliteService.setAppSetting(
+              'user_ai_provider', userData['ai_provider']);
         }
 
         print('User profile loaded from AWS successfully');
@@ -207,9 +216,11 @@ class SyncService {
       if (goal != null) requestData['goal'] = goal;
       if (dailyCalories != null) requestData['dailyCalories'] = dailyCalories;
       if (bmi != null) requestData['bmi'] = bmi;
-      if (themePreference != null) requestData['themePreference'] = themePreference;
+      if (themePreference != null)
+        requestData['themePreference'] = themePreference;
       if (aiProvider != null) requestData['aiProvider'] = aiProvider;
-      if (measurementUnit != null) requestData['measurementUnit'] = measurementUnit;
+      if (measurementUnit != null)
+        requestData['measurementUnit'] = measurementUnit;
 
       await _awsService.saveUserProfileWithData(requestData);
 
