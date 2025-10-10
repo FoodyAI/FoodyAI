@@ -81,4 +81,37 @@ class FoodAnalysis {
       'dateOrderNumber': dateOrderNumber,
     };
   }
+
+  // SQLite-specific methods
+  Map<String, dynamic> toMap() {
+    return {
+      'user_id': 'local_user',
+      'image_url': imagePath,
+      'food_name': name,
+      'calories': calories.round(),
+      'protein': protein,
+      'carbs': carbs,
+      'fat': fat,
+      'health_score': healthScore.round(),
+      'analysis_date': date.toIso8601String().split('T')[0],
+      'order_number': orderNumber,
+      'date_order_number': dateOrderNumber,
+      'created_at': DateTime.now().millisecondsSinceEpoch,
+    };
+  }
+
+  factory FoodAnalysis.fromMap(Map<String, dynamic> map) {
+    return FoodAnalysis(
+      name: map['food_name'] as String,
+      protein: (map['protein'] as num).toDouble(),
+      carbs: (map['carbs'] as num).toDouble(),
+      fat: (map['fat'] as num).toDouble(),
+      calories: (map['calories'] as num).toDouble(),
+      healthScore: (map['health_score'] as num).toDouble(),
+      imagePath: map['image_url'] as String?,
+      orderNumber: map['order_number'] as int? ?? 0,
+      date: DateTime.parse(map['analysis_date'] as String),
+      dateOrderNumber: map['date_order_number'] as int? ?? 0,
+    );
+  }
 }
