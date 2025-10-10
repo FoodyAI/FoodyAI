@@ -3,6 +3,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'di/service_locator.dart';
+import 'data/services/migration_service.dart';
 import 'presentation/viewmodels/user_profile_viewmodel.dart';
 import 'presentation/viewmodels/image_analysis_viewmodel.dart';
 import 'presentation/viewmodels/theme_viewmodel.dart';
@@ -22,6 +23,11 @@ void main() async {
   
   await dotenv.load(fileName: ".env");
   setupServiceLocator();
+  
+  // Initialize migration from SharedPreferences to SQLite
+  final migrationService = MigrationService();
+  await migrationService.migrateFromSharedPreferences();
+  
   runApp(const MyApp());
 }
 
