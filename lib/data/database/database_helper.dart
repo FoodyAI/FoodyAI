@@ -17,7 +17,8 @@ class DatabaseHelper {
   }
 
   Future<Database> _initDatabase() async {
-    String path = join(await getDatabasesPath(), 'foody.db');
+    String path = join(await getDatabasesPath(), 'foody_db');
+    print('Database path: $path');
     return await openDatabase(
       path,
       version: 1,
@@ -85,9 +86,12 @@ class DatabaseHelper {
     ''');
 
     // Create indexes for better performance
-    await db.execute('CREATE INDEX idx_food_analyses_user_id ON food_analyses(user_id)');
-    await db.execute('CREATE INDEX idx_food_analyses_analysis_date ON food_analyses(analysis_date)');
-    await db.execute('CREATE INDEX idx_user_profile_user_id ON user_profile(user_id)');
+    await db.execute(
+        'CREATE INDEX idx_food_analyses_user_id ON food_analyses(user_id)');
+    await db.execute(
+        'CREATE INDEX idx_food_analyses_analysis_date ON food_analyses(analysis_date)');
+    await db.execute(
+        'CREATE INDEX idx_user_profile_user_id ON user_profile(user_id)');
     await db.execute('CREATE INDEX idx_app_settings_key ON app_settings(key)');
   }
 
@@ -104,7 +108,8 @@ class DatabaseHelper {
     return await db.insert('user_profile', userProfile);
   }
 
-  Future<int> updateUserProfile(String userId, Map<String, dynamic> userProfile) async {
+  Future<int> updateUserProfile(
+      String userId, Map<String, dynamic> userProfile) async {
     final db = await database;
     return await db.update(
       'user_profile',
@@ -163,7 +168,8 @@ class DatabaseHelper {
     );
   }
 
-  Future<List<Map<String, dynamic>>> getFoodAnalysesByDate(String userId, String date) async {
+  Future<List<Map<String, dynamic>>> getFoodAnalysesByDate(
+      String userId, String date) async {
     final db = await database;
     return await db.query(
       'food_analyses',
@@ -173,7 +179,8 @@ class DatabaseHelper {
     );
   }
 
-  Future<int> updateFoodAnalysis(int id, Map<String, dynamic> foodAnalysis) async {
+  Future<int> updateFoodAnalysis(
+      int id, Map<String, dynamic> foodAnalysis) async {
     final db = await database;
     return await db.update(
       'food_analyses',
@@ -205,7 +212,7 @@ class DatabaseHelper {
   Future<void> setAppSetting(String key, String value) async {
     final db = await database;
     final now = DateTime.now().millisecondsSinceEpoch;
-    
+
     await db.insert(
       'app_settings',
       {
@@ -228,7 +235,8 @@ class DatabaseHelper {
     return result.isNotEmpty ? result.first['value'] as String? : null;
   }
 
-  Future<bool> getBoolAppSetting(String key, {bool defaultValue = false}) async {
+  Future<bool> getBoolAppSetting(String key,
+      {bool defaultValue = false}) async {
     final value = await getAppSetting(key);
     if (value == null) return defaultValue;
     return value.toLowerCase() == 'true';
@@ -240,7 +248,8 @@ class DatabaseHelper {
     return int.tryParse(value) ?? defaultValue;
   }
 
-  Future<double> getDoubleAppSetting(String key, {double defaultValue = 0.0}) async {
+  Future<double> getDoubleAppSetting(String key,
+      {double defaultValue = 0.0}) async {
     final value = await getAppSetting(key);
     if (value == null) return defaultValue;
     return double.tryParse(value) ?? defaultValue;
