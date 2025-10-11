@@ -114,9 +114,40 @@ fi
 echo ""
 
 ##############################################
-# Test 4: Get Non-existent User (Error Test)
+# Test 4: Delete Food Analysis
 ##############################################
-echo -e "${YELLOW}Test 4: GET /users/{userId} (Non-existent User)${NC}"
+echo -e "${YELLOW}Test 4: DELETE /food-analysis (Delete Food Analysis)${NC}"
+echo "Endpoint: $API_BASE_URL/food-analysis"
+echo ""
+
+# Get today's date in YYYY-MM-DD format
+TODAY=$(date +%Y-%m-%d)
+
+RESPONSE=$(curl -s -w "\nHTTP_CODE:%{http_code}" -X DELETE \
+  "$API_BASE_URL/food-analysis" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "userId": "'$TEST_USER_ID'",
+    "foodName": "Grilled Chicken Salad",
+    "analysisDate": "'$TODAY'"
+  }')
+
+HTTP_CODE=$(echo "$RESPONSE" | grep "HTTP_CODE" | cut -d: -f2)
+BODY=$(echo "$RESPONSE" | sed '/HTTP_CODE/d')
+
+if [ "$HTTP_CODE" = "200" ]; then
+  echo -e "${GREEN}✅ Success (HTTP $HTTP_CODE)${NC}"
+  echo "$BODY" | jq '.'
+else
+  echo -e "${RED}❌ Failed (HTTP $HTTP_CODE)${NC}"
+  echo "$BODY"
+fi
+echo ""
+
+##############################################
+# Test 5: Get Non-existent User (Error Test)
+##############################################
+echo -e "${YELLOW}Test 5: GET /users/{userId} (Non-existent User)${NC}"
 echo "Endpoint: $API_BASE_URL/users/non-existent-user-id"
 echo ""
 

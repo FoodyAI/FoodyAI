@@ -43,7 +43,7 @@ const getUserEvent = {
   }
 };
 
-// Mock API Gateway event for food analysis
+// Mock API Gateway event for food analysis creation
 const createFoodAnalysisEvent = {
   httpMethod: 'POST',
   path: '/food-analysis',
@@ -57,6 +57,21 @@ const createFoodAnalysisEvent = {
     carbs: 90.0,
     fat: 28.0,
     healthScore: 65
+  }),
+  headers: {
+    'Content-Type': 'application/json'
+  }
+};
+
+// Mock API Gateway event for food analysis deletion
+const deleteFoodAnalysisEvent = {
+  httpMethod: 'DELETE',
+  path: '/food-analysis',
+  pathParameters: null,
+  body: JSON.stringify({
+    userId: 'test-user-123',
+    foodName: 'Margherita Pizza',
+    analysisDate: new Date().toISOString().split('T')[0] // Today's date in YYYY-MM-DD format
   }),
   headers: {
     'Content-Type': 'application/json'
@@ -100,12 +115,20 @@ async function testFoodAnalysisLambda() {
     // Import the Lambda handler
     const { handler } = require('../food-analysis/index.js');
     
-    // Test: Create Food Analysis
-    console.log('📝 Test: Create Food Analysis');
+    // Test 1: Create Food Analysis
+    console.log('📝 Test 1: Create Food Analysis');
     console.log('Request:', JSON.stringify(JSON.parse(createFoodAnalysisEvent.body), null, 2));
-    const result = await handler(createFoodAnalysisEvent);
-    console.log('Response Status:', result.statusCode);
-    console.log('Response Body:', JSON.parse(result.body));
+    const createResult = await handler(createFoodAnalysisEvent);
+    console.log('Response Status:', createResult.statusCode);
+    console.log('Response Body:', JSON.parse(createResult.body));
+    console.log('');
+    
+    // Test 2: Delete Food Analysis
+    console.log('🗑️ Test 2: Delete Food Analysis');
+    console.log('Request:', JSON.stringify(JSON.parse(deleteFoodAnalysisEvent.body), null, 2));
+    const deleteResult = await handler(deleteFoodAnalysisEvent);
+    console.log('Response Status:', deleteResult.statusCode);
+    console.log('Response Body:', JSON.parse(deleteResult.body));
     console.log('');
     
   } catch (error) {
