@@ -89,26 +89,35 @@ class GoogleSignInButton extends StatelessWidget {
       if (success) {
         print('Sign-in successful, determining user flow...');
         
-        // Wait for profile sync to complete and force reload
-        await Future.delayed(const Duration(milliseconds: 500));
+        // Wait for initial sync to complete
+        await Future.delayed(const Duration(milliseconds: 800));
         
         // Force reload profile to ensure we have the latest data
         print('Forcing profile reload to check user status...');
-        await profileVM.refreshProfile(); // Force reload from local storage and AWS
+        await profileVM.refreshProfile();
         
-        // Give additional time for sync if profile is still null
-        if (profileVM.profile == null) {
-          print('Profile still not loaded, waiting longer for AWS sync...');
-          await Future.delayed(const Duration(milliseconds: 1500));
-          await profileVM.refreshProfile(); // Try again
+        // Check if we have profile data now
+        bool hasProfile = profileVM.profile != null;
+        bool hasCompletedOnboarding = profileVM.hasCompletedOnboarding;
+        
+        print('First check - hasProfile: $hasProfile, hasCompletedOnboarding: $hasCompletedOnboarding');
+        
+        // If no profile yet, try to load from AWS and wait longer
+        if (!hasProfile) {
+          print('No profile found locally, checking AWS...');
+          
+          // Wait longer for AWS sync to complete
+          await Future.delayed(const Duration(milliseconds: 2000));
+          await profileVM.refreshProfile();
+          
+          hasProfile = profileVM.profile != null;
+          hasCompletedOnboarding = profileVM.hasCompletedOnboarding;
+          print('After AWS sync - hasProfile: $hasProfile, hasCompletedOnboarding: $hasCompletedOnboarding');
         }
         
         if (context.mounted) {
-          // Check if user has completed onboarding AND has a profile
-          final hasCompletedOnboarding = profileVM.hasCompletedOnboarding;
-          final hasProfile = profileVM.profile != null;
-          
-          print('User status: hasCompletedOnboarding=$hasCompletedOnboarding, hasProfile=$hasProfile');
+          // Use the variables we already calculated
+          print('Final user status: hasCompletedOnboarding=$hasCompletedOnboarding, hasProfile=$hasProfile');
           
           if (hasCompletedOnboarding && hasProfile) {
             // Existing user with complete profile - navigate to home page
@@ -148,7 +157,10 @@ class GoogleSignInButton extends StatelessWidget {
           } else {
             // First-time user OR user without profile - navigate to onboarding
             if (!hasProfile) {
-              print('User signed in but no profile found - treating as first-time user');
+              print('User signed in but no profile found in AWS - treating as first-time user');
+              print('This could be: 1) First-time user, 2) AWS sync failed, 3) Profile not created yet');
+            } else if (!hasCompletedOnboarding) {
+              print('User has profile but onboarding not completed - continuing onboarding');
             } else {
               print('First-time user detected - navigating to onboarding');
             }
