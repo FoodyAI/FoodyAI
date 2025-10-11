@@ -28,8 +28,8 @@ class AuthViewModel extends ChangeNotifier {
       if (user != null) {
         // User signed in - sync with AWS
         _syncService.syncUserProfileOnSignIn();
+        _syncService.syncFoodAnalysesOnSignIn();
         _syncService.loadUserProfileFromAWS();
-        // Note: Food analyses are synced individually when added, not bulk synced on sign-in
       }
       notifyListeners();
     });

@@ -71,18 +71,18 @@ async function checkDatabase() {
     }
     console.log('');
     
-    // Check food_analyses table
-    console.log('🍎 Food Analyses Table:');
-    const analysesResult = await client.query('SELECT COUNT(*) as analysis_count FROM food_analyses');
+    // Check foods table
+    console.log('🍎 Foods Table:');
+    const analysesResult = await client.query('SELECT COUNT(*) as analysis_count FROM foods');
     console.log(`   Total food analyses: ${analysesResult.rows[0].analysis_count}`);
     
     // Show recent food analyses (if any)
     if (parseInt(analysesResult.rows[0].analysis_count) > 0) {
       const recentAnalyses = await client.query(`
-        SELECT fa.food_name, fa.calories, fa.health_score, fa.analysis_date, u.email
-        FROM food_analyses fa
-        JOIN users u ON fa.user_id = u.user_id
-        ORDER BY fa.created_at DESC 
+        SELECT f.food_name, f.calories, f.health_score, f.analysis_date, u.email
+        FROM foods f
+        JOIN users u ON f.user_id = u.user_id
+        ORDER BY f.created_at DESC 
         LIMIT 5
       `);
       console.log('   Recent food analyses:');
