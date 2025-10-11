@@ -148,47 +148,6 @@ class _WelcomeScreenContent extends StatelessWidget {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 16),
-
-                      // Skip Button with Animation
-                      TweenAnimationBuilder(
-                        tween: Tween<double>(begin: 0, end: 1),
-                        duration: const Duration(milliseconds: 800),
-                        builder: (context, double value, child) {
-                          return Opacity(
-                            opacity: value,
-                            child: Transform.translate(
-                              offset: Offset(0, 20 * (1 - value)),
-                              child: child,
-                            ),
-                          );
-                        },
-                        child: Center(
-                          child: TextButton(
-                            onPressed: viewModel.isGuestLoading
-                                ? null
-                                : () {
-                                    viewModel.continueAsGuest(context);
-                                  },
-                            style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 24, vertical: 12),
-                            ),
-                            child: Text(
-                              'Skip for now',
-                              style: TextStyle(
-                                color: isDarkMode
-                                    ? AppColors.withOpacity(
-                                        AppColors.white, 0.9)
-                                    : AppColors.withOpacity(
-                                        AppColors.textPrimary, 0.9),
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
                     ],
                   ),
                 ),
