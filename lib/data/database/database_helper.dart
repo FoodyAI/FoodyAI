@@ -54,9 +54,9 @@ class DatabaseHelper {
       )
     ''');
 
-    // Create food_analyses table
+    // Create foods table
     await db.execute('''
-      CREATE TABLE food_analyses (
+      CREATE TABLE foods (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id TEXT,
         image_url TEXT,
@@ -67,8 +67,6 @@ class DatabaseHelper {
         fat REAL,
         health_score INTEGER,
         analysis_date TEXT,
-        order_number INTEGER,
-        date_order_number INTEGER,
         created_at INTEGER,
         FOREIGN KEY (user_id) REFERENCES user_profile(user_id) ON DELETE CASCADE
       )
@@ -87,9 +85,9 @@ class DatabaseHelper {
 
     // Create indexes for better performance
     await db.execute(
-        'CREATE INDEX idx_food_analyses_user_id ON food_analyses(user_id)');
+        'CREATE INDEX idx_foods_user_id ON foods(user_id)');
     await db.execute(
-        'CREATE INDEX idx_food_analyses_analysis_date ON food_analyses(analysis_date)');
+        'CREATE INDEX idx_foods_analysis_date ON foods(analysis_date)');
     await db.execute(
         'CREATE INDEX idx_user_profile_user_id ON user_profile(user_id)');
     await db.execute('CREATE INDEX idx_app_settings_key ON app_settings(key)');
@@ -152,57 +150,57 @@ class DatabaseHelper {
     return await db.delete('user_profile');
   }
 
-  // Food Analysis Methods
-  Future<int> insertFoodAnalysis(Map<String, dynamic> foodAnalysis) async {
+  // Food Methods
+  Future<int> insertFood(Map<String, dynamic> food) async {
     final db = await database;
-    return await db.insert('food_analyses', foodAnalysis);
+    return await db.insert('foods', food);
   }
 
-  Future<List<Map<String, dynamic>>> getFoodAnalyses(String userId) async {
+  Future<List<Map<String, dynamic>>> getFoods(String userId) async {
     final db = await database;
     return await db.query(
-      'food_analyses',
+      'foods',
       where: 'user_id = ?',
       whereArgs: [userId],
       orderBy: 'created_at DESC',
     );
   }
 
-  Future<List<Map<String, dynamic>>> getFoodAnalysesByDate(
+  Future<List<Map<String, dynamic>>> getFoodsByDate(
       String userId, String date) async {
     final db = await database;
     return await db.query(
-      'food_analyses',
+      'foods',
       where: 'user_id = ? AND analysis_date = ?',
       whereArgs: [userId, date],
-      orderBy: 'date_order_number ASC',
+      orderBy: 'created_at ASC',
     );
   }
 
-  Future<int> updateFoodAnalysis(
-      int id, Map<String, dynamic> foodAnalysis) async {
+  Future<int> updateFood(
+      int id, Map<String, dynamic> food) async {
     final db = await database;
     return await db.update(
-      'food_analyses',
-      foodAnalysis,
+      'foods',
+      food,
       where: 'id = ?',
       whereArgs: [id],
     );
   }
 
-  Future<int> deleteFoodAnalysis(int id) async {
+  Future<int> deleteFood(int id) async {
     final db = await database;
     return await db.delete(
-      'food_analyses',
+      'foods',
       where: 'id = ?',
       whereArgs: [id],
     );
   }
 
-  Future<int> deleteAllFoodAnalyses(String userId) async {
+  Future<int> deleteAllFoods(String userId) async {
     final db = await database;
     return await db.delete(
-      'food_analyses',
+      'foods',
       where: 'user_id = ?',
       whereArgs: [userId],
     );
@@ -282,7 +280,7 @@ class DatabaseHelper {
   Future<void> clearAllData() async {
     final db = await database;
     await db.delete('user_profile');
-    await db.delete('food_analyses');
+    await db.delete('foods');
     await db.delete('app_settings');
   }
 }

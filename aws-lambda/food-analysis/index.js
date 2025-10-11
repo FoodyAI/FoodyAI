@@ -20,9 +20,9 @@ exports.handler = async (event) => {
     
     // Store food analysis in database
     const query = `
-      INSERT INTO food_analyses (user_id, image_url, food_name, calories, protein, carbs, fat, health_score, analysis_date)
+      INSERT INTO foods (user_id, image_url, food_name, calories, protein, carbs, fat, health_score, analysis_date)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-      RETURNING analysis_id
+      RETURNING id
     `;
     
     const values = [
@@ -49,7 +49,7 @@ exports.handler = async (event) => {
       },
       body: JSON.stringify({
         success: true,
-        analysisId: result.rows[0].analysis_id,
+        foodId: result.rows[0].id,
         message: 'Food analysis saved successfully'
       })
     };

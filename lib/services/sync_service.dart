@@ -62,36 +62,7 @@ class SyncService {
     }
   }
 
-  // Sync food analyses when signing in
-  Future<void> syncFoodAnalysesOnSignIn() async {
-    try {
-      final user = _auth.currentUser;
-      if (user == null) return;
-
-      final userId = user.uid;
-
-      // Get local food analyses from SQLite
-      final analyses = await _sqliteService.getFoodAnalyses();
-
-      for (final analysis in analyses) {
-        // Save to AWS
-        await _awsService.saveFoodAnalysis(
-          userId: userId,
-          imageUrl: analysis.imagePath ?? '',
-          foodName: analysis.name,
-          calories: analysis.calories.toInt(),
-          protein: analysis.protein,
-          carbs: analysis.carbs,
-          fat: analysis.fat,
-          healthScore: analysis.healthScore.toInt(),
-        );
-      }
-
-      print('Food analyses synced to AWS successfully');
-    } catch (e) {
-      print('Error syncing food analyses: $e');
-    }
-  }
+  // Note: Food analyses are now synced individually when added, not bulk synced on sign-in
 
   // Load user profile from AWS when signing in
   Future<void> loadUserProfileFromAWS() async {
@@ -155,9 +126,15 @@ class SyncService {
   Future<void> saveFoodAnalysisToAWS(FoodAnalysis analysis) async {
     try {
       final user = _auth.currentUser;
-      if (user == null) return;
+      if (user == null) {
+        print('❌ AWS: No authenticated user, skipping food analysis sync');
+        return;
+      }
 
       final userId = user.uid;
+      print('🔄 AWS: Syncing food analysis to AWS for user: $userId');
+      print(
+          '📝 AWS: Analysis data - ${analysis.name} (${analysis.calories} cal)');
 
       await _awsService.saveFoodAnalysis(
         userId: userId,
@@ -170,9 +147,9 @@ class SyncService {
         healthScore: analysis.healthScore.toInt(),
       );
 
-      print('Food analysis saved to AWS successfully');
+      print('✅ AWS: Food analysis saved to AWS successfully');
     } catch (e) {
-      print('Error saving food analysis to AWS: $e');
+      print('❌ AWS: Error saving food analysis to AWS: $e');
     }
   }
 
