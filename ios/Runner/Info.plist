@@ -45,5 +45,26 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>GIDClientID</key>
+	<string>90065846017-bt8pod5qjbg1pd25uof25b2jmhdf0n32.apps.googleusercontent.com</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>REVERSED_CLIENT_ID</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.90065846017-bt8pod5qjbg1pd25uof25b2jmhdf0n32</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>BUNDLE_ID</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>io.github.mohammadaminrez.foody</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>
