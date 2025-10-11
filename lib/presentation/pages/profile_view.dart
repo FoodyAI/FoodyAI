@@ -143,7 +143,7 @@ class _ProfileViewState extends State<ProfileView>
                     crossAxisCount: 2,
                     mainAxisSpacing: 16,
                     crossAxisSpacing: 16,
-                    childAspectRatio: 1.2,
+                    childAspectRatio: 1.1, // Reduced from 1.2 to 1.1 to give more height
                     children: [
                       _buildInfoCard(
                         context,
@@ -207,7 +207,7 @@ class _ProfileViewState extends State<ProfileView>
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(10), // Reduced from 12 to 10
           decoration: BoxDecoration(
             color: Theme.of(context).brightness == Brightness.dark
                 ? Theme.of(context).colorScheme.surface
@@ -224,39 +224,46 @@ class _ProfileViewState extends State<ProfileView>
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
-              FaIcon(
-                icon,
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? AppColors.darkTextPrimary
-                    : AppColors.textPrimary,
-                size: 28,
-              ),
-              const SizedBox(height: 6),
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
+              Flexible(
+                child: FaIcon(
+                  icon,
                   color: Theme.of(context).brightness == Brightness.dark
                       ? AppColors.darkTextPrimary
                       : AppColors.textPrimary,
+                  size: 24, // Reduced from 28 to 24
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: 2),
-              Text(
-                value,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? AppColors.darkTextSecondary
-                      : AppColors.textSecondary,
-                  fontWeight: FontWeight.w500,
+              const SizedBox(height: 4), // Reduced from 6 to 4
+              Flexible(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 13, // Reduced from 14 to 13
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? AppColors.darkTextPrimary
+                        : AppColors.textPrimary,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
                 ),
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 1), // Reduced from 2 to 1
+              Flexible(
+                child: Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 12, // Reduced from 13 to 12
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? AppColors.darkTextSecondary
+                        : AppColors.textSecondary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
             ],
           ),

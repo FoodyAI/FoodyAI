@@ -29,7 +29,14 @@ aws lambda create-function \
   --role arn:aws:iam::010993883654:role/lambda-execution-role \
   --handler index.handler \
   --zip-file fileb://food-analysis.zip \
-  --region us-east-1
+  --region us-east-1 \
+  --environment Variables='{
+    "DB_HOST":"${DB_HOST}",
+    "DB_PORT":"${DB_PORT:-5432}",
+    "DB_NAME":"${DB_NAME}",
+    "DB_USER":"${DB_USER}",
+    "DB_PASSWORD":"${DB_PASSWORD}"
+  }'
 
 # User Profile Lambda
 aws lambda create-function \
@@ -38,7 +45,14 @@ aws lambda create-function \
   --role arn:aws:iam::010993883654:role/lambda-execution-role \
   --handler index.handler \
   --zip-file fileb://user-profile.zip \
-  --region us-east-1
+  --region us-east-1 \
+  --environment Variables='{
+    "DB_HOST":"${DB_HOST}",
+    "DB_PORT":"${DB_PORT:-5432}",
+    "DB_NAME":"${DB_NAME}",
+    "DB_USER":"${DB_USER}",
+    "DB_PASSWORD":"${DB_PASSWORD}"
+  }'
 
 echo "✅ Lambda functions deployed successfully!"
 

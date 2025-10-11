@@ -6,13 +6,22 @@
  */
 
 const { Client } = require('pg');
+require('dotenv').config();
+
+// Validate required environment variables
+if (!process.env.DB_HOST || !process.env.DB_USER || !process.env.DB_PASSWORD || !process.env.DB_NAME) {
+  console.error('❌ Missing required environment variables:');
+  console.error('   DB_HOST, DB_USER, DB_PASSWORD, DB_NAME must be set');
+  console.error('   Create a .env file with these variables');
+  process.exit(1);
+}
 
 const client = new Client({
-  host: 'foody-database.cgfko2mcweuv.us-east-1.rds.amazonaws.com',
-  user: 'foodyadmin',
-  password: 'FoodyDB2024!Secure',
-  database: 'foody_db',
-  port: 5432,
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  port: parseInt(process.env.DB_PORT) || 5432,
   ssl: {
     rejectUnauthorized: false
   }
@@ -65,12 +74,12 @@ async function showUsers() {
 }
 
 async function showFoodAnalyses() {
-  console.log('🍎 Food Analyses Table:');
+  console.log('🍎 Foods Table:');
   const result = await client.query(`
-    SELECT fa.food_name, fa.calories, fa.health_score, fa.analysis_date, u.email
-    FROM food_analyses fa
-    JOIN users u ON fa.user_id = u.user_id
-    ORDER BY fa.created_at DESC
+    SELECT f.food_name, f.calories, f.health_score, f.analysis_date, u.email
+    FROM foods f
+    JOIN users u ON f.user_id = u.user_id
+    ORDER BY f.created_at DESC
   `);
   
   if (result.rows.length === 0) {
@@ -100,12 +109,12 @@ async function clearTestData() {
   
   // Delete test food analyses
   const testAnalysesResult = await client.query(`
-    DELETE FROM food_analyses 
+    DELETE FROM foods 
     WHERE user_id IN (
       SELECT user_id FROM users 
       WHERE email LIKE '%test%' OR email LIKE '%example.com'
     )
-    RETURNING analysis_id, food_name
+    RETURNING id, food_name
   `);
   
   console.log(`  Deleted ${testAnalysesResult.rows.length} test food analyses`);
@@ -154,11 +163,11 @@ async function addTestFoodAnalysis(userId) {
   console.log('🍎 Adding test food analysis...');
   
   const result = await client.query(`
-    INSERT INTO food_analyses (
+    INSERT INTO foods (
       user_id, image_url, food_name, calories, protein, carbs, fat, 
       health_score, analysis_date, created_at
     ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-    RETURNING analysis_id, food_name, calories
+    RETURNING id, food_name, calories
   `, [
     userId,
     'https://example.com/test-food.jpg',
@@ -173,7 +182,46 @@ async function addTestFoodAnalysis(userId) {
   ]);
   
   console.log(`  ✅ Created food analysis: ${result.rows[0].food_name}`);
-  console.log(`  Analysis ID: ${result.rows[0].analysis_id}, Calories: ${result.rows[0].calories}\n`);
+  console.log(`  Food ID: ${result.rows[0].id}, Calories: ${result.rows[0].calories}\n`);
+}
+
+async function deleteAllFoods() {
+  console.log('🗑️ Deleting all foods...');
+  
+  const result = await client.query(`
+    DELETE FROM foods 
+    RETURNING id, food_name, user_id
+  `);
+  
+  console.log(`  ✅ Deleted ${result.rows.length} food records`);
+  
+  if (result.rows.length > 0) {
+    console.log('  Deleted foods:');
+    result.rows.forEach(food => {
+      console.log(`    - ${food.food_name} (ID: ${food.id}, User: ${food.user_id})`);
+    });
+  }
+  console.log('');
+}
+
+async function deleteFoodsByUser(userId) {
+  console.log(`🗑️ Deleting foods for user: ${userId}...`);
+  
+  const result = await client.query(`
+    DELETE FROM foods 
+    WHERE user_id = $1
+    RETURNING id, food_name, user_id
+  `, [userId]);
+  
+  console.log(`  ✅ Deleted ${result.rows.length} food records for user ${userId}`);
+  
+  if (result.rows.length > 0) {
+    console.log('  Deleted foods:');
+    result.rows.forEach(food => {
+      console.log(`    - ${food.food_name} (ID: ${food.id})`);
+    });
+  }
+  console.log('');
 }
 
 async function runCustomQuery(query) {
@@ -204,13 +252,16 @@ async function showHelp() {
   console.log('  node database-manager.js analyses        - Show all food analyses');
   console.log('  node database-manager.js clear            - Clear test data');
   console.log('  node database-manager.js add-test         - Add test user and analysis');
+  console.log('  node database-manager.js delete-foods     - Delete all foods');
+  console.log('  node database-manager.js delete-user-foods <user_id> - Delete foods for specific user');
   console.log('  node database-manager.js query "SELECT..." - Run custom SQL query');
   console.log('  node database-manager.js help            - Show this help');
   console.log('');
   console.log('Examples:');
   console.log('  node database-manager.js query "SELECT COUNT(*) FROM users"');
   console.log('  node database-manager.js query "SELECT * FROM users WHERE age > 20"');
-  console.log('  node database-manager.js query "DELETE FROM food_analyses WHERE health_score < 50"');
+  console.log('  node database-manager.js query "DELETE FROM foods WHERE health_score < 50"');
+  console.log('  node database-manager.js delete-user-foods "ALdvN6kkPQfEdAIyb62dPAnNQIQ2"');
   console.log('');
 }
 
@@ -239,6 +290,19 @@ async function main() {
     case 'add-test':
       const userId = await addTestUser();
       await addTestFoodAnalysis(userId);
+      break;
+      
+    case 'delete-foods':
+      await deleteAllFoods();
+      break;
+      
+    case 'delete-user-foods':
+      const targetUserId = process.argv[3];
+      if (!targetUserId) {
+        console.error('❌ Please provide a user ID');
+        process.exit(1);
+      }
+      await deleteFoodsByUser(targetUserId);
       break;
       
     case 'query':

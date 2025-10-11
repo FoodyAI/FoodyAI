@@ -39,7 +39,7 @@ class SQLiteService {
 
   Future<void> saveUserProfile(UserProfile profile, bool isMetric) async {
     final now = DateTime.now().millisecondsSinceEpoch;
-    
+
     final profileData = {
       'user_id': 'local_user', // For local storage
       'gender': profile.gender,
@@ -79,7 +79,8 @@ class SQLiteService {
   }
 
   Future<bool> getHasCompletedOnboarding() async {
-    return await _dbHelper.getBoolAppSetting('has_completed_onboarding', defaultValue: false);
+    return await _dbHelper.getBoolAppSetting('has_completed_onboarding',
+        defaultValue: false);
   }
 
   Future<void> setHasCompletedOnboarding(bool value) async {
@@ -88,32 +89,58 @@ class SQLiteService {
 
   // Food Analysis Operations
   Future<List<FoodAnalysis>> getFoodAnalyses() async {
-    final analysesData = await _dbHelper.getFoodAnalyses('local_user');
+    final analysesData = await _dbHelper.getFoods('local_user');
     return analysesData.map((data) => FoodAnalysis.fromMap(data)).toList();
   }
 
   Future<List<FoodAnalysis>> getFoodAnalysesByDate(DateTime date) async {
     final dateString = date.toIso8601String().split('T')[0];
-    final analysesData = await _dbHelper.getFoodAnalysesByDate('local_user', dateString);
+    final analysesData =
+        await _dbHelper.getFoodsByDate('local_user', dateString);
     return analysesData.map((data) => FoodAnalysis.fromMap(data)).toList();
   }
 
+  // Get only unsynced food analyses
+  Future<List<FoodAnalysis>> getUnsyncedFoodAnalyses() async {
+    final analysesData = await _dbHelper.getUnsyncedFoods('local_user');
+    return analysesData.map((data) => FoodAnalysis.fromMap(data)).toList();
+  }
+
+  // Mark food analysis as synced
+  Future<void> markFoodAnalysisAsSynced(
+      String foodName, DateTime analysisDate) async {
+    await _dbHelper.markFoodAsSynced(
+        'local_user', foodName, analysisDate.toIso8601String().split('T')[0]);
+  }
+
   Future<void> saveFoodAnalyses(List<FoodAnalysis> analyses) async {
+    print('🔄 SQLite: Saving ${analyses.length} food analyses...');
+
     // Clear existing analyses
-    await _dbHelper.deleteAllFoodAnalyses('local_user');
-    
+    await _dbHelper.deleteAllFoods('local_user');
+    print('🗑️ SQLite: Cleared existing analyses');
+
     // Insert new analyses
     for (final analysis in analyses) {
-      await _dbHelper.insertFoodAnalysis(analysis.toMap());
+      final analysisMap = analysis.toMap();
+      print(
+          '📝 SQLite: Inserting analysis: ${analysis.name} (${analysis.calories} cal)');
+      await _dbHelper.insertFood(analysisMap);
     }
+    print('✅ SQLite: All analyses saved successfully');
   }
 
   Future<void> addFoodAnalysis(FoodAnalysis analysis) async {
-    await _dbHelper.insertFoodAnalysis(analysis.toMap());
+    print(
+        '➕ SQLite: Adding single analysis: ${analysis.name} (${analysis.calories} cal)');
+    final analysisMap = analysis.toMap();
+    print('📝 SQLite: Analysis map: $analysisMap');
+    await _dbHelper.insertFood(analysisMap);
+    print('✅ SQLite: Single analysis added successfully');
   }
 
-  Future<void> removeFoodAnalysis(int id) async {
-    await _dbHelper.deleteFoodAnalysis(id);
+  Future<void> removeFoodAnalysis(String id) async {
+    await _dbHelper.deleteFood(id);
   }
 
   // App Settings Operations
@@ -126,11 +153,13 @@ class SQLiteService {
   }
 
   Future<bool> getGuestBannerDismissed() async {
-    return await _dbHelper.getBoolAppSetting('guest_banner_dismissed', defaultValue: false);
+    return await _dbHelper.getBoolAppSetting('guest_banner_dismissed',
+        defaultValue: false);
   }
 
   Future<void> setGuestBannerDismissed(bool dismissed) async {
-    await _dbHelper.setAppSetting('guest_banner_dismissed', dismissed.toString());
+    await _dbHelper.setAppSetting(
+        'guest_banner_dismissed', dismissed.toString());
   }
 
   Future<int?> getFirstUseDate() async {
@@ -142,7 +171,8 @@ class SQLiteService {
   }
 
   Future<bool> getHasSubmittedRating() async {
-    return await _dbHelper.getBoolAppSetting('has_submitted_rating', defaultValue: false);
+    return await _dbHelper.getBoolAppSetting('has_submitted_rating',
+        defaultValue: false);
   }
 
   Future<void> setHasSubmittedRating(bool submitted) async {
@@ -154,7 +184,8 @@ class SQLiteService {
   }
 
   Future<void> setMaybeLaterTimestamp(int timestamp) async {
-    await _dbHelper.setAppSetting('maybe_later_timestamp', timestamp.toString());
+    await _dbHelper.setAppSetting(
+        'maybe_later_timestamp', timestamp.toString());
   }
 
   // Migration from SharedPreferences
@@ -164,12 +195,29 @@ class SQLiteService {
   }
 
   // App Settings Methods (for migration compatibility)
-  Future<bool> getBoolAppSetting(String key, {bool defaultValue = false}) async {
+  Future<bool> getBoolAppSetting(String key,
+      {bool defaultValue = false}) async {
     return await _dbHelper.getBoolAppSetting(key, defaultValue: defaultValue);
   }
 
   Future<void> setAppSetting(String key, String value) async {
     await _dbHelper.setAppSetting(key, value);
+  }
+
+  // Debug Methods
+  Future<void> debugPrintFoodAnalyses() async {
+    print('🔍 SQLite Debug: Checking food analyses in database...');
+    final analyses = await getFoodAnalyses();
+    print('📊 SQLite Debug: Found ${analyses.length} food analyses');
+
+    for (int i = 0; i < analyses.length; i++) {
+      final analysis = analyses[i];
+      print('🍎 SQLite Debug: Analysis ${i + 1}:');
+      print('   - Name: ${analysis.name}');
+      print('   - Calories: ${analysis.calories}');
+      print('   - Date: ${analysis.date}');
+      print('   - Order: ${analysis.orderNumber}');
+    }
   }
 
   // Utility Methods

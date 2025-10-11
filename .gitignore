@@ -19,6 +19,12 @@ migrate_working_dir/
 .env.test
 .env.production
 
+# AWS Lambda environment variables
+aws-lambda/env-vars.json
+aws-lambda/.env
+aws-lambda/.env.local
+aws-lambda/.env.production
+
 # Firebase configuration
 **/google-services.json
 **/GoogleService-Info.plist
