@@ -19,15 +19,29 @@ exports.handler = async (event) => {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Content-Type,Authorization',
-        'Access-Control-Allow-Methods': 'POST,OPTIONS'
+    'Access-Control-Allow-Methods': 'POST,DELETE,OPTIONS'
   };
 
   try {
     const httpMethod = event.httpMethod || event.requestContext?.http?.method;
     
+    // Handle OPTIONS request for CORS
+    if (httpMethod === 'OPTIONS') {
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({ message: 'CORS preflight successful' })
+      };
+    }
+    
     if (httpMethod === 'POST') {
       // Create food analysis
+      console.log('POST request received for food analysis');
+      console.log('Event body:', event.body);
+      
       const { userId, imageUrl, foodName, calories, protein, carbs, fat, healthScore } = JSON.parse(event.body);
+      
+      console.log('Parsed data:', { userId, imageUrl, foodName, calories, protein, carbs, fat, healthScore });
       
       const query = `
         INSERT INTO foods (user_id, image_url, food_name, calories, protein, carbs, fat, health_score, analysis_date)
@@ -47,7 +61,9 @@ exports.handler = async (event) => {
         new Date()
       ];
       
+      console.log('Executing query with values:', values);
       const result = await pool.query(query, values);
+      console.log('Query result:', result.rows);
       
       return {
         statusCode: 200,
@@ -109,13 +125,15 @@ exports.handler = async (event) => {
     
   } catch (error) {
     console.error('Error in food analysis handler:', error);
+    console.error('Error stack:', error.stack);
     
     return {
       statusCode: 500,
       headers,
       body: JSON.stringify({
         success: false,
-        error: 'Internal server error'
+        error: 'Internal server error',
+        details: error.message
       })
     };
   }
