@@ -21,9 +21,9 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Food analyses table
-CREATE TABLE IF NOT EXISTS food_analyses (
-    analysis_id SERIAL PRIMARY KEY,
+-- Foods table
+CREATE TABLE IF NOT EXISTS foods (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id VARCHAR(255) NOT NULL,
     image_url TEXT,
     food_name VARCHAR(255) NOT NULL,
@@ -38,8 +38,8 @@ CREATE TABLE IF NOT EXISTS food_analyses (
 );
 
 -- Create indexes for better performance
-CREATE INDEX IF NOT EXISTS idx_food_analyses_user_id ON food_analyses(user_id);
-CREATE INDEX IF NOT EXISTS idx_food_analyses_analysis_date ON food_analyses(analysis_date);
+CREATE INDEX IF NOT EXISTS idx_foods_user_id ON foods(user_id);
+CREATE INDEX IF NOT EXISTS idx_foods_analysis_date ON foods(analysis_date);
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 
 -- Create a function to update the updated_at timestamp

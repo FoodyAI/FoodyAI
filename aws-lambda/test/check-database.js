@@ -6,13 +6,22 @@
  */
 
 const { Client } = require('pg');
+require('dotenv').config();
+
+// Validate required environment variables
+if (!process.env.DB_HOST || !process.env.DB_USER || !process.env.DB_PASSWORD || !process.env.DB_NAME) {
+  console.error('❌ Missing required environment variables:');
+  console.error('   DB_HOST, DB_USER, DB_PASSWORD, DB_NAME must be set');
+  console.error('   Create a .env file with these variables');
+  process.exit(1);
+}
 
 const client = new Client({
-  host: 'foody-database.cgfko2mcweuv.us-east-1.rds.amazonaws.com',
-  user: 'foodyadmin',
-  password: 'FoodyDB2024!Secure',
-  database: 'foody_db',
-  port: 5432,
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  port: parseInt(process.env.DB_PORT) || 5432,
   ssl: {
     rejectUnauthorized: false
   }
@@ -71,18 +80,18 @@ async function checkDatabase() {
     }
     console.log('');
     
-    // Check food_analyses table
-    console.log('🍎 Food Analyses Table:');
-    const analysesResult = await client.query('SELECT COUNT(*) as analysis_count FROM food_analyses');
+    // Check foods table
+    console.log('🍎 Foods Table:');
+    const analysesResult = await client.query('SELECT COUNT(*) as analysis_count FROM foods');
     console.log(`   Total food analyses: ${analysesResult.rows[0].analysis_count}`);
     
     // Show recent food analyses (if any)
     if (parseInt(analysesResult.rows[0].analysis_count) > 0) {
       const recentAnalyses = await client.query(`
-        SELECT fa.food_name, fa.calories, fa.health_score, fa.analysis_date, u.email
-        FROM food_analyses fa
-        JOIN users u ON fa.user_id = u.user_id
-        ORDER BY fa.created_at DESC 
+        SELECT f.food_name, f.calories, f.health_score, f.analysis_date, u.email
+        FROM foods f
+        JOIN users u ON f.user_id = u.user_id
+        ORDER BY f.created_at DESC 
         LIMIT 5
       `);
       console.log('   Recent food analyses:');

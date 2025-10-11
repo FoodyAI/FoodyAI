@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 
 @immutable
 class FoodAnalysis {
+  final String? id;
   final String name;
   final double protein;
   final double carbs;
@@ -12,8 +14,10 @@ class FoodAnalysis {
   final int orderNumber;
   final DateTime date;
   final int dateOrderNumber;
+  final bool syncedToAws;
 
   FoodAnalysis({
+    this.id,
     required this.name,
     required this.protein,
     required this.carbs,
@@ -24,6 +28,7 @@ class FoodAnalysis {
     this.orderNumber = 0,
     DateTime? date,
     this.dateOrderNumber = 0,
+    this.syncedToAws = false,
   }) : date = date ?? DateTime.now();
 
   factory FoodAnalysis.withCurrentDate({
@@ -35,6 +40,7 @@ class FoodAnalysis {
     required double healthScore,
     String? imagePath,
     int orderNumber = 0,
+    bool syncedToAws = false,
   }) {
     return FoodAnalysis(
       name: name,
@@ -47,6 +53,7 @@ class FoodAnalysis {
       orderNumber: orderNumber,
       date: DateTime.now(),
       dateOrderNumber: 0,
+      syncedToAws: syncedToAws,
     );
   }
 
@@ -64,6 +71,7 @@ class FoodAnalysis {
           ? DateTime.fromMillisecondsSinceEpoch(json['date'] as int)
           : DateTime.now(),
       dateOrderNumber: json['dateOrderNumber'] as int? ?? 0,
+      syncedToAws: json['syncedToAws'] as bool? ?? false,
     );
   }
 
@@ -79,12 +87,15 @@ class FoodAnalysis {
       'orderNumber': orderNumber,
       'date': date.millisecondsSinceEpoch,
       'dateOrderNumber': dateOrderNumber,
+      'syncedToAws': syncedToAws,
     };
   }
 
   // SQLite-specific methods
   Map<String, dynamic> toMap() {
+    const uuid = Uuid();
     return {
+      'id': id ?? uuid.v4(), // Generate UUID if not provided
       'user_id': 'local_user',
       'image_url': imagePath,
       'food_name': name,
@@ -94,14 +105,14 @@ class FoodAnalysis {
       'fat': fat,
       'health_score': healthScore.round(),
       'analysis_date': date.toIso8601String().split('T')[0],
-      'order_number': orderNumber,
-      'date_order_number': dateOrderNumber,
       'created_at': DateTime.now().millisecondsSinceEpoch,
+      'synced_to_aws': syncedToAws ? 1 : 0,
     };
   }
 
   factory FoodAnalysis.fromMap(Map<String, dynamic> map) {
     return FoodAnalysis(
+      id: map['id'] as String?,
       name: map['food_name'] as String,
       protein: (map['protein'] as num).toDouble(),
       carbs: (map['carbs'] as num).toDouble(),
@@ -109,9 +120,39 @@ class FoodAnalysis {
       calories: (map['calories'] as num).toDouble(),
       healthScore: (map['health_score'] as num).toDouble(),
       imagePath: map['image_url'] as String?,
-      orderNumber: map['order_number'] as int? ?? 0,
+      orderNumber: 0, // Not stored in database anymore
       date: DateTime.parse(map['analysis_date'] as String),
-      dateOrderNumber: map['date_order_number'] as int? ?? 0,
+      dateOrderNumber: 0, // Not stored in database anymore
+      syncedToAws: (map['synced_to_aws'] as int? ?? 0) == 1,
+    );
+  }
+
+  // Method to create a copy with updated sync status
+  FoodAnalysis copyWith({
+    String? name,
+    double? protein,
+    double? carbs,
+    double? fat,
+    double? calories,
+    double? healthScore,
+    String? imagePath,
+    int? orderNumber,
+    DateTime? date,
+    int? dateOrderNumber,
+    bool? syncedToAws,
+  }) {
+    return FoodAnalysis(
+      name: name ?? this.name,
+      protein: protein ?? this.protein,
+      carbs: carbs ?? this.carbs,
+      fat: fat ?? this.fat,
+      calories: calories ?? this.calories,
+      healthScore: healthScore ?? this.healthScore,
+      imagePath: imagePath ?? this.imagePath,
+      orderNumber: orderNumber ?? this.orderNumber,
+      date: date ?? this.date,
+      dateOrderNumber: dateOrderNumber ?? this.dateOrderNumber,
+      syncedToAws: syncedToAws ?? this.syncedToAws,
     );
   }
 }

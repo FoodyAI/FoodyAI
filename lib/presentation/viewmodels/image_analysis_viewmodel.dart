@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:uuid/uuid.dart';
 import '../../data/models/food_analysis.dart';
 import '../../data/datasources/remote/ai_service.dart';
 import '../../data/datasources/remote/ai_service_factory.dart';
@@ -58,7 +59,8 @@ class ImageAnalysisViewModel extends ChangeNotifier {
     final firstUseTimestamp = await _sqliteService.getFirstUseDate();
     if (firstUseTimestamp == null) {
       _firstUseDate = DateTime.now();
-      await _sqliteService.setFirstUseDate(_firstUseDate!.millisecondsSinceEpoch);
+      await _sqliteService
+          .setFirstUseDate(_firstUseDate!.millisecondsSinceEpoch);
     } else {
       _firstUseDate = DateTime.fromMillisecondsSinceEpoch(firstUseTimestamp);
     }
@@ -115,7 +117,7 @@ class ImageAnalysisViewModel extends ChangeNotifier {
 
   Future<void> analyzeImage() async {
     if (_selectedImage == null) return;
-    
+
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -123,7 +125,7 @@ class ImageAnalysisViewModel extends ChangeNotifier {
       // Get user's selected AI provider
       final profile = await _profileRepository.getProfile();
       AIProvider? aiProvider = profile?.aiProvider;
-      
+
       // If no AI provider is set, use default
       aiProvider ??= AIProvider.gemini;
 
@@ -153,15 +155,12 @@ class ImageAnalysisViewModel extends ChangeNotifier {
 
   Future<void> _saveCurrentAnalysis() async {
     if (_currentAnalysis != null) {
-      // Get the count of analyses for the current date
-      final dateCount = _savedAnalyses
-          .where((a) =>
-              a.date.year == _selectedDate.year &&
-              a.date.month == _selectedDate.month &&
-              a.date.day == _selectedDate.day)
-          .length;
+      print('🔄 ImageAnalysisViewModel: Saving current analysis...');
+
+      // No need to count analyses for ordering anymore
 
       final analysis = FoodAnalysis(
+        id: const Uuid().v4(), // Generate UUID for the object
         name: _currentAnalysis!.name,
         protein: _currentAnalysis!.protein,
         carbs: _currentAnalysis!.carbs,
@@ -169,12 +168,30 @@ class ImageAnalysisViewModel extends ChangeNotifier {
         calories: _currentAnalysis!.calories,
         healthScore: _currentAnalysis!.healthScore,
         imagePath: _currentAnalysis!.imagePath,
-        orderNumber: _savedAnalyses.length + 1,
+        orderNumber: 0, // Not used anymore
         date: _selectedDate,
-        dateOrderNumber: dateCount + 1,
+        dateOrderNumber: 0, // Not used anymore
       );
+
+      print(
+          '📝 ImageAnalysisViewModel: Created analysis: ${analysis.name} (${analysis.calories} cal)');
       _savedAnalyses.add(analysis);
+
+      print('💾 ImageAnalysisViewModel: Saving to storage...');
       await _storage.saveAnalyses(_savedAnalyses);
+
+      // Debug: Check what's in SQLite after saving
+      await _sqliteService.debugPrintFoodAnalyses();
+
+      // Sync with AWS if user is signed in
+      if (_auth.currentUser != null) {
+        print('🔄 ImageAnalysisViewModel: User is signed in, syncing to AWS...');
+        await _syncService.saveFoodAnalysisToAWS(analysis);
+        print('✅ ImageAnalysisViewModel: AWS sync completed');
+      } else {
+        print('❌ ImageAnalysisViewModel: No user signed in, skipping AWS sync');
+      }
+
       _currentAnalysis = null;
       _selectedImage = null;
       notifyListeners();
@@ -187,51 +204,22 @@ class ImageAnalysisViewModel extends ChangeNotifier {
   Future<FoodAnalysis?> removeAnalysis(int index) async {
     if (index >= 0 && index < _savedAnalyses.length) {
       final removedAnalysis = _savedAnalyses[index];
-      final removedDate = removedAnalysis.date;
+      print('🗑️ ImageAnalysisViewModel: Removing analysis: ${removedAnalysis.name}');
+      
       _savedAnalyses.removeAt(index);
 
-      // Update order numbers for all analyses
-      for (int i = 0; i < _savedAnalyses.length; i++) {
-        _savedAnalyses[i] = FoodAnalysis(
-          name: _savedAnalyses[i].name,
-          protein: _savedAnalyses[i].protein,
-          carbs: _savedAnalyses[i].carbs,
-          fat: _savedAnalyses[i].fat,
-          calories: _savedAnalyses[i].calories,
-          healthScore: _savedAnalyses[i].healthScore,
-          imagePath: _savedAnalyses[i].imagePath,
-          orderNumber: i + 1,
-          date: _savedAnalyses[i].date,
-          dateOrderNumber: _savedAnalyses[i].dateOrderNumber,
-        );
-      }
-
-      // Update date order numbers for the affected date
-      final sameDateAnalyses = _savedAnalyses
-          .where((a) =>
-              a.date.year == removedDate.year &&
-              a.date.month == removedDate.month &&
-              a.date.day == removedDate.day)
-          .toList();
-
-      for (int i = 0; i < sameDateAnalyses.length; i++) {
-        final analysis = sameDateAnalyses[i];
-        final index = _savedAnalyses.indexOf(analysis);
-        _savedAnalyses[index] = FoodAnalysis(
-          name: analysis.name,
-          protein: analysis.protein,
-          carbs: analysis.carbs,
-          fat: analysis.fat,
-          calories: analysis.calories,
-          healthScore: analysis.healthScore,
-          imagePath: analysis.imagePath,
-          orderNumber: analysis.orderNumber,
-          date: analysis.date,
-          dateOrderNumber: i + 1,
-        );
-      }
-
+      print('💾 ImageAnalysisViewModel: Saving updated analyses to storage...');
       await _storage.saveAnalyses(_savedAnalyses);
+
+      // Sync deletion with AWS if user is signed in
+      if (_auth.currentUser != null) {
+        print('🔄 ImageAnalysisViewModel: User is signed in, syncing deletion to AWS...');
+        await _syncService.deleteFoodAnalysisFromAWS(removedAnalysis);
+        print('✅ ImageAnalysisViewModel: AWS deletion sync completed');
+      } else {
+        print('❌ ImageAnalysisViewModel: No user signed in, skipping AWS deletion sync');
+      }
+
       notifyListeners();
       return removedAnalysis;
     }
@@ -239,52 +227,25 @@ class ImageAnalysisViewModel extends ChangeNotifier {
   }
 
   Future<void> addAnalysis(FoodAnalysis analysis) async {
-    if (analysis.orderNumber > 0) {
-      _savedAnalyses.insert(analysis.orderNumber - 1, analysis);
-      for (int i = analysis.orderNumber; i < _savedAnalyses.length; i++) {
-        _savedAnalyses[i] = FoodAnalysis(
-          name: _savedAnalyses[i].name,
-          protein: _savedAnalyses[i].protein,
-          carbs: _savedAnalyses[i].carbs,
-          fat: _savedAnalyses[i].fat,
-          calories: _savedAnalyses[i].calories,
-          healthScore: _savedAnalyses[i].healthScore,
-          imagePath: _savedAnalyses[i].imagePath,
-          orderNumber: i + 1,
-          date: _savedAnalyses[i].date,
-          dateOrderNumber: _savedAnalyses[i].dateOrderNumber,
-        );
-      }
-    } else {
-      // Get the count of analyses for the current date
-      final dateCount = _savedAnalyses
-          .where((a) =>
-              a.date.year == _selectedDate.year &&
-              a.date.month == _selectedDate.month &&
-              a.date.day == _selectedDate.day)
-          .length;
+    print('🔄 ImageAnalysisViewModel: Adding analysis: ${analysis.name}');
 
-      final newAnalysis = FoodAnalysis(
-        name: analysis.name,
-        protein: analysis.protein,
-        carbs: analysis.carbs,
-        fat: analysis.fat,
-        calories: analysis.calories,
-        healthScore: analysis.healthScore,
-        imagePath: analysis.imagePath,
-        orderNumber: _savedAnalyses.length + 1,
-        date: _selectedDate,
-        dateOrderNumber: dateCount + 1,
-      );
-      _savedAnalyses.add(newAnalysis);
-    }
+    // Simply add the analysis to the list
+    _savedAnalyses.add(analysis);
+
+    print('💾 ImageAnalysisViewModel: Saving analyses to storage...');
     await _storage.saveAnalyses(_savedAnalyses);
-    
+
+    // Debug: Check what's in SQLite after saving
+    await _sqliteService.debugPrintFoodAnalyses();
+
     // Sync with AWS if user is signed in
     if (_auth.currentUser != null) {
+      print('🔄 ImageAnalysisViewModel: User is signed in, syncing to AWS...');
       await _syncService.saveFoodAnalysisToAWS(analysis);
+    } else {
+      print('❌ ImageAnalysisViewModel: No user signed in, skipping AWS sync');
     }
-    
+
     notifyListeners();
   }
 
@@ -297,6 +258,7 @@ class ImageAnalysisViewModel extends ChangeNotifier {
 
   // Add method to handle "Maybe Later" response
   Future<void> handleMaybeLater() async {
-    await _sqliteService.setMaybeLaterTimestamp(DateTime.now().millisecondsSinceEpoch);
+    await _sqliteService
+        .setMaybeLaterTimestamp(DateTime.now().millisecondsSinceEpoch);
   }
 }

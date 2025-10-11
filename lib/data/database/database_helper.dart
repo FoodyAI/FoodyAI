@@ -21,7 +21,7 @@ class DatabaseHelper {
     print('Database path: $path');
     return await openDatabase(
       path,
-      version: 1,
+      version: 3,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -54,10 +54,10 @@ class DatabaseHelper {
       )
     ''');
 
-    // Create food_analyses table
+    // Create foods table
     await db.execute('''
-      CREATE TABLE food_analyses (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+      CREATE TABLE foods (
+        id TEXT PRIMARY KEY,
         user_id TEXT,
         image_url TEXT,
         food_name TEXT NOT NULL,
@@ -67,9 +67,8 @@ class DatabaseHelper {
         fat REAL,
         health_score INTEGER,
         analysis_date TEXT,
-        order_number INTEGER,
-        date_order_number INTEGER,
         created_at INTEGER,
+        synced_to_aws INTEGER DEFAULT 0,
         FOREIGN KEY (user_id) REFERENCES user_profile(user_id) ON DELETE CASCADE
       )
     ''');
@@ -86,10 +85,9 @@ class DatabaseHelper {
     ''');
 
     // Create indexes for better performance
+    await db.execute('CREATE INDEX idx_foods_user_id ON foods(user_id)');
     await db.execute(
-        'CREATE INDEX idx_food_analyses_user_id ON food_analyses(user_id)');
-    await db.execute(
-        'CREATE INDEX idx_food_analyses_analysis_date ON food_analyses(analysis_date)');
+        'CREATE INDEX idx_foods_analysis_date ON foods(analysis_date)');
     await db.execute(
         'CREATE INDEX idx_user_profile_user_id ON user_profile(user_id)');
     await db.execute('CREATE INDEX idx_app_settings_key ON app_settings(key)');
@@ -97,8 +95,56 @@ class DatabaseHelper {
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     // Handle database migrations here
-    if (oldVersion < 1) {
-      // Migration logic for version 1
+    if (oldVersion < 2) {
+      // Add synced_to_aws column to foods table
+      await db.execute(
+          'ALTER TABLE foods ADD COLUMN synced_to_aws INTEGER DEFAULT 0');
+      print('Database upgraded: Added synced_to_aws column to foods table');
+    }
+
+    if (oldVersion < 3) {
+      // Migrate from INTEGER id to TEXT id (UUID)
+      print(
+          'Database upgraded: Migrating foods table to use UUID for id column');
+
+      // Create new table with UUID support
+      await db.execute('''
+        CREATE TABLE foods_new (
+          id TEXT PRIMARY KEY,
+          user_id TEXT,
+          image_url TEXT,
+          food_name TEXT NOT NULL,
+          calories INTEGER,
+          protein REAL,
+          carbs REAL,
+          fat REAL,
+          health_score INTEGER,
+          analysis_date TEXT,
+          created_at INTEGER,
+          synced_to_aws INTEGER DEFAULT 0,
+          FOREIGN KEY (user_id) REFERENCES user_profile(user_id) ON DELETE CASCADE
+        )
+      ''');
+
+      // Copy data from old table to new table, generating UUIDs for existing records
+      await db.execute('''
+        INSERT INTO foods_new (id, user_id, image_url, food_name, calories, protein, carbs, fat, health_score, analysis_date, created_at, synced_to_aws)
+        SELECT 
+          'migrated-' || CAST(id AS TEXT) || '-' || CAST(created_at AS TEXT) as id,
+          user_id, image_url, food_name, calories, protein, carbs, fat, health_score, analysis_date, created_at, synced_to_aws
+        FROM foods
+      ''');
+
+      // Drop old table and rename new table
+      await db.execute('DROP TABLE foods');
+      await db.execute('ALTER TABLE foods_new RENAME TO foods');
+
+      // Recreate indexes
+      await db.execute('CREATE INDEX idx_foods_user_id ON foods(user_id)');
+      await db.execute(
+          'CREATE INDEX idx_foods_analysis_date ON foods(analysis_date)');
+
+      print('Database upgraded: Successfully migrated to UUID-based food IDs');
     }
   }
 
@@ -152,59 +198,81 @@ class DatabaseHelper {
     return await db.delete('user_profile');
   }
 
-  // Food Analysis Methods
-  Future<int> insertFoodAnalysis(Map<String, dynamic> foodAnalysis) async {
+  // Food Methods
+  Future<int> insertFood(Map<String, dynamic> food) async {
     final db = await database;
-    return await db.insert('food_analyses', foodAnalysis);
+    return await db.insert('foods', food);
   }
 
-  Future<List<Map<String, dynamic>>> getFoodAnalyses(String userId) async {
+  Future<List<Map<String, dynamic>>> getFoods(String userId) async {
     final db = await database;
     return await db.query(
-      'food_analyses',
+      'foods',
       where: 'user_id = ?',
       whereArgs: [userId],
       orderBy: 'created_at DESC',
     );
   }
 
-  Future<List<Map<String, dynamic>>> getFoodAnalysesByDate(
+  Future<List<Map<String, dynamic>>> getFoodsByDate(
       String userId, String date) async {
     final db = await database;
     return await db.query(
-      'food_analyses',
+      'foods',
       where: 'user_id = ? AND analysis_date = ?',
       whereArgs: [userId, date],
-      orderBy: 'date_order_number ASC',
+      orderBy: 'created_at ASC',
     );
   }
 
-  Future<int> updateFoodAnalysis(
-      int id, Map<String, dynamic> foodAnalysis) async {
+  Future<int> updateFood(String id, Map<String, dynamic> food) async {
     final db = await database;
     return await db.update(
-      'food_analyses',
-      foodAnalysis,
+      'foods',
+      food,
       where: 'id = ?',
       whereArgs: [id],
     );
   }
 
-  Future<int> deleteFoodAnalysis(int id) async {
+  Future<int> deleteFood(String id) async {
     final db = await database;
     return await db.delete(
-      'food_analyses',
+      'foods',
       where: 'id = ?',
       whereArgs: [id],
     );
   }
 
-  Future<int> deleteAllFoodAnalyses(String userId) async {
+  Future<int> deleteAllFoods(String userId) async {
     final db = await database;
     return await db.delete(
-      'food_analyses',
+      'foods',
       where: 'user_id = ?',
       whereArgs: [userId],
+    );
+  }
+
+  // Get unsynced foods
+  Future<List<Map<String, dynamic>>> getUnsyncedFoods(String userId) async {
+    final db = await database;
+    return await db.query(
+      'foods',
+      where: 'user_id = ? AND synced_to_aws = 0',
+      whereArgs: [userId],
+      orderBy: 'created_at DESC',
+    );
+  }
+
+  // Mark food as synced
+  Future<int> markFoodAsSynced(
+      String userId, String foodName, String analysisDate) async {
+    final db = await database;
+    return await db.update(
+      'foods',
+      {'synced_to_aws': 1},
+      where: 'user_id = ? AND food_name = ? AND analysis_date = ?',
+      whereArgs: [userId, foodName, analysisDate],
     );
   }
 
@@ -282,7 +350,7 @@ class DatabaseHelper {
   Future<void> clearAllData() async {
     final db = await database;
     await db.delete('user_profile');
-    await db.delete('food_analyses');
+    await db.delete('foods');
     await db.delete('app_settings');
   }
 }
