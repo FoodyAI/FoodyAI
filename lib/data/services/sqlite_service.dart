@@ -98,6 +98,17 @@ class SQLiteService {
     return analysesData.map((data) => FoodAnalysis.fromMap(data)).toList();
   }
 
+  // Get only unsynced food analyses
+  Future<List<FoodAnalysis>> getUnsyncedFoodAnalyses() async {
+    final analysesData = await _dbHelper.getUnsyncedFoods('local_user');
+    return analysesData.map((data) => FoodAnalysis.fromMap(data)).toList();
+  }
+
+  // Mark food analysis as synced
+  Future<void> markFoodAnalysisAsSynced(String foodName, DateTime analysisDate) async {
+    await _dbHelper.markFoodAsSynced('local_user', foodName, analysisDate.toIso8601String().split('T')[0]);
+  }
+
   Future<void> saveFoodAnalyses(List<FoodAnalysis> analyses) async {
     print('🔄 SQLite: Saving ${analyses.length} food analyses...');
     

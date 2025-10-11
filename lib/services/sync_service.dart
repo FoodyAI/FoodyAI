@@ -70,26 +70,45 @@ class SyncService {
 
       final userId = user.uid;
 
-      // Get local food analyses from SQLite
-      final analyses = await _sqliteService.getFoodAnalyses();
-
-      for (final analysis in analyses) {
-        // Save to AWS
-        await _awsService.saveFoodAnalysis(
-          userId: userId,
-          imageUrl: analysis.imagePath ?? '',
-          foodName: analysis.name,
-          calories: analysis.calories.toInt(),
-          protein: analysis.protein,
-          carbs: analysis.carbs,
-          fat: analysis.fat,
-          healthScore: analysis.healthScore.toInt(),
-        );
+      // Get ONLY unsynced food analyses from SQLite
+      final unsyncedAnalyses = await _sqliteService.getUnsyncedFoodAnalyses();
+      
+      if (unsyncedAnalyses.isEmpty) {
+        print('📋 AWS: No unsynced food analyses to sync');
+        return;
       }
 
-      print('Food analyses synced to AWS successfully');
+      print('🔄 AWS: Found ${unsyncedAnalyses.length} unsynced food analyses to sync');
+
+      for (final analysis in unsyncedAnalyses) {
+        try {
+          // Save to AWS
+          final result = await _awsService.saveFoodAnalysis(
+            userId: userId,
+            imageUrl: analysis.imagePath ?? '',
+            foodName: analysis.name,
+            calories: analysis.calories.toInt(),
+            protein: analysis.protein,
+            carbs: analysis.carbs,
+            fat: analysis.fat,
+            healthScore: analysis.healthScore.toInt(),
+          );
+
+          // If successful, mark as synced
+          if (result != null) {
+            await _sqliteService.markFoodAnalysisAsSynced(analysis.name, analysis.date);
+            print('✅ AWS: Synced and marked: ${analysis.name}');
+          } else {
+            print('❌ AWS: Failed to sync: ${analysis.name}');
+          }
+        } catch (e) {
+          print('❌ AWS: Error syncing ${analysis.name}: $e');
+        }
+      }
+
+      print('✅ AWS: Food analyses sync completed');
     } catch (e) {
-      print('Error syncing food analyses: $e');
+      print('❌ AWS: Error syncing food analyses: $e');
     }
   }
 
@@ -176,7 +195,10 @@ class SyncService {
       );
 
       if (result != null) {
+        // Mark as synced in local database
+        await _sqliteService.markFoodAnalysisAsSynced(analysis.name, analysis.date);
         print('✅ AWS: Food analysis saved to AWS successfully');
+        print('✅ AWS: Marked as synced in local database');
         print('✅ AWS: Server response: $result');
       } else {
         print('❌ AWS: Failed to save food analysis - null response');

@@ -12,6 +12,7 @@ class FoodAnalysis {
   final int orderNumber;
   final DateTime date;
   final int dateOrderNumber;
+  final bool syncedToAws;
 
   FoodAnalysis({
     required this.name,
@@ -24,6 +25,7 @@ class FoodAnalysis {
     this.orderNumber = 0,
     DateTime? date,
     this.dateOrderNumber = 0,
+    this.syncedToAws = false,
   }) : date = date ?? DateTime.now();
 
   factory FoodAnalysis.withCurrentDate({
@@ -35,6 +37,7 @@ class FoodAnalysis {
     required double healthScore,
     String? imagePath,
     int orderNumber = 0,
+    bool syncedToAws = false,
   }) {
     return FoodAnalysis(
       name: name,
@@ -47,6 +50,7 @@ class FoodAnalysis {
       orderNumber: orderNumber,
       date: DateTime.now(),
       dateOrderNumber: 0,
+      syncedToAws: syncedToAws,
     );
   }
 
@@ -64,6 +68,7 @@ class FoodAnalysis {
           ? DateTime.fromMillisecondsSinceEpoch(json['date'] as int)
           : DateTime.now(),
       dateOrderNumber: json['dateOrderNumber'] as int? ?? 0,
+      syncedToAws: json['syncedToAws'] as bool? ?? false,
     );
   }
 
@@ -79,6 +84,7 @@ class FoodAnalysis {
       'orderNumber': orderNumber,
       'date': date.millisecondsSinceEpoch,
       'dateOrderNumber': dateOrderNumber,
+      'syncedToAws': syncedToAws,
     };
   }
 
@@ -95,6 +101,7 @@ class FoodAnalysis {
       'health_score': healthScore.round(),
       'analysis_date': date.toIso8601String().split('T')[0],
       'created_at': DateTime.now().millisecondsSinceEpoch,
+      'synced_to_aws': syncedToAws ? 1 : 0,
     };
   }
 
@@ -110,6 +117,36 @@ class FoodAnalysis {
       orderNumber: 0, // Not stored in database anymore
       date: DateTime.parse(map['analysis_date'] as String),
       dateOrderNumber: 0, // Not stored in database anymore
+      syncedToAws: (map['synced_to_aws'] as int? ?? 0) == 1,
+    );
+  }
+
+  // Method to create a copy with updated sync status
+  FoodAnalysis copyWith({
+    String? name,
+    double? protein,
+    double? carbs,
+    double? fat,
+    double? calories,
+    double? healthScore,
+    String? imagePath,
+    int? orderNumber,
+    DateTime? date,
+    int? dateOrderNumber,
+    bool? syncedToAws,
+  }) {
+    return FoodAnalysis(
+      name: name ?? this.name,
+      protein: protein ?? this.protein,
+      carbs: carbs ?? this.carbs,
+      fat: fat ?? this.fat,
+      calories: calories ?? this.calories,
+      healthScore: healthScore ?? this.healthScore,
+      imagePath: imagePath ?? this.imagePath,
+      orderNumber: orderNumber ?? this.orderNumber,
+      date: date ?? this.date,
+      dateOrderNumber: dateOrderNumber ?? this.dateOrderNumber,
+      syncedToAws: syncedToAws ?? this.syncedToAws,
     );
   }
 }

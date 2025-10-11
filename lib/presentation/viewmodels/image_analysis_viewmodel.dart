@@ -185,6 +185,7 @@ class ImageAnalysisViewModel extends ChangeNotifier {
       if (_auth.currentUser != null) {
         print('🔄 ImageAnalysisViewModel: User is signed in, syncing to AWS...');
         await _syncService.saveFoodAnalysisToAWS(analysis);
+        print('✅ ImageAnalysisViewModel: AWS sync completed');
       } else {
         print('❌ ImageAnalysisViewModel: No user signed in, skipping AWS sync');
       }
