@@ -107,4 +107,19 @@ class AuthService {
   
   // Get user photo URL
   String? get userPhotoURL => _auth.currentUser?.photoURL;
+  
+  // Delete user account from Firebase
+  Future<void> deleteUser() async {
+    try {
+      final user = _auth.currentUser;
+      if (user != null) {
+        await user.delete();
+        await _googleSignIn.signOut();
+        print('User account deleted from Firebase');
+      }
+    } catch (e) {
+      print('Error deleting user from Firebase: $e');
+      throw e;
+    }
+  }
 }
