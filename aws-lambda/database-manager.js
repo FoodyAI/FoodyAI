@@ -176,6 +176,45 @@ async function addTestFoodAnalysis(userId) {
   console.log(`  Food ID: ${result.rows[0].id}, Calories: ${result.rows[0].calories}\n`);
 }
 
+async function deleteAllFoods() {
+  console.log('🗑️ Deleting all foods...');
+  
+  const result = await client.query(`
+    DELETE FROM foods 
+    RETURNING id, food_name, user_id
+  `);
+  
+  console.log(`  ✅ Deleted ${result.rows.length} food records`);
+  
+  if (result.rows.length > 0) {
+    console.log('  Deleted foods:');
+    result.rows.forEach(food => {
+      console.log(`    - ${food.food_name} (ID: ${food.id}, User: ${food.user_id})`);
+    });
+  }
+  console.log('');
+}
+
+async function deleteFoodsByUser(userId) {
+  console.log(`🗑️ Deleting foods for user: ${userId}...`);
+  
+  const result = await client.query(`
+    DELETE FROM foods 
+    WHERE user_id = $1
+    RETURNING id, food_name, user_id
+  `, [userId]);
+  
+  console.log(`  ✅ Deleted ${result.rows.length} food records for user ${userId}`);
+  
+  if (result.rows.length > 0) {
+    console.log('  Deleted foods:');
+    result.rows.forEach(food => {
+      console.log(`    - ${food.food_name} (ID: ${food.id})`);
+    });
+  }
+  console.log('');
+}
+
 async function runCustomQuery(query) {
   console.log('🔍 Running custom query...');
   console.log(`Query: ${query}\n`);
@@ -204,6 +243,8 @@ async function showHelp() {
   console.log('  node database-manager.js analyses        - Show all food analyses');
   console.log('  node database-manager.js clear            - Clear test data');
   console.log('  node database-manager.js add-test         - Add test user and analysis');
+  console.log('  node database-manager.js delete-foods     - Delete all foods');
+  console.log('  node database-manager.js delete-user-foods <user_id> - Delete foods for specific user');
   console.log('  node database-manager.js query "SELECT..." - Run custom SQL query');
   console.log('  node database-manager.js help            - Show this help');
   console.log('');
@@ -211,6 +252,7 @@ async function showHelp() {
   console.log('  node database-manager.js query "SELECT COUNT(*) FROM users"');
   console.log('  node database-manager.js query "SELECT * FROM users WHERE age > 20"');
   console.log('  node database-manager.js query "DELETE FROM foods WHERE health_score < 50"');
+  console.log('  node database-manager.js delete-user-foods "ALdvN6kkPQfEdAIyb62dPAnNQIQ2"');
   console.log('');
 }
 
@@ -239,6 +281,19 @@ async function main() {
     case 'add-test':
       const userId = await addTestUser();
       await addTestFoodAnalysis(userId);
+      break;
+      
+    case 'delete-foods':
+      await deleteAllFoods();
+      break;
+      
+    case 'delete-user-foods':
+      const targetUserId = process.argv[3];
+      if (!targetUserId) {
+        console.error('❌ Please provide a user ID');
+        process.exit(1);
+      }
+      await deleteFoodsByUser(targetUserId);
       break;
       
     case 'query':

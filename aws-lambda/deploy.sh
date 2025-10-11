@@ -19,6 +19,12 @@ npm install
 zip -r ../user-profile.zip .
 cd ..
 
+# Delete Food Lambda
+cd delete-food
+npm install
+zip -r ../delete-food.zip .
+cd ..
+
 # Create Lambda functions
 echo "🔧 Creating Lambda functions..."
 
@@ -40,9 +46,18 @@ aws lambda create-function \
   --zip-file fileb://user-profile.zip \
   --region us-east-1
 
+# Delete Food Lambda
+aws lambda create-function \
+  --function-name foody-delete-food \
+  --runtime nodejs18.x \
+  --role arn:aws:iam::010993883654:role/lambda-execution-role \
+  --handler index.handler \
+  --zip-file fileb://delete-food.zip \
+  --region us-east-1
+
 echo "✅ Lambda functions deployed successfully!"
 
 # Clean up
-rm food-analysis.zip user-profile.zip
+rm food-analysis.zip user-profile.zip delete-food.zip
 
 echo "🎉 Deployment complete!"
