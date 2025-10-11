@@ -31,11 +31,11 @@ aws lambda create-function \
   --zip-file fileb://food-analysis.zip \
   --region us-east-1 \
   --environment Variables='{
-    "DB_HOST":"foody-database.cgfko2mcweuv.us-east-1.rds.amazonaws.com",
-    "DB_PORT":"5432",
-    "DB_NAME":"foody_db",
-    "DB_USER":"foodyadmin",
-    "DB_PASSWORD":"FoodyDB2024!Secure"
+    "DB_HOST":"${DB_HOST}",
+    "DB_PORT":"${DB_PORT:-5432}",
+    "DB_NAME":"${DB_NAME}",
+    "DB_USER":"${DB_USER}",
+    "DB_PASSWORD":"${DB_PASSWORD}"
   }'
 
 # User Profile Lambda
@@ -47,11 +47,11 @@ aws lambda create-function \
   --zip-file fileb://user-profile.zip \
   --region us-east-1 \
   --environment Variables='{
-    "DB_HOST":"foody-database.cgfko2mcweuv.us-east-1.rds.amazonaws.com",
-    "DB_PORT":"5432",
-    "DB_NAME":"foody_db",
-    "DB_USER":"foodyadmin",
-    "DB_PASSWORD":"FoodyDB2024!Secure"
+    "DB_HOST":"${DB_HOST}",
+    "DB_PORT":"${DB_PORT:-5432}",
+    "DB_NAME":"${DB_NAME}",
+    "DB_USER":"${DB_USER}",
+    "DB_PASSWORD":"${DB_PASSWORD}"
   }'
 
 echo "✅ Lambda functions deployed successfully!"

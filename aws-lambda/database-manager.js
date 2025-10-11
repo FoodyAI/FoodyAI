@@ -8,11 +8,19 @@
 const { Client } = require('pg');
 require('dotenv').config();
 
+// Validate required environment variables
+if (!process.env.DB_HOST || !process.env.DB_USER || !process.env.DB_PASSWORD || !process.env.DB_NAME) {
+  console.error('❌ Missing required environment variables:');
+  console.error('   DB_HOST, DB_USER, DB_PASSWORD, DB_NAME must be set');
+  console.error('   Create a .env file with these variables');
+  process.exit(1);
+}
+
 const client = new Client({
-  host: process.env.DB_HOST || 'foody-database.cgfko2mcweuv.us-east-1.rds.amazonaws.com',
-  user: process.env.DB_USER || 'foodyadmin',
-  password: process.env.DB_PASSWORD || 'FoodyDB2024!Secure',
-  database: process.env.DB_NAME || 'foody_db',
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
   port: parseInt(process.env.DB_PORT) || 5432,
   ssl: {
     rejectUnauthorized: false
