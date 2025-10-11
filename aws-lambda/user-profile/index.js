@@ -113,7 +113,7 @@ exports.handler = async (event) => {
             'Content-Type': 'application/json',
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Headers': 'Content-Type,Authorization',
-            'Access-Control-Allow-Methods': 'GET,POST,OPTIONS'
+            'Access-Control-Allow-Methods': 'GET,POST,DELETE,OPTIONS'
           },
           body: JSON.stringify({
             success: true,
@@ -205,7 +205,7 @@ exports.handler = async (event) => {
             'Content-Type': 'application/json',
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Headers': 'Content-Type,Authorization',
-            'Access-Control-Allow-Methods': 'GET,POST,OPTIONS'
+            'Access-Control-Allow-Methods': 'GET,POST,DELETE,OPTIONS'
           },
           body: JSON.stringify({
             success: true,
@@ -214,6 +214,68 @@ exports.handler = async (event) => {
           })
         };
       }
+    } else if (httpMethod === 'DELETE') {
+      // Delete user account and all associated data
+      const { userId } = pathParameters;
+      
+      if (!userId) {
+        return {
+          statusCode: 400,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*'
+          },
+          body: JSON.stringify({
+            success: false,
+            error: 'userId is required'
+          })
+        };
+      }
+      
+      // Check if user exists
+      const existingUser = await pool.query(
+        'SELECT user_id, email FROM users WHERE user_id = $1',
+        [userId]
+      );
+      
+      if (existingUser.rows.length === 0) {
+        return {
+          statusCode: 404,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*'
+          },
+          body: JSON.stringify({
+            success: false,
+            error: 'User not found'
+          })
+        };
+      }
+      
+      const userEmail = existingUser.rows[0].email;
+      
+      // Delete user (this will cascade delete all food analyses due to foreign key constraint)
+      const deleteResult = await pool.query(
+        'DELETE FROM users WHERE user_id = $1 RETURNING user_id',
+        [userId]
+      );
+      
+      console.log(`User ${userId} (${userEmail}) and all associated data deleted successfully`);
+      
+      return {
+        statusCode: 200,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+          'Access-Control-Allow-Methods': 'GET,POST,DELETE,OPTIONS'
+        },
+        body: JSON.stringify({
+          success: true,
+          message: 'User account and all associated data deleted successfully',
+          deletedUserId: deleteResult.rows[0].user_id
+        })
+      };
     }
     
     return {
