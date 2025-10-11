@@ -98,7 +98,8 @@ RESPONSE=$(curl -s -w "\nHTTP_CODE:%{http_code}" -X POST \
     "protein": 30.5,
     "carbs": 25.0,
     "fat": 12.5,
-    "healthScore": 85
+    "healthScore": 85,
+    "foodId": "550e8400-e29b-41d4-a716-446655440000"
   }')
 
 HTTP_CODE=$(echo "$RESPONSE" | grep "HTTP_CODE" | cut -d: -f2)
@@ -120,16 +121,41 @@ echo -e "${YELLOW}Test 4: DELETE /food-analysis (Delete Food Analysis)${NC}"
 echo "Endpoint: $API_BASE_URL/food-analysis"
 echo ""
 
-# Get today's date in YYYY-MM-DD format
-TODAY=$(date +%Y-%m-%d)
+# First, get the food ID from the created food analysis
+echo "🔍 Getting food ID from created food analysis..."
+
+# Create a food analysis first to get its UUID
+CREATE_RESPONSE=$(curl -s -X POST \
+  "$API_BASE_URL/food-analysis" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "userId": "'$TEST_USER_ID'",
+    "imageUrl": "https://example.com/delete-test.jpg",
+    "foodName": "Test Food for Deletion",
+    "calories": 200,
+    "protein": 15.0,
+    "carbs": 20.0,
+    "fat": 8.0,
+    "healthScore": 75,
+    "foodId": "550e8400-e29b-41d4-a716-446655440001"
+  }')
+
+FOOD_ID=$(echo "$CREATE_RESPONSE" | jq -r '.foodId // empty')
+
+if [ -z "$FOOD_ID" ] || [ "$FOOD_ID" = "null" ]; then
+  echo "❌ Could not get food ID from creation response"
+  echo "Response: $CREATE_RESPONSE"
+  exit 1
+fi
+
+echo "📝 Using food ID: $FOOD_ID"
 
 RESPONSE=$(curl -s -w "\nHTTP_CODE:%{http_code}" -X DELETE \
   "$API_BASE_URL/food-analysis" \
   -H "Content-Type: application/json" \
   -d '{
     "userId": "'$TEST_USER_ID'",
-    "foodName": "Grilled Chicken Salad",
-    "analysisDate": "'$TODAY'"
+    "foodId": "'$FOOD_ID'"
   }')
 
 HTTP_CODE=$(echo "$RESPONSE" | grep "HTTP_CODE" | cut -d: -f2)
