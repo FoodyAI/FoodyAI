@@ -21,7 +21,7 @@ class DatabaseHelper {
     print('Database path: $path');
     return await openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -57,7 +57,7 @@ class DatabaseHelper {
     // Create foods table
     await db.execute('''
       CREATE TABLE foods (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id TEXT PRIMARY KEY,
         user_id TEXT,
         image_url TEXT,
         food_name TEXT NOT NULL,
@@ -85,8 +85,7 @@ class DatabaseHelper {
     ''');
 
     // Create indexes for better performance
-    await db.execute(
-        'CREATE INDEX idx_foods_user_id ON foods(user_id)');
+    await db.execute('CREATE INDEX idx_foods_user_id ON foods(user_id)');
     await db.execute(
         'CREATE INDEX idx_foods_analysis_date ON foods(analysis_date)');
     await db.execute(
@@ -98,8 +97,54 @@ class DatabaseHelper {
     // Handle database migrations here
     if (oldVersion < 2) {
       // Add synced_to_aws column to foods table
-      await db.execute('ALTER TABLE foods ADD COLUMN synced_to_aws INTEGER DEFAULT 0');
+      await db.execute(
+          'ALTER TABLE foods ADD COLUMN synced_to_aws INTEGER DEFAULT 0');
       print('Database upgraded: Added synced_to_aws column to foods table');
+    }
+
+    if (oldVersion < 3) {
+      // Migrate from INTEGER id to TEXT id (UUID)
+      print(
+          'Database upgraded: Migrating foods table to use UUID for id column');
+
+      // Create new table with UUID support
+      await db.execute('''
+        CREATE TABLE foods_new (
+          id TEXT PRIMARY KEY,
+          user_id TEXT,
+          image_url TEXT,
+          food_name TEXT NOT NULL,
+          calories INTEGER,
+          protein REAL,
+          carbs REAL,
+          fat REAL,
+          health_score INTEGER,
+          analysis_date TEXT,
+          created_at INTEGER,
+          synced_to_aws INTEGER DEFAULT 0,
+          FOREIGN KEY (user_id) REFERENCES user_profile(user_id) ON DELETE CASCADE
+        )
+      ''');
+
+      // Copy data from old table to new table, generating UUIDs for existing records
+      await db.execute('''
+        INSERT INTO foods_new (id, user_id, image_url, food_name, calories, protein, carbs, fat, health_score, analysis_date, created_at, synced_to_aws)
+        SELECT 
+          'migrated-' || CAST(id AS TEXT) || '-' || CAST(created_at AS TEXT) as id,
+          user_id, image_url, food_name, calories, protein, carbs, fat, health_score, analysis_date, created_at, synced_to_aws
+        FROM foods
+      ''');
+
+      // Drop old table and rename new table
+      await db.execute('DROP TABLE foods');
+      await db.execute('ALTER TABLE foods_new RENAME TO foods');
+
+      // Recreate indexes
+      await db.execute('CREATE INDEX idx_foods_user_id ON foods(user_id)');
+      await db.execute(
+          'CREATE INDEX idx_foods_analysis_date ON foods(analysis_date)');
+
+      print('Database upgraded: Successfully migrated to UUID-based food IDs');
     }
   }
 
@@ -180,8 +225,7 @@ class DatabaseHelper {
     );
   }
 
-  Future<int> updateFood(
-      int id, Map<String, dynamic> food) async {
+  Future<int> updateFood(String id, Map<String, dynamic> food) async {
     final db = await database;
     return await db.update(
       'foods',
@@ -191,7 +235,7 @@ class DatabaseHelper {
     );
   }
 
-  Future<int> deleteFood(int id) async {
+  Future<int> deleteFood(String id) async {
     final db = await database;
     return await db.delete(
       'foods',
@@ -221,7 +265,8 @@ class DatabaseHelper {
   }
 
   // Mark food as synced
-  Future<int> markFoodAsSynced(String userId, String foodName, String analysisDate) async {
+  Future<int> markFoodAsSynced(
+      String userId, String foodName, String analysisDate) async {
     final db = await database;
     return await db.update(
       'foods',

@@ -72,13 +72,14 @@ class SyncService {
 
       // Get ONLY unsynced food analyses from SQLite
       final unsyncedAnalyses = await _sqliteService.getUnsyncedFoodAnalyses();
-      
+
       if (unsyncedAnalyses.isEmpty) {
         print('📋 AWS: No unsynced food analyses to sync');
         return;
       }
 
-      print('🔄 AWS: Found ${unsyncedAnalyses.length} unsynced food analyses to sync');
+      print(
+          '🔄 AWS: Found ${unsyncedAnalyses.length} unsynced food analyses to sync');
 
       for (final analysis in unsyncedAnalyses) {
         try {
@@ -92,11 +93,13 @@ class SyncService {
             carbs: analysis.carbs,
             fat: analysis.fat,
             healthScore: analysis.healthScore.toInt(),
+            foodId: analysis.id ?? '',
           );
 
           // If successful, mark as synced
           if (result != null) {
-            await _sqliteService.markFoodAnalysisAsSynced(analysis.name, analysis.date);
+            await _sqliteService.markFoodAnalysisAsSynced(
+                analysis.name, analysis.date);
             print('✅ AWS: Synced and marked: ${analysis.name}');
           } else {
             print('❌ AWS: Failed to sync: ${analysis.name}');
@@ -181,7 +184,13 @@ class SyncService {
 
       final userId = user.uid;
       print('🔄 AWS: Syncing food analysis to AWS for user: $userId');
-      print('📝 AWS: Analysis data - ${analysis.name} (${analysis.calories} cal)');
+      print(
+          '📝 AWS: Analysis data - ${analysis.name} (${analysis.calories} cal)');
+
+      if (analysis.id == null) {
+        print('❌ AWS: No food ID available for sync');
+        return;
+      }
 
       final result = await _awsService.saveFoodAnalysis(
         userId: userId,
@@ -192,11 +201,13 @@ class SyncService {
         carbs: analysis.carbs,
         fat: analysis.fat,
         healthScore: analysis.healthScore.toInt(),
+        foodId: analysis.id!,
       );
 
       if (result != null) {
         // Mark as synced in local database
-        await _sqliteService.markFoodAnalysisAsSynced(analysis.name, analysis.date);
+        await _sqliteService.markFoodAnalysisAsSynced(
+            analysis.name, analysis.date);
         print('✅ AWS: Food analysis saved to AWS successfully');
         print('✅ AWS: Marked as synced in local database');
         print('✅ AWS: Server response: $result');
@@ -219,12 +230,16 @@ class SyncService {
 
       final userId = user.uid;
       print('🗑️ AWS: Deleting food analysis from AWS for user: $userId');
-      print('📝 AWS: Analysis data - ${analysis.name} on ${analysis.date.toIso8601String().split('T')[0]}');
+      print('📝 AWS: Analysis data - ${analysis.name} (ID: ${analysis.id})');
+
+      if (analysis.id == null) {
+        print('❌ AWS: No food ID available for deletion');
+        return;
+      }
 
       final result = await _awsService.deleteFoodAnalysis(
         userId: userId,
-        foodName: analysis.name,
-        analysisDate: analysis.date.toIso8601String().split('T')[0],
+        foodId: analysis.id!,
       );
 
       if (result != null) {

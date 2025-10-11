@@ -158,6 +158,7 @@ class AWSService {
     required double carbs,
     required double fat,
     required int healthScore,
+    required String foodId,
   }) async {
     try {
       print('🔄 AWS Service: Starting food analysis save...');
@@ -179,6 +180,7 @@ class AWSService {
         'carbs': carbs,
         'fat': fat,
         'healthScore': healthScore,
+        'foodId': foodId,
       };
       
       print('📤 AWS Service: Sending request to /food-analysis');
@@ -214,13 +216,12 @@ class AWSService {
   // Delete food analysis from AWS
   Future<Map<String, dynamic>?> deleteFoodAnalysis({
     required String userId,
-    required String foodName,
-    required String analysisDate,
+    required String foodId,
   }) async {
     try {
       print('🗑️ AWS Service: Starting food analysis deletion...');
       print('📝 AWS Service: User ID: $userId');
-      print('📝 AWS Service: Food: $foodName, Date: $analysisDate');
+      print('📝 AWS Service: Food ID: $foodId');
       
       final idToken = await _getIdToken();
       if (idToken == null) {
@@ -232,8 +233,7 @@ class AWSService {
         '/food-analysis',
         data: {
           'userId': userId,
-          'foodName': foodName,
-          'analysisDate': analysisDate,
+          'foodId': foodId,
         },
         options: Options(
           headers: {
