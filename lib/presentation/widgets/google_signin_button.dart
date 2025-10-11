@@ -3,6 +3,9 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../viewmodels/auth_viewmodel.dart';
+import '../viewmodels/user_profile_viewmodel.dart';
+import '../pages/onboarding_view.dart';
+import '../pages/home_view.dart';
 
 class GoogleSignInButton extends StatelessWidget {
   final VoidCallback? onPressed;
@@ -78,21 +81,109 @@ class GoogleSignInButton extends StatelessWidget {
     try {
       print('Starting Google Sign-In...');
       final authVM = Provider.of<AuthViewModel>(context, listen: false);
+      final profileVM = Provider.of<UserProfileViewModel>(context, listen: false);
       
       // Call the sign-in method through AuthViewModel
       final success = await authVM.signInWithGoogle();
       
       if (success) {
-        // Successfully signed in - UI will update automatically via Provider
-        print('Sign-in successful, showing success message');
+        print('Sign-in successful, determining user flow...');
+        
+        // Wait for profile sync to complete and force reload
+        await Future.delayed(const Duration(milliseconds: 500));
+        
+        // Force reload profile to ensure we have the latest data
+        print('Forcing profile reload to check user status...');
+        await profileVM.refreshProfile(); // Force reload from local storage and AWS
+        
+        // Give additional time for sync if profile is still null
+        if (profileVM.profile == null) {
+          print('Profile still not loaded, waiting longer for AWS sync...');
+          await Future.delayed(const Duration(milliseconds: 1500));
+          await profileVM.refreshProfile(); // Try again
+        }
+        
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Welcome, ${authVM.userDisplayName ?? authVM.userEmail}!'),
-              backgroundColor: AppColors.success,
-              duration: const Duration(seconds: 3),
-            ),
-          );
+          // Check if user has completed onboarding AND has a profile
+          final hasCompletedOnboarding = profileVM.hasCompletedOnboarding;
+          final hasProfile = profileVM.profile != null;
+          
+          print('User status: hasCompletedOnboarding=$hasCompletedOnboarding, hasProfile=$hasProfile');
+          
+          if (hasCompletedOnboarding && hasProfile) {
+            // Existing user with complete profile - navigate to home page
+            print('Existing user with profile detected - navigating to home');
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Welcome back, ${authVM.userDisplayName ?? authVM.userEmail}!'),
+                backgroundColor: AppColors.success,
+                duration: const Duration(seconds: 2),
+              ),
+            );
+            
+            // Explicitly navigate to home page
+            Navigator.pushReplacement(
+              context,
+              PageRouteBuilder(
+                pageBuilder: (context, animation, secondaryAnimation) =>
+                    const HomeView(),
+                transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                  const begin = Offset(1.0, 0.0);
+                  const end = Offset.zero;
+                  const curve = Curves.easeInOutCubic;
+                  var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                  var offsetAnimation = animation.drive(tween);
+                  return SlideTransition(
+                    position: offsetAnimation,
+                    child: FadeTransition(
+                      opacity: animation,
+                      child: child,
+                    ),
+                  );
+                },
+                transitionDuration: const Duration(milliseconds: 800),
+              ),
+            );
+            
+          } else {
+            // First-time user OR user without profile - navigate to onboarding
+            if (!hasProfile) {
+              print('User signed in but no profile found - treating as first-time user');
+            } else {
+              print('First-time user detected - navigating to onboarding');
+            }
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Welcome to Foody, ${authVM.userDisplayName ?? authVM.userEmail}!'),
+                backgroundColor: AppColors.success,
+                duration: const Duration(seconds: 2),
+              ),
+            );
+            
+            // Navigate to onboarding with smooth transition
+            Navigator.pushReplacement(
+              context,
+              PageRouteBuilder(
+                pageBuilder: (context, animation, secondaryAnimation) =>
+                    const OnboardingView(),
+                transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                  const begin = Offset(1.0, 0.0);
+                  const end = Offset.zero;
+                  const curve = Curves.easeInOutCubic;
+                  var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                  var offsetAnimation = animation.drive(tween);
+                  return SlideTransition(
+                    position: offsetAnimation,
+                    child: FadeTransition(
+                      opacity: animation,
+                      child: child,
+                    ),
+                  );
+                },
+                transitionDuration: const Duration(milliseconds: 800),
+              ),
+            );
+          }
         }
       } else {
         // User cancelled or error occurred
