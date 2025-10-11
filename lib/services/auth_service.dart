@@ -42,6 +42,9 @@ class AuthService {
   // Sign in with Google
   Future<User?> signInWithGoogle() async {
     try {
+      // Clear any previous sign-in state
+      await _googleSignIn.signOut();
+      
       // Trigger the authentication flow
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       
@@ -72,6 +75,22 @@ class AuthService {
       return result.user;
     } catch (e) {
       print('Error signing in with Google: $e');
+      
+      // Handle specific type casting errors
+      if (e.toString().contains('PigeonUserDetails') || e.toString().contains('List<Object?>')) {
+        print('Handling Google Sign-In plugin compatibility issue...');
+        try {
+          // Try alternative approach - check if user is already signed in
+          await _googleSignIn.signInSilently();
+          if (_auth.currentUser != null) {
+            print('User is already signed in: ${_auth.currentUser?.email}');
+            return _auth.currentUser;
+          }
+        } catch (silentError) {
+          print('Silent sign-in also failed: $silentError');
+        }
+      }
+      
       // Even if there's an error, check if user is already signed in
       if (_auth.currentUser != null) {
         print('User is already signed in: ${_auth.currentUser?.email}');
