@@ -94,8 +94,6 @@ class FoodAnalysis {
       'fat': fat,
       'health_score': healthScore.round(),
       'analysis_date': date.toIso8601String().split('T')[0],
-      'order_number': orderNumber,
-      'date_order_number': dateOrderNumber,
       'created_at': DateTime.now().millisecondsSinceEpoch,
     };
   }
@@ -109,9 +107,9 @@ class FoodAnalysis {
       calories: (map['calories'] as num).toDouble(),
       healthScore: (map['health_score'] as num).toDouble(),
       imagePath: map['image_url'] as String?,
-      orderNumber: map['order_number'] as int? ?? 0,
+      orderNumber: 0, // Not stored in database anymore
       date: DateTime.parse(map['analysis_date'] as String),
-      dateOrderNumber: map['date_order_number'] as int? ?? 0,
+      dateOrderNumber: 0, // Not stored in database anymore
     );
   }
 }

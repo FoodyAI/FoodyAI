@@ -160,23 +160,33 @@ class AWSService {
     required int healthScore,
   }) async {
     try {
+      print('🔄 AWS Service: Starting food analysis save...');
+      print('📝 AWS Service: User ID: $userId');
+      print('📝 AWS Service: Food: $foodName ($calories cal)');
+      
       final idToken = await _getIdToken();
       if (idToken == null) {
+        print('❌ AWS Service: No ID token available');
         throw Exception('User not authenticated');
       }
 
+      final requestData = {
+        'userId': userId,
+        'imageUrl': imageUrl,
+        'foodName': foodName,
+        'calories': calories,
+        'protein': protein,
+        'carbs': carbs,
+        'fat': fat,
+        'healthScore': healthScore,
+      };
+      
+      print('📤 AWS Service: Sending request to /food-analysis');
+      print('📤 AWS Service: Request data: $requestData');
+
       final response = await _dio.post(
         '/food-analysis',
-        data: {
-          'userId': userId,
-          'imageUrl': imageUrl,
-          'foodName': foodName,
-          'calories': calories,
-          'protein': protein,
-          'carbs': carbs,
-          'fat': fat,
-          'healthScore': healthScore,
-        },
+        data: requestData,
         options: Options(
           headers: {
             'Authorization': 'Bearer $idToken',
@@ -185,13 +195,18 @@ class AWSService {
         ),
       );
 
+      print('📥 AWS Service: Response status: ${response.statusCode}');
+      print('📥 AWS Service: Response data: ${response.data}');
+
       if (response.statusCode == 200) {
+        print('✅ AWS Service: Food analysis saved successfully');
         return response.data;
       } else {
+        print('❌ AWS Service: Failed to save food analysis: ${response.statusMessage}');
         throw Exception('Failed to save food analysis: ${response.statusMessage}');
       }
     } catch (e) {
-      print('Error saving food analysis: $e');
+      print('❌ AWS Service: Error saving food analysis: $e');
       return null;
     }
   }
