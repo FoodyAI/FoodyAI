@@ -21,7 +21,7 @@ class DatabaseHelper {
     print('Database path: $path');
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -68,6 +68,7 @@ class DatabaseHelper {
         health_score INTEGER,
         analysis_date TEXT,
         created_at INTEGER,
+        synced_to_aws INTEGER DEFAULT 0,
         FOREIGN KEY (user_id) REFERENCES user_profile(user_id) ON DELETE CASCADE
       )
     ''');
@@ -95,8 +96,10 @@ class DatabaseHelper {
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     // Handle database migrations here
-    if (oldVersion < 1) {
-      // Migration logic for version 1
+    if (oldVersion < 2) {
+      // Add synced_to_aws column to foods table
+      await db.execute('ALTER TABLE foods ADD COLUMN synced_to_aws INTEGER DEFAULT 0');
+      print('Database upgraded: Added synced_to_aws column to foods table');
     }
   }
 
@@ -203,6 +206,28 @@ class DatabaseHelper {
       'foods',
       where: 'user_id = ?',
       whereArgs: [userId],
+    );
+  }
+
+  // Get unsynced foods
+  Future<List<Map<String, dynamic>>> getUnsyncedFoods(String userId) async {
+    final db = await database;
+    return await db.query(
+      'foods',
+      where: 'user_id = ? AND synced_to_aws = 0',
+      whereArgs: [userId],
+      orderBy: 'created_at DESC',
+    );
+  }
+
+  // Mark food as synced
+  Future<int> markFoodAsSynced(String userId, String foodName, String analysisDate) async {
+    final db = await database;
+    return await db.update(
+      'foods',
+      {'synced_to_aws': 1},
+      where: 'user_id = ? AND food_name = ? AND analysis_date = ?',
+      whereArgs: [userId, foodName, analysisDate],
     );
   }
 
