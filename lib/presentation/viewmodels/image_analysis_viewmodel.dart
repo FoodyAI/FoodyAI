@@ -202,9 +202,22 @@ class ImageAnalysisViewModel extends ChangeNotifier {
   Future<FoodAnalysis?> removeAnalysis(int index) async {
     if (index >= 0 && index < _savedAnalyses.length) {
       final removedAnalysis = _savedAnalyses[index];
+      print('🗑️ ImageAnalysisViewModel: Removing analysis: ${removedAnalysis.name}');
+      
       _savedAnalyses.removeAt(index);
 
+      print('💾 ImageAnalysisViewModel: Saving updated analyses to storage...');
       await _storage.saveAnalyses(_savedAnalyses);
+
+      // Sync deletion with AWS if user is signed in
+      if (_auth.currentUser != null) {
+        print('🔄 ImageAnalysisViewModel: User is signed in, syncing deletion to AWS...');
+        await _syncService.deleteFoodAnalysisFromAWS(removedAnalysis);
+        print('✅ ImageAnalysisViewModel: AWS deletion sync completed');
+      } else {
+        print('❌ ImageAnalysisViewModel: No user signed in, skipping AWS deletion sync');
+      }
+
       notifyListeners();
       return removedAnalysis;
     }

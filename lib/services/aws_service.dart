@@ -211,6 +211,55 @@ class AWSService {
     }
   }
 
+  // Delete food analysis from AWS
+  Future<Map<String, dynamic>?> deleteFoodAnalysis({
+    required String userId,
+    required String foodName,
+    required String analysisDate,
+  }) async {
+    try {
+      print('🗑️ AWS Service: Starting food analysis deletion...');
+      print('📝 AWS Service: User ID: $userId');
+      print('📝 AWS Service: Food: $foodName, Date: $analysisDate');
+      
+      final idToken = await _getIdToken();
+      if (idToken == null) {
+        print('❌ AWS Service: No ID token available');
+        throw Exception('User not authenticated');
+      }
+
+      final response = await _dio.delete(
+        '/food-analysis',
+        data: {
+          'userId': userId,
+          'foodName': foodName,
+          'analysisDate': analysisDate,
+        },
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $idToken',
+            'Content-Type': 'application/json',
+          },
+        ),
+      );
+
+      print('📥 AWS Service: Delete response status: ${response.statusCode}');
+      print('📥 AWS Service: Delete response data: ${response.data}');
+
+      if (response.statusCode == 200) {
+        print('✅ AWS Service: Food analysis deleted successfully');
+        return response.data;
+      } else {
+        print('❌ AWS Service: Failed to delete with status ${response.statusCode}');
+        print('❌ AWS Service: Error: ${response.statusMessage}');
+        throw Exception('Failed to delete food analysis: ${response.statusMessage}');
+      }
+    } catch (e) {
+      print('❌ AWS Service: Exception occurred during deletion: $e');
+      return null;
+    }
+  }
+
   // Upload image to S3 (placeholder - would need S3 SDK)
   Future<String?> uploadImageToS3(File imageFile) async {
     // This would require AWS S3 SDK for Flutter

@@ -208,6 +208,36 @@ class SyncService {
     }
   }
 
+  // Delete food analysis from AWS when user is signed in
+  Future<void> deleteFoodAnalysisFromAWS(FoodAnalysis analysis) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) {
+        print('❌ AWS: No authenticated user, skipping food analysis deletion');
+        return;
+      }
+
+      final userId = user.uid;
+      print('🗑️ AWS: Deleting food analysis from AWS for user: $userId');
+      print('📝 AWS: Analysis data - ${analysis.name} on ${analysis.date.toIso8601String().split('T')[0]}');
+
+      final result = await _awsService.deleteFoodAnalysis(
+        userId: userId,
+        foodName: analysis.name,
+        analysisDate: analysis.date.toIso8601String().split('T')[0],
+      );
+
+      if (result != null) {
+        print('✅ AWS: Food analysis deleted from AWS successfully');
+        print('✅ AWS: Server response: $result');
+      } else {
+        print('❌ AWS: Failed to delete food analysis - null response');
+      }
+    } catch (e) {
+      print('❌ AWS: Error deleting food analysis from AWS: $e');
+    }
+  }
+
   // Update user profile in AWS when user is signed in
   Future<void> updateUserProfileInAWS({
     String? gender,
