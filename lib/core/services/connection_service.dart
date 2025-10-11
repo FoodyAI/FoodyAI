@@ -7,7 +7,8 @@ class ConnectionService {
   factory ConnectionService() => _instance;
   ConnectionService._internal();
 
-  final StreamController<bool> _connectionController = StreamController<bool>.broadcast();
+  final StreamController<bool> _connectionController =
+      StreamController<bool>.broadcast();
   StreamSubscription? _connectivitySubscription;
   StreamSubscription? _internetSubscription;
   bool _isConnected = true;
@@ -17,18 +18,16 @@ class ConnectionService {
 
   void startMonitoring() {
     // Monitor connectivity changes (WiFi, Mobile, None)
-    _connectivitySubscription = Connectivity()
-        .onConnectivityChanged
-        .listen(_handleConnectivityChange);
+    _connectivitySubscription =
+        Connectivity().onConnectivityChanged.listen(_handleConnectivityChange);
 
     // Monitor actual internet connectivity
-    _internetSubscription = InternetConnectionChecker()
-        .onStatusChange
+    _internetSubscription = InternetConnectionChecker.instance.onStatusChange
         .listen(_handleInternetStatusChange);
   }
 
-  void _handleConnectivityChange(ConnectivityResult result) {
-    if (result == ConnectivityResult.none) {
+  void _handleConnectivityChange(List<ConnectivityResult> results) {
+    if (results.contains(ConnectivityResult.none)) {
       // No network connection
       _updateConnectionStatus(false);
     } else {
@@ -42,7 +41,7 @@ class ConnectionService {
   }
 
   Future<void> _checkInternetConnection() async {
-    final isConnected = await InternetConnectionChecker().hasConnection;
+    final isConnected = await InternetConnectionChecker.instance.hasConnection;
     _updateConnectionStatus(isConnected);
   }
 
