@@ -39,8 +39,43 @@ class _ProfileViewState extends State<ProfileView>
   @override
   Widget build(BuildContext context) {
     final profileVM = Provider.of<UserProfileViewModel>(context);
-    final profile = profileVM.profile!;
+    final profile = profileVM.profile;
     final colorScheme = Theme.of(context).colorScheme;
+
+    // Handle case where profile is null
+    if (profile == null) {
+      final authVM = Provider.of<AuthViewModel>(context, listen: false);
+      
+      // If user is not signed in (after deletion), redirect to welcome page
+      if (!authVM.isSignedIn) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+            (route) => false,
+          );
+        });
+        return Scaffold(
+          appBar: const CustomAppBar(
+            title: 'Profile',
+            icon: FontAwesomeIcons.user,
+          ),
+          body: const Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
+      }
+      
+      // If user is signed in but profile not loaded yet, show loading
+      return Scaffold(
+        appBar: const CustomAppBar(
+          title: 'Profile',
+          icon: FontAwesomeIcons.user,
+        ),
+        body: const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
 
     return Scaffold(
       appBar: const CustomAppBar(
@@ -530,8 +565,15 @@ class _ProfileViewState extends State<ProfileView>
   Widget _buildSettingsTab(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final profileVM = Provider.of<UserProfileViewModel>(context);
-    final profile = profileVM.profile!;
+    final profile = profileVM.profile;
     final authVM = Provider.of<AuthViewModel>(context);
+
+    // Handle case where profile is not yet loaded
+    if (profile == null) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -1111,6 +1153,9 @@ class _ProfileViewState extends State<ProfileView>
 
   void _showGenderDialog(BuildContext context, UserProfileViewModel vm) {
     final colorScheme = Theme.of(context).colorScheme;
+    final profile = vm.profile;
+    
+    if (profile == null) return;
 
     showDialog(
       context: context,
@@ -1136,25 +1181,25 @@ class _ProfileViewState extends State<ProfileView>
                 ),
               ),
               trailing: FaIcon(
-                vm.profile!.gender == 'Male'
+                profile.gender == 'Male'
                     ? FontAwesomeIcons.circleCheck
                     : FontAwesomeIcons.circle,
-                color: vm.profile!.gender == 'Male'
+                color: profile.gender == 'Male'
                     ? colorScheme.primary
                     : colorScheme.onSurface.withOpacity(0.5),
               ),
               onTap: () {
                 vm.saveProfile(
                   gender: 'Male',
-                  age: vm.profile!.age,
+                  age: profile.age,
                   weight: vm.displayWeight,
                   weightUnit: vm.weightUnit,
                   height: vm.displayHeight,
                   heightUnit: vm.heightUnit,
-                  activityLevel: vm.profile!.activityLevel,
+                  activityLevel: profile.activityLevel,
                   isMetric: vm.isMetric,
-                  weightGoal: vm.profile!.weightGoal,
-                  aiProvider: vm.profile!.aiProvider,
+                  weightGoal: profile.weightGoal,
+                  aiProvider: profile.aiProvider,
                 );
                 Navigator.pop(context);
               },
@@ -1171,25 +1216,25 @@ class _ProfileViewState extends State<ProfileView>
                 ),
               ),
               trailing: FaIcon(
-                vm.profile!.gender == 'Female'
+                profile.gender == 'Female'
                     ? FontAwesomeIcons.circleCheck
                     : FontAwesomeIcons.circle,
-                color: vm.profile!.gender == 'Female'
+                color: profile.gender == 'Female'
                     ? colorScheme.primary
                     : colorScheme.onSurface.withOpacity(0.5),
               ),
               onTap: () {
                 vm.saveProfile(
                   gender: 'Female',
-                  age: vm.profile!.age,
+                  age: profile.age,
                   weight: vm.displayWeight,
                   weightUnit: vm.weightUnit,
                   height: vm.displayHeight,
                   heightUnit: vm.heightUnit,
-                  activityLevel: vm.profile!.activityLevel,
+                  activityLevel: profile.activityLevel,
                   isMetric: vm.isMetric,
-                  weightGoal: vm.profile!.weightGoal,
-                  aiProvider: vm.profile!.aiProvider,
+                  weightGoal: profile.weightGoal,
+                  aiProvider: profile.aiProvider,
                 );
                 Navigator.pop(context);
               },
@@ -1202,7 +1247,11 @@ class _ProfileViewState extends State<ProfileView>
 
   void _showAgeDialog(BuildContext context, UserProfileViewModel vm) {
     final colorScheme = Theme.of(context).colorScheme;
-    int selectedAge = vm.profile!.age;
+    final profile = vm.profile;
+    
+    if (profile == null) return;
+    
+    int selectedAge = profile.age;
 
     showDialog(
       context: context,
@@ -1232,16 +1281,16 @@ class _ProfileViewState extends State<ProfileView>
           TextButton(
             onPressed: () {
               vm.saveProfile(
-                gender: vm.profile!.gender,
+                gender: profile.gender,
                 age: selectedAge,
                 weight: vm.displayWeight,
                 weightUnit: vm.weightUnit,
                 height: vm.displayHeight,
                 heightUnit: vm.heightUnit,
-                activityLevel: vm.profile!.activityLevel,
+                activityLevel: profile.activityLevel,
                 isMetric: vm.isMetric,
-                weightGoal: vm.profile!.weightGoal,
-                aiProvider: vm.profile!.aiProvider,
+                weightGoal: profile.weightGoal,
+                aiProvider: profile.aiProvider,
               );
               Navigator.pop(context);
             },
@@ -1259,6 +1308,10 @@ class _ProfileViewState extends State<ProfileView>
 
   void _showWeightDialog(BuildContext context, UserProfileViewModel vm) {
     final colorScheme = Theme.of(context).colorScheme;
+    final profile = vm.profile;
+    
+    if (profile == null) return;
+    
     double selectedWeight = vm.displayWeight;
 
     showDialog(
@@ -1289,17 +1342,18 @@ class _ProfileViewState extends State<ProfileView>
           ),
           TextButton(
             onPressed: () {
+              if (profile == null) return;
               vm.saveProfile(
-                gender: vm.profile!.gender,
-                age: vm.profile!.age,
+                gender: profile.gender,
+                age: profile.age,
                 weight: selectedWeight,
                 weightUnit: vm.weightUnit,
                 height: vm.displayHeight,
                 heightUnit: vm.heightUnit,
-                activityLevel: vm.profile!.activityLevel,
+                activityLevel: profile.activityLevel,
                 isMetric: vm.isMetric,
-                weightGoal: vm.profile!.weightGoal,
-                aiProvider: vm.profile!.aiProvider,
+                weightGoal: profile.weightGoal,
+                aiProvider: profile.aiProvider,
               );
               Navigator.pop(context);
             },
@@ -1317,6 +1371,10 @@ class _ProfileViewState extends State<ProfileView>
 
   void _showHeightDialog(BuildContext context, UserProfileViewModel vm) {
     final colorScheme = Theme.of(context).colorScheme;
+    final profile = vm.profile;
+    
+    if (profile == null) return;
+    
     // HeightInput widget expects height in cm for both metric and imperial
     // For imperial, it will convert cm to feet/inches internally
     double selectedHeight =
@@ -1354,16 +1412,16 @@ class _ProfileViewState extends State<ProfileView>
               double heightToSave =
                   vm.isMetric ? selectedHeight : selectedHeight / 2.54;
               vm.saveProfile(
-                gender: vm.profile!.gender,
-                age: vm.profile!.age,
+                gender: profile.gender,
+                age: profile.age,
                 weight: vm.displayWeight,
                 weightUnit: vm.weightUnit,
                 height: heightToSave,
                 heightUnit: vm.heightUnit,
-                activityLevel: vm.profile!.activityLevel,
+                activityLevel: profile.activityLevel,
                 isMetric: vm.isMetric,
-                weightGoal: vm.profile!.weightGoal,
-                aiProvider: vm.profile!.aiProvider,
+                weightGoal: profile.weightGoal,
+                aiProvider: profile.aiProvider,
               );
               Navigator.pop(context);
             },
