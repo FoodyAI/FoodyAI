@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>90065846017-bt8pod5qjbg1pd25uof25b2jmhdf0n32.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.90065846017-bt8pod5qjbg1pd25uof25b2jmhdf0n32</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>90065846017-oem006kqfaj2a13gmgmr6vobpuhsmdrh.apps.googleusercontent.com</string>
+	<key>API_KEY</key>
+	<string>AIzaSyA9zbBWpienPL50OnFmrh968iw440psd9Q</string>
+	<key>GCM_SENDER_ID</key>
+	<string>90065846017</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>io.github.mohammadaminrez.foody</string>
+	<key>PROJECT_ID</key>
+	<string>foody-app-mohammadaminrez</string>
+	<key>STORAGE_BUCKET</key>
+	<string>foody-app-mohammadaminrez.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:90065846017:ios:046b99c9065f938cda2500</string>
+</dict>
+</plist>
