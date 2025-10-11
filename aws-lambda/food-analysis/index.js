@@ -1,5 +1,6 @@
 const AWS = require('aws-sdk');
 const { Pool } = require('pg');
+const { v4: uuidv4 } = require('uuid');
 
 // Initialize AWS services
 const s3 = new AWS.S3();
@@ -39,17 +40,18 @@ exports.handler = async (event) => {
       console.log('POST request received for food analysis');
       console.log('Event body:', event.body);
       
-      const { userId, imageUrl, foodName, calories, protein, carbs, fat, healthScore } = JSON.parse(event.body);
+      const { userId, imageUrl, foodName, calories, protein, carbs, fat, healthScore, foodId } = JSON.parse(event.body);
       
-      console.log('Parsed data:', { userId, imageUrl, foodName, calories, protein, carbs, fat, healthScore });
+      console.log('Parsed data:', { userId, imageUrl, foodName, calories, protein, carbs, fat, healthScore, foodId });
       
       const query = `
-        INSERT INTO foods (user_id, image_url, food_name, calories, protein, carbs, fat, health_score, analysis_date)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        INSERT INTO foods (id, user_id, image_url, food_name, calories, protein, carbs, fat, health_score, analysis_date)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
         RETURNING id
       `;
       
       const values = [
+        foodId, // Use UUID from Flutter
         userId,
         imageUrl,
         foodName,
@@ -76,18 +78,18 @@ exports.handler = async (event) => {
       };
       
     } else if (httpMethod === 'DELETE') {
-      // Delete food analysis
-      const { userId, foodName, analysisDate } = JSON.parse(event.body);
+      // Delete food analysis by unique ID
+      const { userId, foodId } = JSON.parse(event.body);
       
-      console.log(`Deleting food: ${foodName} for user: ${userId} on date: ${analysisDate}`);
+      console.log(`Deleting food ID: ${foodId} for user: ${userId}`);
       
       const query = `
         DELETE FROM foods 
-        WHERE user_id = $1 AND food_name = $2 AND analysis_date = $3
+        WHERE user_id = $1 AND id = $2
         RETURNING id, food_name
       `;
       
-      const values = [userId, foodName, analysisDate];
+      const values = [userId, foodId];
       const result = await pool.query(query, values);
       
       if (result.rows.length === 0) {

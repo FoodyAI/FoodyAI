@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS users (
 
 -- Foods table
 CREATE TABLE IF NOT EXISTS foods (
-    id SERIAL PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id VARCHAR(255) NOT NULL,
     image_url TEXT,
     food_name VARCHAR(255) NOT NULL,
