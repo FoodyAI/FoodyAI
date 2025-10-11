@@ -260,6 +260,45 @@ class AWSService {
     }
   }
 
+  // Delete user account and all associated data
+  Future<Map<String, dynamic>?> deleteUser(String userId) async {
+    try {
+      print('🗑️ AWS Service: Starting user deletion...');
+      print('📝 AWS Service: User ID: $userId');
+      
+      final idToken = await _getIdToken();
+      if (idToken == null) {
+        print('❌ AWS Service: No ID token available');
+        throw Exception('User not authenticated');
+      }
+
+      final response = await _dio.delete(
+        '/users/$userId',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $idToken',
+            'Content-Type': 'application/json',
+          },
+        ),
+      );
+
+      print('📥 AWS Service: Delete user response status: ${response.statusCode}');
+      print('📥 AWS Service: Delete user response data: ${response.data}');
+
+      if (response.statusCode == 200) {
+        print('✅ AWS Service: User deleted successfully');
+        return response.data;
+      } else {
+        print('❌ AWS Service: Failed to delete user with status ${response.statusCode}');
+        print('❌ AWS Service: Error: ${response.statusMessage}');
+        throw Exception('Failed to delete user: ${response.statusMessage}');
+      }
+    } catch (e) {
+      print('❌ AWS Service: Exception occurred during user deletion: $e');
+      return null;
+    }
+  }
+
   // Upload image to S3 (placeholder - would need S3 SDK)
   Future<String?> uploadImageToS3(File imageFile) async {
     // This would require AWS S3 SDK for Flutter
