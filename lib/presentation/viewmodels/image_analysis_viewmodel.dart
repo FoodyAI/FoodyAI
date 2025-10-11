@@ -181,6 +181,14 @@ class ImageAnalysisViewModel extends ChangeNotifier {
       // Debug: Check what's in SQLite after saving
       await _sqliteService.debugPrintFoodAnalyses();
 
+      // Sync with AWS if user is signed in
+      if (_auth.currentUser != null) {
+        print('🔄 ImageAnalysisViewModel: User is signed in, syncing to AWS...');
+        await _syncService.saveFoodAnalysisToAWS(analysis);
+      } else {
+        print('❌ ImageAnalysisViewModel: No user signed in, skipping AWS sync');
+      }
+
       _currentAnalysis = null;
       _selectedImage = null;
       notifyListeners();
