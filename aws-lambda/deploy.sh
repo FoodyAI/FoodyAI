@@ -29,7 +29,14 @@ aws lambda create-function \
   --role arn:aws:iam::010993883654:role/lambda-execution-role \
   --handler index.handler \
   --zip-file fileb://food-analysis.zip \
-  --region us-east-1
+  --region us-east-1 \
+  --environment Variables='{
+    "DB_HOST":"foody-database.cgfko2mcweuv.us-east-1.rds.amazonaws.com",
+    "DB_PORT":"5432",
+    "DB_NAME":"foody_db",
+    "DB_USER":"foodyadmin",
+    "DB_PASSWORD":"FoodyDB2024!Secure"
+  }'
 
 # User Profile Lambda
 aws lambda create-function \
@@ -38,7 +45,14 @@ aws lambda create-function \
   --role arn:aws:iam::010993883654:role/lambda-execution-role \
   --handler index.handler \
   --zip-file fileb://user-profile.zip \
-  --region us-east-1
+  --region us-east-1 \
+  --environment Variables='{
+    "DB_HOST":"foody-database.cgfko2mcweuv.us-east-1.rds.amazonaws.com",
+    "DB_PORT":"5432",
+    "DB_NAME":"foody_db",
+    "DB_USER":"foodyadmin",
+    "DB_PASSWORD":"FoodyDB2024!Secure"
+  }'
 
 echo "✅ Lambda functions deployed successfully!"
 
