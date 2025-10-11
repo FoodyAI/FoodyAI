@@ -164,7 +164,7 @@ class SyncService {
       print('🔄 AWS: Syncing food analysis to AWS for user: $userId');
       print('📝 AWS: Analysis data - ${analysis.name} (${analysis.calories} cal)');
 
-      await _awsService.saveFoodAnalysis(
+      final result = await _awsService.saveFoodAnalysis(
         userId: userId,
         imageUrl: analysis.imagePath ?? '',
         foodName: analysis.name,
@@ -175,7 +175,12 @@ class SyncService {
         healthScore: analysis.healthScore.toInt(),
       );
 
-      print('✅ AWS: Food analysis saved to AWS successfully');
+      if (result != null) {
+        print('✅ AWS: Food analysis saved to AWS successfully');
+        print('✅ AWS: Server response: $result');
+      } else {
+        print('❌ AWS: Failed to save food analysis - null response');
+      }
     } catch (e) {
       print('❌ AWS: Error saving food analysis to AWS: $e');
     }
