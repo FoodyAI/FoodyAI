@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:uuid/uuid.dart';
 import '../../data/models/food_analysis.dart';
 import '../../data/datasources/remote/ai_service.dart';
 import '../../data/datasources/remote/ai_service_factory.dart';
@@ -159,6 +160,7 @@ class ImageAnalysisViewModel extends ChangeNotifier {
       // No need to count analyses for ordering anymore
 
       final analysis = FoodAnalysis(
+        id: const Uuid().v4(), // Generate UUID for the object
         name: _currentAnalysis!.name,
         protein: _currentAnalysis!.protein,
         carbs: _currentAnalysis!.carbs,

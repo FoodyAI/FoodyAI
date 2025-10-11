@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:uuid/uuid.dart';
 
 @immutable
 class FoodAnalysis {
+  final String? id;
   final String name;
   final double protein;
   final double carbs;
@@ -15,6 +17,7 @@ class FoodAnalysis {
   final bool syncedToAws;
 
   FoodAnalysis({
+    this.id,
     required this.name,
     required this.protein,
     required this.carbs,
@@ -90,7 +93,9 @@ class FoodAnalysis {
 
   // SQLite-specific methods
   Map<String, dynamic> toMap() {
+    const uuid = Uuid();
     return {
+      'id': id ?? uuid.v4(), // Generate UUID if not provided
       'user_id': 'local_user',
       'image_url': imagePath,
       'food_name': name,
@@ -107,6 +112,7 @@ class FoodAnalysis {
 
   factory FoodAnalysis.fromMap(Map<String, dynamic> map) {
     return FoodAnalysis(
+      id: map['id'] as String?,
       name: map['food_name'] as String,
       protein: (map['protein'] as num).toDouble(),
       carbs: (map['carbs'] as num).toDouble(),
