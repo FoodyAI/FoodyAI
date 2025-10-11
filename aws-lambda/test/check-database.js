@@ -6,13 +6,14 @@
  */
 
 const { Client } = require('pg');
+require('dotenv').config();
 
 const client = new Client({
-  host: 'foody-database.cgfko2mcweuv.us-east-1.rds.amazonaws.com',
-  user: 'foodyadmin',
-  password: 'FoodyDB2024!Secure',
-  database: 'foody_db',
-  port: 5432,
+  host: process.env.DB_HOST || 'foody-database.cgfko2mcweuv.us-east-1.rds.amazonaws.com',
+  user: process.env.DB_USER || 'foodyadmin',
+  password: process.env.DB_PASSWORD || 'FoodyDB2024!Secure',
+  database: process.env.DB_NAME || 'foody_db',
+  port: parseInt(process.env.DB_PORT) || 5432,
   ssl: {
     rejectUnauthorized: false
   }
