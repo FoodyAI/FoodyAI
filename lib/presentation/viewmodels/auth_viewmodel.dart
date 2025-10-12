@@ -94,12 +94,24 @@ class AuthViewModel extends ChangeNotifier {
 
         print('✅ AuthViewModel: Google Sign-In successful for ${user.email}');
 
+        // Load user data from AWS FIRST before navigation
+        print('🔄 AuthViewModel: Loading user data before navigation...');
+        try {
+          await _syncService.loadUserDataFromAWS();
+          print('✅ AuthViewModel: User data loaded successfully');
+          ProfileUpdateEvent.notifyUpdate();
+        } catch (e) {
+          print('⚠️ AuthViewModel: Failed to load user data: $e');
+          // Continue anyway - navigation will handle this
+        }
+
         // Handle post-authentication flow if context is provided
         if (context != null && context.mounted) {
           await _authFlow.handlePostAuthNavigation(
             context,
             userDisplayName: user.displayName ?? '',
             userEmail: user.email ?? '',
+            useLocalCache: true, // Data was just loaded from AWS
           );
         }
 
