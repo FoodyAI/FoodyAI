@@ -83,6 +83,13 @@ class ImageAnalysisViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Public method to reload analyses (called after AWS sync)
+  Future<void> reloadAnalyses() async {
+    print('🔄 ImageAnalysisViewModel: Manually reloading analyses after AWS sync...');
+    await _loadSavedAnalyses();
+    print('✅ ImageAnalysisViewModel: Analyses reloaded, count: ${_savedAnalyses.length}');
+  }
+
   Future<void> _checkAndShowRating() async {
     final hasSubmittedRating = await _sqliteService.getHasSubmittedRating();
     final maybeLaterTimestamp = await _sqliteService.getMaybeLaterTimestamp();

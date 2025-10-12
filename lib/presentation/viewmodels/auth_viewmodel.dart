@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
 import '../../services/sync_service.dart';
 import '../../services/aws_service.dart';
@@ -8,6 +9,7 @@ import '../../data/repositories/user_profile_repository_impl.dart';
 import '../../data/services/sqlite_service.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/events/profile_update_event.dart';
+import 'image_analysis_viewmodel.dart';
 
 enum AuthState {
   initial,
@@ -71,6 +73,9 @@ class AuthViewModel extends ChangeNotifier {
 
         // Notify profile update to refresh UI
         ProfileUpdateEvent.notifyUpdate();
+        
+        // Note: We can't access ImageAnalysisViewModel here since we don't have context
+        // The authStateChanges listener in ImageAnalysisViewModel will handle reloading
       } catch (e) {
         print('⚠️ AuthViewModel: Background sync failed: $e');
         // Don't propagate background sync errors to UI
@@ -100,6 +105,18 @@ class AuthViewModel extends ChangeNotifier {
           await _syncService.loadUserDataFromAWS();
           print('✅ AuthViewModel: User data loaded successfully');
           ProfileUpdateEvent.notifyUpdate();
+          
+          // Reload food analyses in the UI after AWS sync
+          if (context != null && context.mounted) {
+            try {
+              final imageAnalysisVM = context.read<ImageAnalysisViewModel>();
+              await imageAnalysisVM.reloadAnalyses();
+              print('✅ AuthViewModel: Food analyses reloaded in UI');
+            } catch (e) {
+              print('⚠️ AuthViewModel: Failed to reload food analyses: $e');
+              // Continue anyway - this is not critical
+            }
+          }
         } catch (e) {
           print('⚠️ AuthViewModel: Failed to load user data: $e');
           // Continue anyway - navigation will handle this
