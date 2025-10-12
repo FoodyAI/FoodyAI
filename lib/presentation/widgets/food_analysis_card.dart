@@ -195,16 +195,26 @@ class FoodAnalysisCard extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     if (analysis.imagePath != null) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: Image.file(
-          File(analysis.imagePath!),
-          width: 80,
-          height: 80,
-          fit: BoxFit.cover,
-        ),
-      );
+      final file = File(analysis.imagePath!);
+      if (file.existsSync()) {
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: Image.file(
+            file,
+            width: 80,
+            height: 80,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return _buildFallbackImage(context, isDark);
+            },
+          ),
+        );
+      }
     }
+    return _buildFallbackImage(context, isDark);
+  }
+
+  Widget _buildFallbackImage(BuildContext context, bool isDark) {
     return Container(
       width: 80,
       height: 80,
@@ -231,6 +241,37 @@ class FoodAnalysisCard extends StatelessWidget {
             fontSize: 32,
             fontWeight: FontWeight.bold,
             color: Theme.of(context).primaryColor,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildModalFallbackImage(BuildContext context) {
+    return Container(
+      height: 300,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Theme.of(context).primaryColor,
+            Theme.of(context).primaryColor.withOpacity(0.7),
+          ],
+        ),
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(32),
+          topRight: Radius.circular(32),
+        ),
+      ),
+      child: Center(
+        child: Text(
+          analysis.name[0].toUpperCase(),
+          style: const TextStyle(
+            fontSize: 72,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
           ),
         ),
       ),
@@ -279,46 +320,33 @@ class FoodAnalysisCard extends StatelessWidget {
               // Header Image Section
               Stack(
                 children: [
-                  if (analysis.imagePath != null)
-                    Container(
-                      height: 300,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(32),
-                          topRight: Radius.circular(32),
-                        ),
-                        image: DecorationImage(
-                          image: FileImage(File(analysis.imagePath!)),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    )
-                  else
-                    Container(
-                      height: 300,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            Theme.of(context).primaryColor,
-                            Theme.of(context).primaryColor.withOpacity(0.7),
-                          ],
-                        ),
-                      ),
-                      child: Center(
-                        child: Text(
-                          analysis.name[0].toUpperCase(),
-                          style: const TextStyle(
-                            fontSize: 72,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
+                  Builder(
+                    builder: (context) {
+                      if (analysis.imagePath != null) {
+                        final file = File(analysis.imagePath!);
+                        if (file.existsSync()) {
+                          return Container(
+                            height: 300,
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              borderRadius: const BorderRadius.only(
+                                topLeft: Radius.circular(32),
+                                topRight: Radius.circular(32),
+                              ),
+                              image: DecorationImage(
+                                image: FileImage(file),
+                                fit: BoxFit.cover,
+                                onError: (exception, stackTrace) {
+                                  // Image loading failed, will show fallback
+                                },
+                              ),
+                            ),
+                          );
+                        }
+                      }
+                      return _buildModalFallbackImage(context);
+                    },
+                  ),
                   // Swipe Indicator
                   Positioned(
                     top: 12,
