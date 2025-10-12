@@ -23,7 +23,8 @@ class AuthenticationFlow {
     try {
       // Show loading dialog
       if (showLoadingDialog) {
-        loadingOverlay = _showLoadingOverlay(context, 'Checking your profile...');
+        loadingOverlay =
+            _showLoadingOverlay(context, 'Checking your profile...');
       }
 
       // Determine user state
@@ -31,15 +32,25 @@ class AuthenticationFlow {
         useLocalCache: useLocalCache,
       );
 
+      print('🔀 AuthFlow: User state determined: ${userStateResult.state}');
+      print(
+          '🔀 AuthFlow: Has completed onboarding: ${userStateResult.hasCompletedOnboarding}');
+
       // Hide loading dialog
       loadingOverlay?.remove();
       loadingOverlay = null;
 
-      if (!context.mounted) return;
+      if (!context.mounted) {
+        print('⚠️ AuthFlow: Context not mounted, aborting navigation');
+        return;
+      }
 
       // Handle different user states
+      print('🔀 AuthFlow: Switching on state: ${userStateResult.state}');
       switch (userStateResult.state) {
         case UserState.returningComplete:
+          print('🏠 AuthFlow: Navigating to HOME (returning complete)');
+
           await _navigateToHome(
             context,
             userDisplayName: userDisplayName,
@@ -49,6 +60,7 @@ class AuthenticationFlow {
           break;
 
         case UserState.firstTime:
+          print('📝 AuthFlow: Navigating to ONBOARDING (first time)');
           await _navigateToOnboarding(
             context,
             userDisplayName: userDisplayName,
@@ -59,6 +71,7 @@ class AuthenticationFlow {
           break;
 
         case UserState.returningIncomplete:
+          print('📝 AuthFlow: Navigating to ONBOARDING (incomplete profile)');
           await _navigateToOnboarding(
             context,
             userDisplayName: userDisplayName,
@@ -89,7 +102,7 @@ class AuthenticationFlow {
     } catch (e) {
       // Hide loading dialog if still showing
       loadingOverlay?.remove();
-      
+
       if (context.mounted) {
         await _handleUnexpectedError(context, e);
       }
@@ -126,21 +139,23 @@ class AuthenticationFlow {
     required bool isFirstTime,
   }) async {
     // Show welcome message
-    final displayName = userDisplayName.isNotEmpty ? userDisplayName : userEmail;
-    final welcomeMessage = isFirstTime 
+    final displayName =
+        userDisplayName.isNotEmpty ? userDisplayName : userEmail;
+    final welcomeMessage = isFirstTime
         ? 'Welcome to Foody, $displayName!'
         : 'Welcome back, $displayName! Let\'s complete your profile.';
 
     _showSnackBar(context, welcomeMessage, AppColors.success);
 
-    print('📋 AuthenticationFlow: Navigating to onboarding (isFirstTime: $isFirstTime)');
+    print(
+        '📋 AuthenticationFlow: Navigating to onboarding (isFirstTime: $isFirstTime)');
 
     // Navigate to onboarding with smooth transition
     Navigator.pushReplacement(
       context,
       _createSlideTransition(OnboardingView(isFirstTimeUser: isFirstTime)),
     );
-    
+
     print('✅ AuthenticationFlow: Successfully navigated to onboarding');
   }
 
@@ -168,7 +183,8 @@ class AuthenticationFlow {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              message ?? 'Unable to verify your profile due to a connection issue.',
+              message ??
+                  'Unable to verify your profile due to a connection issue.',
               style: const TextStyle(fontSize: 16),
             ),
             const SizedBox(height: 16),
@@ -233,7 +249,8 @@ class AuthenticationFlow {
           ],
         ),
         content: Text(
-          message ?? 'An authentication error occurred. Please try signing in again.',
+          message ??
+              'An authentication error occurred. Please try signing in again.',
           style: const TextStyle(fontSize: 16),
         ),
         actions: [
@@ -250,9 +267,10 @@ class AuthenticationFlow {
   }
 
   /// Handle unexpected errors
-  Future<void> _handleUnexpectedError(BuildContext context, dynamic error) async {
+  Future<void> _handleUnexpectedError(
+      BuildContext context, dynamic error) async {
     print('❌ AuthenticationFlow: Unexpected error: $error');
-    
+
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -324,7 +342,8 @@ class AuthenticationFlow {
   }
 
   /// Show snackbar with message
-  void _showSnackBar(BuildContext context, String message, Color backgroundColor) {
+  void _showSnackBar(
+      BuildContext context, String message, Color backgroundColor) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -346,9 +365,10 @@ class AuthenticationFlow {
         const begin = Offset(1.0, 0.0);
         const end = Offset.zero;
         const curve = Curves.easeInOutCubic;
-        var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+        var tween =
+            Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
         var offsetAnimation = animation.drive(tween);
-        
+
         return SlideTransition(
           position: offsetAnimation,
           child: FadeTransition(
@@ -387,12 +407,14 @@ class AuthenticationFlow {
 
     try {
       // Show appropriate message
-      final logoutMessage = message ?? 
-          (isAccountDeletion ? 'Account deleted successfully' : 'Signed out successfully');
-      
+      final logoutMessage = message ??
+          (isAccountDeletion
+              ? 'Account deleted successfully'
+              : 'Signed out successfully');
+
       _showSnackBar(
-        context, 
-        logoutMessage, 
+        context,
+        logoutMessage,
         isAccountDeletion ? AppColors.success : AppColors.primary,
       );
 
@@ -402,11 +424,11 @@ class AuthenticationFlow {
         (route) => false, // Remove all previous routes
       );
 
-      print('✅ AuthenticationFlow: Navigated to welcome screen after ${isAccountDeletion ? 'account deletion' : 'sign out'}');
-      
+      print(
+          '✅ AuthenticationFlow: Navigated to welcome screen after ${isAccountDeletion ? 'account deletion' : 'sign out'}');
     } catch (e) {
       print('❌ AuthenticationFlow: Error in post-logout navigation: $e');
-      
+
       // Fallback navigation
       if (context.mounted) {
         Navigator.of(context).pushAndRemoveUntil(
@@ -418,7 +440,8 @@ class AuthenticationFlow {
   }
 
   /// Navigate to welcome screen (used for sign out and account deletion)
-  Future<void> navigateToWelcome(BuildContext context, {String? message}) async {
+  Future<void> navigateToWelcome(BuildContext context,
+      {String? message}) async {
     if (!context.mounted) return;
 
     if (message != null) {

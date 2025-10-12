@@ -136,14 +136,10 @@ class UserStateService {
       // Step 4: Determine final state based on AWS data
       final profileComplete = _isProfileComplete(awsProfile);
       print('☁️ UserStateService: Profile complete check: $profileComplete');
-      if (awsProfile != null) {
-        print('   - Gender: ${awsProfile.gender.isNotEmpty}');
-        print('   - Age: ${awsProfile.age > 0} (${awsProfile.age})');
-        print(
-            '   - Weight: ${awsProfile.weightKg > 0} (${awsProfile.weightKg})');
-        print(
-            '   - Height: ${awsProfile.heightCm > 0} (${awsProfile.heightCm})');
-      }
+      print('   - Gender: ${awsProfile.gender.isNotEmpty}');
+      print('   - Age: ${awsProfile.age > 0} (${awsProfile.age})');
+      print('   - Weight: ${awsProfile.weightKg > 0} (${awsProfile.weightKg})');
+      print('   - Height: ${awsProfile.heightCm > 0} (${awsProfile.heightCm})');
 
       if (awsOnboardingComplete && profileComplete) {
         print('✅ UserStateService: Returning state = returningComplete');
@@ -288,15 +284,32 @@ class UserStateService {
 
   /// Check if onboarding is complete based on AWS data
   bool _isOnboardingComplete(Map<String, dynamic>? userData) {
-    if (userData == null) return false;
+    if (userData == null) {
+      print('⚠️ _isOnboardingComplete: userData is null');
+      return false;
+    }
 
     // Check if all required fields are present and valid
-    return userData['gender'] != null &&
-        userData['age'] != null &&
-        userData['weight'] != null &&
-        userData['height'] != null &&
-        userData['activity_level'] != null &&
-        userData['goal'] != null;
+    final hasGender = userData['gender'] != null;
+    final hasAge = userData['age'] != null;
+    final hasWeight = userData['weight'] != null;
+    final hasHeight = userData['height'] != null;
+    final hasActivity = userData['activity_level'] != null;
+    final hasGoal = userData['goal'] != null;
+
+    print('🔍 _isOnboardingComplete check:');
+    print('   - gender: $hasGender (${userData['gender']})');
+    print('   - age: $hasAge (${userData['age']})');
+    print('   - weight: $hasWeight (${userData['weight']})');
+    print('   - height: $hasHeight (${userData['height']})');
+    print('   - activity_level: $hasActivity (${userData['activity_level']})');
+    print('   - goal: $hasGoal (${userData['goal']})');
+
+    final isComplete =
+        hasGender && hasAge && hasWeight && hasHeight && hasActivity && hasGoal;
+    print('   - Result: $isComplete');
+
+    return isComplete;
   }
 
   /// Check if profile is complete (has all required data)
@@ -346,11 +359,27 @@ class UserStateService {
         print('⚠️ UserStateService: No authenticated user for sync');
         return;
       }
+
+      print('💾 UserStateService: Saving profile to local for userId: $userId');
+      print('   - Gender: ${profile.gender}, Age: ${profile.age}');
+      print('   - Onboarding complete: $onboardingComplete');
+
       await _userProfileRepository.saveProfile(profile, true,
           userId: userId); // Assume metric for now
       await _userProfileRepository
           .setHasCompletedOnboarding(onboardingComplete);
+
       print('✅ UserStateService: Synced AWS data to local storage');
+
+      // Verify it was saved
+      final savedProfile =
+          await _userProfileRepository.getProfile(userId: userId);
+      if (savedProfile != null) {
+        print(
+            '✅ UserStateService: Verified profile saved: Age=${savedProfile.age}');
+      } else {
+        print('❌ UserStateService: FAILED to verify saved profile!');
+      }
     } catch (e) {
       print('⚠️ UserStateService: Error syncing AWS to local: $e');
     }
@@ -408,9 +437,24 @@ class UserStateService {
   /// Determine state from local SQLite data (after AWS sync)
   Future<UserStateResult> _determineStateFromLocal(String userId) async {
     try {
+      print(
+          '🔍 UserStateService: _determineStateFromLocal called with userId: $userId');
+
       // Get local profile
+      print('📱 UserStateService: Calling getProfile with userId: $userId');
       final localProfile =
           await _userProfileRepository.getProfile(userId: userId);
+      print(
+          '📱 UserStateService: getProfile returned: ${localProfile != null ? "profile object" : "null"}');
+
+      if (localProfile != null) {
+        print('📱 UserStateService: Profile details:');
+        print('   - Gender: ${localProfile.gender}');
+        print('   - Age: ${localProfile.age}');
+        print('   - Weight: ${localProfile.weightKg}');
+        print('   - Height: ${localProfile.heightCm}');
+      }
+
       final localOnboardingComplete =
           await _userProfileRepository.getHasCompletedOnboarding();
 
@@ -430,14 +474,12 @@ class UserStateService {
       // Check if profile is complete
       final profileComplete = _isProfileComplete(localProfile);
       print('📱 UserStateService: Profile complete check: $profileComplete');
-      if (localProfile != null) {
-        print('   - Gender: ${localProfile.gender.isNotEmpty}');
-        print('   - Age: ${localProfile.age > 0} (${localProfile.age})');
-        print(
-            '   - Weight: ${localProfile.weightKg > 0} (${localProfile.weightKg})');
-        print(
-            '   - Height: ${localProfile.heightCm > 0} (${localProfile.heightCm})');
-      }
+      print('   - Gender: ${localProfile.gender.isNotEmpty}');
+      print('   - Age: ${localProfile.age > 0} (${localProfile.age})');
+      print(
+          '   - Weight: ${localProfile.weightKg > 0} (${localProfile.weightKg})');
+      print(
+          '   - Height: ${localProfile.heightCm > 0} (${localProfile.heightCm})');
 
       if (localOnboardingComplete && profileComplete) {
         print('✅ UserStateService: Local state = returningComplete');

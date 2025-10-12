@@ -13,9 +13,17 @@ class SQLiteService {
 
   // User Profile Operations
   Future<UserProfile?> getUserProfile({String? userId}) async {
+    print('🔍 SQLiteService.getUserProfile called with userId: $userId');
     final profileData = userId != null
         ? await _dbHelper.getUserProfile(userId)
         : await _dbHelper.getFirstUserProfile();
+    print(
+        '📋 SQLiteService.getUserProfile: Database returned ${profileData != null ? "data" : "null"}');
+    if (profileData != null) {
+      print('   - user_id: ${profileData['user_id']}');
+      print('   - gender: ${profileData['gender']}');
+      print('   - age: ${profileData['age']}');
+    }
     if (profileData == null) return null;
 
     return UserProfile(
@@ -40,6 +48,10 @@ class SQLiteService {
 
   Future<void> saveUserProfile(UserProfile profile, bool isMetric,
       {required String userId}) async {
+    print('💾 SQLiteService.saveUserProfile called with userId: $userId');
+    print('   - Gender: ${profile.gender}, Age: ${profile.age}');
+    print('   - Weight: ${profile.weightKg}, Height: ${profile.heightCm}');
+
     final now = DateTime.now().millisecondsSinceEpoch;
 
     final profileData = {
@@ -60,11 +72,20 @@ class SQLiteService {
 
     // Check if user exists
     final existingProfile = await _dbHelper.getUserProfile(userId);
+    print(
+        '📋 SQLiteService: Existing profile found: ${existingProfile != null}');
+
     if (existingProfile != null) {
+      print('🔄 SQLiteService: Updating existing profile for userId: $userId');
       await _dbHelper.updateUserProfile(userId, profileData);
+      print('✅ SQLiteService: Profile updated successfully');
     } else {
+      print('➕ SQLiteService: Inserting new profile for userId: $userId');
       await _dbHelper.insertUserProfile(profileData);
+      print('✅ SQLiteService: Profile inserted successfully');
     }
+
+    print('✅ SQLiteService.saveUserProfile completed for userId: $userId');
   }
 
   Future<void> clearUserProfile({String? userId}) async {

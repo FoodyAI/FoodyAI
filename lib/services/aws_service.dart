@@ -114,10 +114,9 @@ class AWSService {
       );
 
       if (response.statusCode == 200) {
-        return {
-          'success': true,
-          'user': response.data,
-        };
+        // AWS returns {"success": true, "user": {...}}
+        // So response.data already has both 'success' and 'user'
+        return response.data;
       } else if (response.statusCode == 404) {
         // User doesn't exist - this is a valid scenario for first-time users
         print('ℹ️ AWS Service: User profile not found (404) - first-time user');

@@ -140,6 +140,18 @@ class SyncService {
       if (profileData != null && profileData['success'] == true) {
         final userData = profileData['user'];
         print('✅ AWS: User profile found in AWS');
+        print('📋 AWS: Full user data received:');
+        print('   - user_id: ${userData['user_id']}');
+        print('   - email: ${userData['email']}');
+        print('   - gender: ${userData['gender']}');
+        print('   - age: ${userData['age']}');
+        print('   - weight: ${userData['weight']}');
+        print('   - height: ${userData['height']}');
+        print('   - activity_level: ${userData['activity_level']}');
+        print('   - goal: ${userData['goal']}');
+        print('   - ai_provider: ${userData['ai_provider']}');
+        print('   - measurement_unit: ${userData['measurement_unit']}');
+        print('   - theme_preference: ${userData['theme_preference']}');
 
         // Save profile to SQLite
         if (userData['gender'] != null &&
@@ -182,17 +194,33 @@ class SyncService {
 
           final isMetric =
               (userData['measurement_unit'] ?? 'metric') == 'metric';
+
+          print(
+              '💾 SyncService: About to save profile to SQLite with userId: $userId');
           await _sqliteService.saveUserProfile(profile, isMetric,
               userId: userId);
+          print('✅ SyncService: saveUserProfile completed');
 
-          print('✅ AWS: User profile saved to local SQLite');
-          print('   - Gender: ${profile.gender}, Age: ${profile.age}');
-          print(
-              '   - Weight: ${profile.weightKg}kg, Height: ${profile.heightCm}cm');
-          print(
-              '   - Activity: ${profile.activityLevel.name}, Goal: ${profile.weightGoal.name}');
-          print('   - AI Provider: ${profile.aiProvider.name}');
-          print('   - Measurement Unit: ${isMetric ? "metric" : "imperial"}');
+          // Mark onboarding as complete since user has a complete profile in AWS
+          await _sqliteService.setHasCompletedOnboarding(true);
+          print('✅ SyncService: Set onboarding complete = true');
+
+          // Verify it was saved by reading it back
+          final verifyProfile =
+              await _sqliteService.getUserProfile(userId: userId);
+          if (verifyProfile != null) {
+            print('✅ AWS: User profile VERIFIED in local SQLite');
+            print(
+                '   - Gender: ${verifyProfile.gender}, Age: ${verifyProfile.age}');
+            print(
+                '   - Weight: ${verifyProfile.weightKg}kg, Height: ${verifyProfile.heightCm}cm');
+            print(
+                '   - Activity: ${verifyProfile.activityLevel.name}, Goal: ${verifyProfile.weightGoal.name}');
+            print('   - AI Provider: ${verifyProfile.aiProvider.name}');
+            print('   - Measurement Unit: ${isMetric ? "metric" : "imperial"}');
+          } else {
+            print('❌ AWS: FAILED to verify profile in local SQLite!');
+          }
 
           if (userData['theme_preference'] != null) {
             await _sqliteService
