@@ -73,10 +73,10 @@ class _OnboardingViewState extends State<OnboardingView> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('Continuing where you left off...'),
+            const SnackBar(
+              content: Text('Continuing where you left off...'),
               backgroundColor: AppColors.primary,
-              duration: const Duration(seconds: 2),
+              duration: Duration(seconds: 2),
             ),
           );
         }

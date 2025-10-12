@@ -54,24 +54,24 @@ class _ProfileViewState extends State<ProfileView>
             (route) => false,
           );
         });
-        return Scaffold(
-          appBar: const CustomAppBar(
+        return const Scaffold(
+          appBar: CustomAppBar(
             title: 'Profile',
             icon: FontAwesomeIcons.user,
           ),
-          body: const Center(
+          body: Center(
             child: CircularProgressIndicator(),
           ),
         );
       }
       
       // If user is signed in but profile not loaded yet, show loading
-      return Scaffold(
-        appBar: const CustomAppBar(
+      return const Scaffold(
+        appBar: CustomAppBar(
           title: 'Profile',
           icon: FontAwesomeIcons.user,
         ),
-        body: const Center(
+        body: Center(
           child: CircularProgressIndicator(),
         ),
       );
@@ -1342,7 +1342,6 @@ class _ProfileViewState extends State<ProfileView>
           ),
           TextButton(
             onPressed: () {
-              if (profile == null) return;
               vm.saveProfile(
                 gender: profile.gender,
                 age: profile.age,
