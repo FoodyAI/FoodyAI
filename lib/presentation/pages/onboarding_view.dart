@@ -35,8 +35,14 @@ class _OnboardingViewState extends State<OnboardingView> {
   @override
   void initState() {
     super.initState();
+    _initializeOnboarding();
+  }
+
+  void _initializeOnboarding() {
     final profileVM = Provider.of<UserProfileViewModel>(context, listen: false);
+    
     if (profileVM.profile != null) {
+      // Resuming onboarding - load existing data
       final profile = profileVM.profile!;
       _gender = profile.gender;
       _age = profile.age;
@@ -47,7 +53,27 @@ class _OnboardingViewState extends State<OnboardingView> {
       _height = profileVM.displayHeight;
       _activityLevel = profile.activityLevel;
       _weightGoal = profile.weightGoal;
+      _hasSelectedGender = true; // Profile exists, so gender was selected
+      
+      // Determine which page to start from based on completeness
+      _currentPage = _determineStartingPage(profile);
+      
+      print('📋 OnboardingView: Resuming onboarding from page $_currentPage');
+      
+      // Show resume message
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Continuing where you left off...'),
+              backgroundColor: AppColors.primary,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      });
     } else {
+      // First time onboarding - set defaults
       _gender = 'Male';
       _hasSelectedGender = false;
       _age = 25;
@@ -58,7 +84,41 @@ class _OnboardingViewState extends State<OnboardingView> {
       _isMetric = true;
       _activityLevel = ActivityLevel.sedentary;
       _weightGoal = WeightGoal.maintain;
+      _currentPage = 0;
+      
+      print('📋 OnboardingView: Starting fresh onboarding');
     }
+    
+    // Navigate to the determined starting page after widget is built
+    if (_currentPage > 0) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _pageController.hasClients) {
+          _pageController.animateToPage(
+            _currentPage,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+          );
+        }
+      });
+    }
+  }
+
+  /// Determine which page to start from based on profile completeness
+  int _determineStartingPage(UserProfile profile) {
+    // Check basic info (gender, age) - Page 0
+    if (profile.gender.isEmpty || profile.age <= 0) {
+      return 0;
+    }
+    
+    // Check measurements (weight, height) - Page 1
+    if (profile.weightKg <= 0 || profile.heightCm <= 0) {
+      return 1;
+    }
+    
+    // Check activity level and goals - Page 2
+    // Activity level and weight goal always have defaults, so check if they seem intentionally set
+    // For now, assume if we got this far, we should go to the summary page
+    return 3; // Go to summary page to review and complete
   }
 
   void _toggleUnit() {
@@ -115,26 +175,75 @@ class _OnboardingViewState extends State<OnboardingView> {
     final vm = Provider.of<UserProfileViewModel>(context, listen: false);
     final ctx = context;
 
-    await vm.saveProfile(
-      gender: _gender,
-      age: _age,
-      weight: _weight,
-      weightUnit: _weightUnit,
-      height: _height,
-      heightUnit: _heightUnit,
-      activityLevel: _activityLevel,
-      isMetric: _isMetric,
-      weightGoal: _weightGoal,
-    );
+    try {
+      // Show loading indicator
+      showDialog(
+        context: ctx,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
 
-    // Mark onboarding as completed
-    await vm.completeOnboarding();
+      print('📝 OnboardingView: Saving profile...');
+      
+      await vm.saveProfile(
+        gender: _gender,
+        age: _age,
+        weight: _weight,
+        weightUnit: _weightUnit,
+        height: _height,
+        heightUnit: _heightUnit,
+        activityLevel: _activityLevel,
+        isMetric: _isMetric,
+        weightGoal: _weightGoal,
+      );
 
-    if (!ctx.mounted) return;
-    Navigator.pushReplacement(
-      ctx,
-      MaterialPageRoute(builder: (_) => const AnalysisLoadingView()),
-    );
+      // Mark onboarding as completed
+      await vm.completeOnboarding();
+
+      print('✅ OnboardingView: Profile saved and onboarding completed');
+
+      // Hide loading dialog
+      if (ctx.mounted) Navigator.pop(ctx);
+
+      if (!ctx.mounted) return;
+
+      // Show success message
+      ScaffoldMessenger.of(ctx).showSnackBar(
+        const SnackBar(
+          content: Text('Profile setup completed! Welcome to Foody!'),
+          backgroundColor: AppColors.success,
+          duration: Duration(seconds: 2),
+        ),
+      );
+
+      // Navigate to home
+      Navigator.pushReplacement(
+        ctx,
+        MaterialPageRoute(builder: (_) => const AnalysisLoadingView()),
+      );
+      
+    } catch (e) {
+      print('❌ OnboardingView: Error saving profile: $e');
+      
+      // Hide loading dialog
+      if (ctx.mounted) Navigator.pop(ctx);
+      
+      if (ctx.mounted) {
+        ScaffoldMessenger.of(ctx).showSnackBar(
+          SnackBar(
+            content: Text('Failed to save profile: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 3),
+            action: SnackBarAction(
+              label: 'Retry',
+              onPressed: () => _submitForm(),
+            ),
+          ),
+        );
+      }
+    }
   }
 
   @override

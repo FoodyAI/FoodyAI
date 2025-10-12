@@ -104,16 +104,41 @@ class AWSService {
             'Authorization': 'Bearer $idToken',
             'Content-Type': 'application/json',
           },
+          validateStatus: (status) {
+            // Accept both 200 (user exists) and 404 (user doesn't exist) as valid responses
+            return status != null && (status == 200 || status == 404);
+          },
         ),
       );
 
       if (response.statusCode == 200) {
-        return response.data;
+        return {
+          'success': true,
+          'user': response.data,
+        };
+      } else if (response.statusCode == 404) {
+        // User doesn't exist - this is a valid scenario for first-time users
+        print('ℹ️ AWS Service: User profile not found (404) - first-time user');
+        return {
+          'success': false,
+          'message': 'User not found',
+        };
       } else {
-        throw Exception('Failed to get user profile: ${response.statusMessage}');
+        throw Exception('Unexpected status code: ${response.statusCode}');
       }
     } catch (e) {
       print('Error getting user profile: $e');
+      
+      // Check if this is a DioException with 404 status
+      if (e.toString().contains('404')) {
+        print('ℹ️ AWS Service: Caught 404 exception - treating as first-time user');
+        return {
+          'success': false,
+          'message': 'User not found',
+        };
+      }
+      
+      // For other errors, return null to indicate a real error
       return null;
     }
   }

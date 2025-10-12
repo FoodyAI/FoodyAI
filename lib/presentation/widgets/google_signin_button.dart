@@ -3,9 +3,6 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../viewmodels/auth_viewmodel.dart';
-import '../viewmodels/user_profile_viewmodel.dart';
-import '../pages/onboarding_view.dart';
-import '../pages/home_view.dart';
 
 class GoogleSignInButton extends StatelessWidget {
   final VoidCallback? onPressed;
@@ -79,143 +76,30 @@ class GoogleSignInButton extends StatelessWidget {
 
   Future<void> _handleSignIn(BuildContext context) async {
     try {
-      print('Starting Google Sign-In...');
+      print('🔐 GoogleSignInButton: Starting Google Sign-In...');
       final authVM = Provider.of<AuthViewModel>(context, listen: false);
-      final profileVM = Provider.of<UserProfileViewModel>(context, listen: false);
       
-      // Call the sign-in method through AuthViewModel
-      final success = await authVM.signInWithGoogle();
+      // Use the enhanced sign-in method that handles the full flow
+      final success = await authVM.signInWithGoogle(context);
       
-      if (success) {
-        print('Sign-in successful, determining user flow...');
-        
-        // Wait for initial sync to complete
-        await Future.delayed(const Duration(milliseconds: 800));
-        
-        // Force reload profile to ensure we have the latest data
-        print('Forcing profile reload to check user status...');
-        await profileVM.refreshProfile();
-        
-        // Check if we have profile data now
-        bool hasProfile = profileVM.profile != null;
-        bool hasCompletedOnboarding = profileVM.hasCompletedOnboarding;
-        
-        print('First check - hasProfile: $hasProfile, hasCompletedOnboarding: $hasCompletedOnboarding');
-        
-        // If no profile yet, try to load from AWS and wait longer
-        if (!hasProfile) {
-          print('No profile found locally, checking AWS...');
-          
-          // Wait longer for AWS sync to complete
-          await Future.delayed(const Duration(milliseconds: 2000));
-          await profileVM.refreshProfile();
-          
-          hasProfile = profileVM.profile != null;
-          hasCompletedOnboarding = profileVM.hasCompletedOnboarding;
-          print('After AWS sync - hasProfile: $hasProfile, hasCompletedOnboarding: $hasCompletedOnboarding');
-        }
-        
-        if (context.mounted) {
-          // Use the variables we already calculated
-          print('Final user status: hasCompletedOnboarding=$hasCompletedOnboarding, hasProfile=$hasProfile');
-          
-          if (hasCompletedOnboarding && hasProfile) {
-            // Existing user with complete profile - navigate to home page
-            print('Existing user with profile detected - navigating to home');
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Welcome back, ${authVM.userDisplayName ?? authVM.userEmail}!'),
-                backgroundColor: AppColors.success,
-                duration: const Duration(seconds: 2),
-              ),
-            );
-            
-            // Explicitly navigate to home page
-            Navigator.pushReplacement(
-              context,
-              PageRouteBuilder(
-                pageBuilder: (context, animation, secondaryAnimation) =>
-                    const HomeView(),
-                transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                  const begin = Offset(1.0, 0.0);
-                  const end = Offset.zero;
-                  const curve = Curves.easeInOutCubic;
-                  var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                  var offsetAnimation = animation.drive(tween);
-                  return SlideTransition(
-                    position: offsetAnimation,
-                    child: FadeTransition(
-                      opacity: animation,
-                      child: child,
-                    ),
-                  );
-                },
-                transitionDuration: const Duration(milliseconds: 800),
-              ),
-            );
-            
-          } else {
-            // First-time user OR user without profile - navigate to onboarding
-            if (!hasProfile) {
-              print('User signed in but no profile found in AWS - treating as first-time user');
-              print('This could be: 1) First-time user, 2) AWS sync failed, 3) Profile not created yet');
-            } else if (!hasCompletedOnboarding) {
-              print('User has profile but onboarding not completed - continuing onboarding');
-            } else {
-              print('First-time user detected - navigating to onboarding');
-            }
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Welcome to Foody, ${authVM.userDisplayName ?? authVM.userEmail}!'),
-                backgroundColor: AppColors.success,
-                duration: const Duration(seconds: 2),
-              ),
-            );
-            
-            // Navigate to onboarding with smooth transition
-            Navigator.pushReplacement(
-              context,
-              PageRouteBuilder(
-                pageBuilder: (context, animation, secondaryAnimation) =>
-                    const OnboardingView(),
-                transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                  const begin = Offset(1.0, 0.0);
-                  const end = Offset.zero;
-                  const curve = Curves.easeInOutCubic;
-                  var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-                  var offsetAnimation = animation.drive(tween);
-                  return SlideTransition(
-                    position: offsetAnimation,
-                    child: FadeTransition(
-                      opacity: animation,
-                      child: child,
-                    ),
-                  );
-                },
-                transitionDuration: const Duration(milliseconds: 800),
-              ),
-            );
-          }
-        }
-      } else {
-        // User cancelled or error occurred
-        print('Sign-in cancelled or failed');
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Sign-in cancelled'),
-              duration: Duration(seconds: 2),
-            ),
-          );
-        }
+      if (!success && context.mounted) {
+        // Show error if sign-in failed
+        final errorMessage = authVM.errorMessage ?? 'Sign-in failed';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 3),
+          ),
+        );
       }
+      
     } catch (e) {
-      // Handle error
-      print('Sign-in error: $e');
+      print('❌ GoogleSignInButton: Unexpected error: $e');
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Sign-in failed: ${e.toString()}'),
+            content: Text('An unexpected error occurred: ${e.toString()}'),
             backgroundColor: AppColors.error,
             duration: const Duration(seconds: 3),
           ),
@@ -324,39 +208,26 @@ class SignInDialog extends StatelessWidget {
 
   Future<void> _handleSignInFromDialog(BuildContext context) async {
     try {
-      print('Starting Google Sign-In from dialog...');
+      print('🔐 GoogleSignInButton: Starting Google Sign-In from dialog...');
       final authVM = Provider.of<AuthViewModel>(context, listen: false);
       
-      // Call the sign-in method through AuthViewModel
-      final success = await authVM.signInWithGoogle();
+      // Use the enhanced sign-in method that handles the full flow
+      final success = await authVM.signInWithGoogle(context);
       
-      if (success) {
-        // Successfully signed in - UI will update automatically via Provider
-        print('Dialog sign-in successful, showing success message');
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Welcome, ${authVM.userDisplayName ?? authVM.userEmail}!'),
-              backgroundColor: AppColors.success,
-              duration: const Duration(seconds: 3),
-            ),
-          );
-        }
-      } else {
-        // User cancelled or error occurred
-        print('Dialog sign-in cancelled or failed');
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Sign-in cancelled'),
-              duration: Duration(seconds: 2),
-            ),
-          );
-        }
+      if (!success && context.mounted) {
+        // Show error if sign-in failed
+        final errorMessage = authVM.errorMessage ?? 'Sign-in failed';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 3),
+          ),
+        );
       }
+      
     } catch (e) {
-      // Handle error
-      print('Dialog sign-in error: $e');
+      print('❌ GoogleSignInButton: Dialog sign-in error: $e');
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
