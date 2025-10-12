@@ -193,6 +193,52 @@ else
 fi
 echo ""
 
+##############################################
+# Test 6: Delete User Account
+##############################################
+echo -e "${YELLOW}Test 6: DELETE /users/{userId} (Delete User Account)${NC}"
+echo "Endpoint: $API_BASE_URL/users/$TEST_USER_ID"
+echo ""
+
+RESPONSE=$(curl -s -w "\nHTTP_CODE:%{http_code}" -X DELETE \
+  "$API_BASE_URL/users/$TEST_USER_ID" \
+  -H "Content-Type: application/json")
+
+HTTP_CODE=$(echo "$RESPONSE" | grep "HTTP_CODE" | cut -d: -f2)
+BODY=$(echo "$RESPONSE" | sed '/HTTP_CODE/d')
+
+if [ "$HTTP_CODE" = "200" ]; then
+  echo -e "${GREEN}✅ Success (HTTP $HTTP_CODE)${NC}"
+  echo "$BODY" | jq '.'
+else
+  echo -e "${RED}❌ Failed (HTTP $HTTP_CODE)${NC}"
+  echo "$BODY"
+fi
+echo ""
+
+##############################################
+# Test 7: Verify User Deletion
+##############################################
+echo -e "${YELLOW}Test 7: GET /users/{userId} (Verify User Deleted)${NC}"
+echo "Endpoint: $API_BASE_URL/users/$TEST_USER_ID"
+echo ""
+
+RESPONSE=$(curl -s -w "\nHTTP_CODE:%{http_code}" -X GET \
+  "$API_BASE_URL/users/$TEST_USER_ID" \
+  -H "Content-Type: application/json")
+
+HTTP_CODE=$(echo "$RESPONSE" | grep "HTTP_CODE" | cut -d: -f2)
+BODY=$(echo "$RESPONSE" | sed '/HTTP_CODE/d')
+
+if [ "$HTTP_CODE" = "404" ]; then
+  echo -e "${GREEN}✅ User correctly deleted (HTTP $HTTP_CODE)${NC}"
+  echo "$BODY" | jq '.'
+else
+  echo -e "${RED}❌ User still exists (HTTP $HTTP_CODE)${NC}"
+  echo "$BODY"
+fi
+echo ""
+
 echo "================================"
 echo "🎉 API Testing Complete!"
 echo ""

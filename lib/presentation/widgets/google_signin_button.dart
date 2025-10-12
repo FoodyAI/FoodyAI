@@ -76,43 +76,30 @@ class GoogleSignInButton extends StatelessWidget {
 
   Future<void> _handleSignIn(BuildContext context) async {
     try {
-      print('Starting Google Sign-In...');
+      print('🔐 GoogleSignInButton: Starting Google Sign-In...');
       final authVM = Provider.of<AuthViewModel>(context, listen: false);
       
-      // Call the sign-in method through AuthViewModel
-      final success = await authVM.signInWithGoogle();
+      // Use the enhanced sign-in method that handles the full flow
+      final success = await authVM.signInWithGoogle(context);
       
-      if (success) {
-        // Successfully signed in - UI will update automatically via Provider
-        print('Sign-in successful, showing success message');
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Welcome, ${authVM.userDisplayName ?? authVM.userEmail}!'),
-              backgroundColor: AppColors.success,
-              duration: const Duration(seconds: 3),
-            ),
-          );
-        }
-      } else {
-        // User cancelled or error occurred
-        print('Sign-in cancelled or failed');
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Sign-in cancelled'),
-              duration: Duration(seconds: 2),
-            ),
-          );
-        }
+      if (!success && context.mounted) {
+        // Show error if sign-in failed
+        final errorMessage = authVM.errorMessage ?? 'Sign-in failed';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 3),
+          ),
+        );
       }
+      
     } catch (e) {
-      // Handle error
-      print('Sign-in error: $e');
+      print('❌ GoogleSignInButton: Unexpected error: $e');
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Sign-in failed: ${e.toString()}'),
+            content: Text('An unexpected error occurred: ${e.toString()}'),
             backgroundColor: AppColors.error,
             duration: const Duration(seconds: 3),
           ),
@@ -221,39 +208,26 @@ class SignInDialog extends StatelessWidget {
 
   Future<void> _handleSignInFromDialog(BuildContext context) async {
     try {
-      print('Starting Google Sign-In from dialog...');
+      print('🔐 GoogleSignInButton: Starting Google Sign-In from dialog...');
       final authVM = Provider.of<AuthViewModel>(context, listen: false);
       
-      // Call the sign-in method through AuthViewModel
-      final success = await authVM.signInWithGoogle();
+      // Use the enhanced sign-in method that handles the full flow
+      final success = await authVM.signInWithGoogle(context);
       
-      if (success) {
-        // Successfully signed in - UI will update automatically via Provider
-        print('Dialog sign-in successful, showing success message');
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Welcome, ${authVM.userDisplayName ?? authVM.userEmail}!'),
-              backgroundColor: AppColors.success,
-              duration: const Duration(seconds: 3),
-            ),
-          );
-        }
-      } else {
-        // User cancelled or error occurred
-        print('Dialog sign-in cancelled or failed');
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Sign-in cancelled'),
-              duration: Duration(seconds: 2),
-            ),
-          );
-        }
+      if (!success && context.mounted) {
+        // Show error if sign-in failed
+        final errorMessage = authVM.errorMessage ?? 'Sign-in failed';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 3),
+          ),
+        );
       }
+      
     } catch (e) {
-      // Handle error
-      print('Dialog sign-in error: $e');
+      print('❌ GoogleSignInButton: Dialog sign-in error: $e');
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

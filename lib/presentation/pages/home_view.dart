@@ -18,6 +18,7 @@ import '../../data/models/food_analysis.dart';
 import 'analyze_view.dart';
 import 'profile_view.dart';
 import 'barcode_scanner_view.dart';
+import 'welcome_view.dart';
 import '../../../core/constants/app_colors.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
@@ -130,9 +131,39 @@ class _HomeContentState extends State<_HomeContent> {
   @override
   Widget build(BuildContext context) {
     final profileVM = Provider.of<UserProfileViewModel>(context);
-    final profile = profileVM.profile!;
+    final profile = profileVM.profile;
     final analysisVM = Provider.of<ImageAnalysisViewModel>(context);
     final authVM = Provider.of<AuthViewModel>(context);
+
+    // Validate user state consistency on each build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      authVM.validateUserState();
+    });
+
+    // Handle case where profile is null
+    if (profile == null) {
+      // If user is not signed in (after deletion), redirect to welcome page
+      if (!authVM.isSignedIn) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+            (route) => false,
+          );
+        });
+        return const Scaffold(
+          body: Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
+      }
+      
+      // If user is signed in but profile not loaded yet, show loading
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
 
     // Reset banner when user signs out
     if (!authVM.isSignedIn && _bannerDismissed) {
