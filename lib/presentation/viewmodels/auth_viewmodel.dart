@@ -31,6 +31,7 @@ class AuthViewModel extends ChangeNotifier {
   AuthState _authState = AuthState.initial;
   String? _errorMessage;
   bool _isLoading = false;
+  bool _isDataLoading = false; // Flag to prevent duplicate data loading
 
   // Getters
   User? get user => _user;
@@ -65,20 +66,30 @@ class AuthViewModel extends ChangeNotifier {
   void _performBackgroundSync() {
     // Fire and forget - sync in background
     Future.microtask(() async {
+      // Skip if data is already being loaded
+      if (_isDataLoading) {
+        print(
+            '⏭️ AuthViewModel: Skipping background sync - data already loading');
+        return;
+      }
+
       try {
+        _isDataLoading = true;
         print('🔄 AuthViewModel: Starting background data sync...');
         // Load ALL user data from AWS (profile + foods)
         await _syncService.loadUserDataFromAWS();
         print('✅ AuthViewModel: Background data sync completed');
 
-        // Notify profile update to refresh UI
-        ProfileUpdateEvent.notifyUpdate();
-        
+        // Note: ProfileUpdateEvent.notifyUpdate() is handled by the main sign-in flow
+        // to avoid duplicate UI updates
+
         // Note: We can't access ImageAnalysisViewModel here since we don't have context
         // The authStateChanges listener in ImageAnalysisViewModel will handle reloading
       } catch (e) {
         print('⚠️ AuthViewModel: Background sync failed: $e');
         // Don't propagate background sync errors to UI
+      } finally {
+        _isDataLoading = false;
       }
     });
   }
@@ -102,10 +113,11 @@ class AuthViewModel extends ChangeNotifier {
         // Load user data from AWS FIRST before navigation
         print('🔄 AuthViewModel: Loading user data before navigation...');
         try {
+          _isDataLoading = true;
           await _syncService.loadUserDataFromAWS();
           print('✅ AuthViewModel: User data loaded successfully');
           ProfileUpdateEvent.notifyUpdate();
-          
+
           // Reload food analyses in the UI after AWS sync
           if (context != null && context.mounted) {
             try {
@@ -120,6 +132,8 @@ class AuthViewModel extends ChangeNotifier {
         } catch (e) {
           print('⚠️ AuthViewModel: Failed to load user data: $e');
           // Continue anyway - navigation will handle this
+        } finally {
+          _isDataLoading = false;
         }
 
         // Handle post-authentication flow if context is provided
