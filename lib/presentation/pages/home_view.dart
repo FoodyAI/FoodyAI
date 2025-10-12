@@ -135,6 +135,11 @@ class _HomeContentState extends State<_HomeContent> {
     final analysisVM = Provider.of<ImageAnalysisViewModel>(context);
     final authVM = Provider.of<AuthViewModel>(context);
 
+    // Validate user state consistency on each build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      authVM.validateUserState();
+    });
+
     // Handle case where profile is null
     if (profile == null) {
       // If user is not signed in (after deletion), redirect to welcome page

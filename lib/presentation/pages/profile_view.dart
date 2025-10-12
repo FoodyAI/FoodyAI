@@ -1779,43 +1779,41 @@ class _ProfileViewState extends State<ProfileView>
 
   Future<void> _handleDeleteAccount(BuildContext context, AuthViewModel authVM) async {
     try {
-      final success = await authVM.deleteUser();
+      // Use the new context-aware deleteUser method
+      final success = await authVM.deleteUser(context);
       
-      if (success) {
-        if (context.mounted) {
-          // Show success message
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Account deleted successfully'),
-              backgroundColor: Colors.green,
-              duration: Duration(seconds: 2),
+      if (!success && context.mounted) {
+        // Deletion failed - show error message
+        // (Success case is now handled by AuthViewModel + AuthenticationFlow)
+        final errorMessage = authVM.errorMessage ?? 'Failed to delete account. Please try again.';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 4),
+            action: SnackBarAction(
+              label: 'Retry',
+              textColor: AppColors.white,
+              onPressed: () => _handleDeleteAccount(context, authVM),
             ),
-          );
-          
-          // Navigate to welcome screen
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (context) => const WelcomeScreen()),
-            (route) => false,
-          );
-        }
-      } else {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Failed to delete account. Please try again.'),
-              backgroundColor: Colors.red,
-              duration: Duration(seconds: 3),
-            ),
-          );
-        }
+          ),
+        );
       }
+      // Note: Success case (success == true) is handled automatically by AuthViewModel
+      // which shows success message and navigates to welcome screen
+      
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error deleting account: ${e.toString()}'),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 3),
+            backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 4),
+            action: SnackBarAction(
+              label: 'Retry',
+              textColor: AppColors.white,
+              onPressed: () => _handleDeleteAccount(context, authVM),
+            ),
           ),
         );
       }
