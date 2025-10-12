@@ -297,11 +297,13 @@ class SyncService {
       if (goal != null) requestData['goal'] = goal;
       if (dailyCalories != null) requestData['dailyCalories'] = dailyCalories;
       if (bmi != null) requestData['bmi'] = bmi;
-      if (themePreference != null)
+      if (themePreference != null) {
         requestData['themePreference'] = themePreference;
+      }
       if (aiProvider != null) requestData['aiProvider'] = aiProvider;
-      if (measurementUnit != null)
+      if (measurementUnit != null) {
         requestData['measurementUnit'] = measurementUnit;
+      }
 
       await _awsService.saveUserProfileWithData(requestData);
 

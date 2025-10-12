@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class WelcomeViewModel extends ChangeNotifier {
-  bool _isGoogleLoading = false;
+  final bool _isGoogleLoading = false;
   bool get isLoading => _isGoogleLoading;
   bool get isGoogleLoading => _isGoogleLoading;
 
