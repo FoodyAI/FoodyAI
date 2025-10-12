@@ -149,11 +149,22 @@ class SyncService {
             userData['activity_level'] != null &&
             userData['goal'] != null) {
           // Construct UserProfile object
+          // PostgreSQL returns numbers as strings, so we need to parse them
+          final age = userData['age'] is String
+              ? int.parse(userData['age'])
+              : userData['age'] as int;
+          final weight = userData['weight'] is String
+              ? double.parse(userData['weight'])
+              : (userData['weight'] as num).toDouble();
+          final height = userData['height'] is String
+              ? double.parse(userData['height'])
+              : (userData['height'] as num).toDouble();
+
           final profile = UserProfile(
             gender: userData['gender'],
-            age: userData['age'],
-            weightKg: (userData['weight'] as num).toDouble(),
-            heightCm: (userData['height'] as num).toDouble(),
+            age: age,
+            weightKg: weight,
+            heightCm: height,
             activityLevel: ActivityLevel.values.firstWhere(
               (level) => level.name == userData['activity_level'],
               orElse: () => ActivityLevel.moderatelyActive,
@@ -174,12 +185,20 @@ class SyncService {
           await _sqliteService.saveUserProfile(profile, isMetric,
               userId: userId);
 
+          print('✅ AWS: User profile saved to local SQLite');
+          print('   - Gender: ${profile.gender}, Age: ${profile.age}');
+          print(
+              '   - Weight: ${profile.weightKg}kg, Height: ${profile.heightCm}cm');
+          print(
+              '   - Activity: ${profile.activityLevel.name}, Goal: ${profile.weightGoal.name}');
+          print('   - AI Provider: ${profile.aiProvider.name}');
+          print('   - Measurement Unit: ${isMetric ? "metric" : "imperial"}');
+
           if (userData['theme_preference'] != null) {
             await _sqliteService
                 .setThemePreference(userData['theme_preference']);
+            print('   - Theme: ${userData['theme_preference']}');
           }
-
-          print('✅ AWS: User profile saved to local SQLite');
         }
       } else if (profileData != null && profileData['success'] == false) {
         print('ℹ️ AWS: User profile not found in AWS - first-time user');
@@ -234,6 +253,12 @@ class SyncService {
         await _sqliteService.saveFoodAnalyses(foodAnalyses, userId: userId);
         print(
             '✅ AWS: Saved ${foodAnalyses.length} food analyses to local SQLite');
+
+        // Log each food item
+        for (var food in foodAnalyses) {
+          print(
+              '   - ${food.name}: ${food.calories.toInt()} cal, Score: ${food.healthScore.toInt()}/10');
+        }
       } else {
         print('ℹ️ AWS: No food analyses found for user');
       }

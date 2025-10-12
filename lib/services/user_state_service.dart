@@ -48,6 +48,7 @@ class UserStateService {
   /// Intelligently determines the user's state after authentication
   Future<UserStateResult> determineUserState({
     bool forceRefresh = false,
+    bool useLocalCache = false, // Use local SQLite if data was just loaded
   }) async {
     try {
       final user = _auth.currentUser;
@@ -59,9 +60,15 @@ class UserStateService {
       }
 
       print('🔍 UserStateService: Determining state for user: ${user.email}');
+      print('🔍 UserStateService: Use local cache: $useLocalCache');
 
-      // Step 1: ALWAYS check AWS first (source of truth)
-      // Don't rely on local data as it might be stale after account deletion
+      // If we just loaded data from AWS, use local cache instead of fetching again
+      if (useLocalCache) {
+        print('📱 UserStateService: Using local cache (data was just loaded)');
+        return await _determineStateFromLocal(user.uid);
+      }
+
+      // Step 1: Check AWS first (source of truth)
       print('☁️ UserStateService: Checking AWS first (source of truth)...');
       final awsResult = await _checkAWSProfileWithRetry(user.uid);
 
@@ -127,7 +134,19 @@ class UserStateService {
       await _syncAWSToLocal(awsProfile, awsOnboardingComplete);
 
       // Step 4: Determine final state based on AWS data
-      if (awsOnboardingComplete && _isProfileComplete(awsProfile)) {
+      final profileComplete = _isProfileComplete(awsProfile);
+      print('☁️ UserStateService: Profile complete check: $profileComplete');
+      if (awsProfile != null) {
+        print('   - Gender: ${awsProfile.gender.isNotEmpty}');
+        print('   - Age: ${awsProfile.age > 0} (${awsProfile.age})');
+        print(
+            '   - Weight: ${awsProfile.weightKg > 0} (${awsProfile.weightKg})');
+        print(
+            '   - Height: ${awsProfile.heightCm > 0} (${awsProfile.heightCm})');
+      }
+
+      if (awsOnboardingComplete && profileComplete) {
+        print('✅ UserStateService: Returning state = returningComplete');
         return UserStateResult(
           state: UserState.returningComplete,
           profile: awsProfile,
@@ -135,6 +154,7 @@ class UserStateService {
           message: 'Welcome back!',
         );
       } else {
+        print('⚠️ UserStateService: Returning state = returningIncomplete');
         return UserStateResult(
           state: UserState.returningIncomplete,
           profile: awsProfile,
@@ -167,6 +187,13 @@ class UserStateService {
           final userData = profileData['user'];
           final profile = _parseAWSProfile(userData);
           final onboardingComplete = _isOnboardingComplete(userData);
+
+          print('☁️ UserStateService: Profile parsed successfully');
+          print('   - Onboarding complete: $onboardingComplete');
+          if (profile != null) {
+            print(
+                '   - Age: ${profile.age}, Weight: ${profile.weightKg}, Height: ${profile.heightCm}');
+          }
 
           return UserStateResult(
             state: UserState.returningComplete, // Will be refined later
@@ -227,11 +254,28 @@ class UserStateService {
     if (userData == null) return null;
 
     try {
+      // PostgreSQL returns numbers as strings, so we need to parse them
+      final age = userData['age'] != null
+          ? (userData['age'] is String
+              ? int.parse(userData['age'])
+              : userData['age'] as int)
+          : 25;
+      final weight = userData['weight'] != null
+          ? (userData['weight'] is String
+              ? double.parse(userData['weight'])
+              : (userData['weight'] as num).toDouble())
+          : 70.0;
+      final height = userData['height'] != null
+          ? (userData['height'] is String
+              ? double.parse(userData['height'])
+              : (userData['height'] as num).toDouble())
+          : 170.0;
+
       return UserProfile(
         gender: userData['gender'] ?? 'Male',
-        age: userData['age'] ?? 25,
-        weightKg: (userData['weight'] ?? 70.0).toDouble(),
-        heightCm: (userData['height'] ?? 170.0).toDouble(),
+        age: age,
+        weightKg: weight,
+        heightCm: height,
         activityLevel: _parseActivityLevel(userData['activity_level']),
         weightGoal: _parseWeightGoal(userData['goal']),
         aiProvider: _parseAIProvider(userData['ai_provider']),
@@ -359,6 +403,67 @@ class UserStateService {
   /// Force refresh user state (ignores cache)
   Future<UserStateResult> refreshUserState() async {
     return determineUserState(forceRefresh: true);
+  }
+
+  /// Determine state from local SQLite data (after AWS sync)
+  Future<UserStateResult> _determineStateFromLocal(String userId) async {
+    try {
+      // Get local profile
+      final localProfile =
+          await _userProfileRepository.getProfile(userId: userId);
+      final localOnboardingComplete =
+          await _userProfileRepository.getHasCompletedOnboarding();
+
+      print(
+          '📱 UserStateService: Local profile found: ${localProfile != null}');
+      print(
+          '📱 UserStateService: Local onboarding complete: $localOnboardingComplete');
+
+      if (localProfile == null) {
+        print('📱 UserStateService: No local profile - first-time user');
+        return UserStateResult(
+          state: UserState.firstTime,
+          message: 'Welcome to Foody! Let\'s set up your profile.',
+        );
+      }
+
+      // Check if profile is complete
+      final profileComplete = _isProfileComplete(localProfile);
+      print('📱 UserStateService: Profile complete check: $profileComplete');
+      if (localProfile != null) {
+        print('   - Gender: ${localProfile.gender.isNotEmpty}');
+        print('   - Age: ${localProfile.age > 0} (${localProfile.age})');
+        print(
+            '   - Weight: ${localProfile.weightKg > 0} (${localProfile.weightKg})');
+        print(
+            '   - Height: ${localProfile.heightCm > 0} (${localProfile.heightCm})');
+      }
+
+      if (localOnboardingComplete && profileComplete) {
+        print('✅ UserStateService: Local state = returningComplete');
+        return UserStateResult(
+          state: UserState.returningComplete,
+          profile: localProfile,
+          hasCompletedOnboarding: true,
+          message: 'Welcome back!',
+        );
+      } else {
+        print('⚠️ UserStateService: Local state = returningIncomplete');
+        return UserStateResult(
+          state: UserState.returningIncomplete,
+          profile: localProfile,
+          hasCompletedOnboarding: localOnboardingComplete,
+          message: 'Let\'s continue setting up your profile.',
+        );
+      }
+    } catch (e) {
+      print('❌ UserStateService: Error reading local data: $e');
+      return UserStateResult(
+        state: UserState.authError,
+        message: 'Failed to load profile data',
+        error: e is Exception ? e : Exception(e.toString()),
+      );
+    }
   }
 
   /// Check if user exists in AWS (lightweight check)

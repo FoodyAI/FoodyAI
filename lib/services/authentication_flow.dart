@@ -14,6 +14,7 @@ class AuthenticationFlow {
     required String userDisplayName,
     required String userEmail,
     bool showLoadingDialog = true,
+    bool useLocalCache = false, // If data was just loaded from AWS
   }) async {
     if (!context.mounted) return;
 
@@ -26,7 +27,9 @@ class AuthenticationFlow {
       }
 
       // Determine user state
-      final userStateResult = await _userStateService.determineUserState();
+      final userStateResult = await _userStateService.determineUserState(
+        useLocalCache: useLocalCache,
+      );
 
       // Hide loading dialog
       loadingOverlay?.remove();
