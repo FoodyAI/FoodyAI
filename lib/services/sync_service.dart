@@ -2,6 +2,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'aws_service.dart';
 import '../data/models/food_analysis.dart';
 import '../data/services/sqlite_service.dart';
+import '../domain/entities/user_profile.dart';
+import '../domain/entities/ai_provider.dart';
 
 class SyncService {
   final AWSService _awsService = AWSService();
@@ -20,7 +22,7 @@ class SyncService {
       final photoUrl = user.photoURL;
 
       // Get local profile data from SQLite
-      final profile = await _sqliteService.getUserProfile();
+      final profile = await _sqliteService.getUserProfile(userId: userId);
       if (profile == null) return;
 
       final gender = profile.gender;
@@ -71,7 +73,8 @@ class SyncService {
       final userId = user.uid;
 
       // Get ONLY unsynced food analyses from SQLite
-      final unsyncedAnalyses = await _sqliteService.getUnsyncedFoodAnalyses();
+      final unsyncedAnalyses =
+          await _sqliteService.getUnsyncedFoodAnalyses(userId: userId);
 
       if (unsyncedAnalyses.isEmpty) {
         print('📋 AWS: No unsynced food analyses to sync');
@@ -94,12 +97,16 @@ class SyncService {
             fat: analysis.fat,
             healthScore: analysis.healthScore.toInt(),
             foodId: analysis.id ?? '',
+            analysisDate: analysis.date
+                .toIso8601String()
+                .split('T')[0], // Format: YYYY-MM-DD
           );
 
           // If successful, mark as synced
           if (result != null) {
             await _sqliteService.markFoodAnalysisAsSynced(
-                analysis.name, analysis.date);
+                analysis.name, analysis.date,
+                userId: userId);
             print('✅ AWS: Synced and marked: ${analysis.name}');
           } else {
             print('❌ AWS: Failed to sync: ${analysis.name}');
@@ -115,66 +122,131 @@ class SyncService {
     }
   }
 
-  // Load user profile from AWS when signing in
-  Future<void> loadUserProfileFromAWS() async {
+  // Load ALL user data from AWS when signing in (profile + food analyses)
+  Future<void> loadUserDataFromAWS() async {
     try {
       final user = _auth.currentUser;
-      if (user == null) return;
+      if (user == null) {
+        print('❌ AWS: No authenticated user');
+        return;
+      }
 
       final userId = user.uid;
+      print('📥 AWS: Loading user data for user: $userId');
+
+      // Step 1: Load user profile from AWS
       final profileData = await _awsService.getUserProfile(userId);
 
       if (profileData != null && profileData['success'] == true) {
         final userData = profileData['user'];
+        print('✅ AWS: User profile found in AWS');
 
-        // Save to SQLite
-        if (userData['gender'] != null) {
-          await _sqliteService.setAppSetting('user_gender', userData['gender']);
-        }
-        if (userData['age'] != null) {
-          await _sqliteService.setAppSetting(
-              'user_age', userData['age'].toString());
-        }
-        if (userData['weight'] != null) {
-          await _sqliteService.setAppSetting(
-              'user_weight', userData['weight'].toString());
-        }
-        if (userData['height'] != null) {
-          await _sqliteService.setAppSetting(
-              'user_height', userData['height'].toString());
-        }
-        if (userData['activity_level'] != null) {
-          await _sqliteService.setAppSetting(
-              'user_activity_level', userData['activity_level']);
-        }
-        if (userData['goal'] != null) {
-          await _sqliteService.setAppSetting('user_goal', userData['goal']);
-        }
-        if (userData['daily_calories'] != null) {
-          await _sqliteService.setAppSetting(
-              'user_daily_calories', userData['daily_calories'].toString());
-        }
-        if (userData['bmi'] != null) {
-          await _sqliteService.setAppSetting(
-              'user_bmi', userData['bmi'].toString());
-        }
-        if (userData['theme_preference'] != null) {
-          await _sqliteService.setThemePreference(userData['theme_preference']);
-        }
-        if (userData['ai_provider'] != null) {
-          await _sqliteService.setAppSetting(
-              'user_ai_provider', userData['ai_provider']);
-        }
+        // Save profile to SQLite
+        if (userData['gender'] != null &&
+            userData['age'] != null &&
+            userData['weight'] != null &&
+            userData['height'] != null &&
+            userData['activity_level'] != null &&
+            userData['goal'] != null) {
+          // Construct UserProfile object
+          final profile = UserProfile(
+            gender: userData['gender'],
+            age: userData['age'],
+            weightKg: (userData['weight'] as num).toDouble(),
+            heightCm: (userData['height'] as num).toDouble(),
+            activityLevel: ActivityLevel.values.firstWhere(
+              (level) => level.name == userData['activity_level'],
+              orElse: () => ActivityLevel.moderatelyActive,
+            ),
+            weightGoal: WeightGoal.values.firstWhere(
+              (goal) => goal.name == userData['goal'],
+              orElse: () => WeightGoal.maintain,
+            ),
+            aiProvider: AIProvider.values.firstWhere(
+              (provider) =>
+                  provider.name == (userData['ai_provider'] ?? 'openai'),
+              orElse: () => AIProvider.openai,
+            ),
+          );
 
-        print('User profile loaded from AWS successfully');
+          final isMetric =
+              (userData['measurement_unit'] ?? 'metric') == 'metric';
+          await _sqliteService.saveUserProfile(profile, isMetric,
+              userId: userId);
+
+          if (userData['theme_preference'] != null) {
+            await _sqliteService
+                .setThemePreference(userData['theme_preference']);
+          }
+
+          print('✅ AWS: User profile saved to local SQLite');
+        }
       } else if (profileData != null && profileData['success'] == false) {
-        print('User profile not found in AWS - first-time user');
+        print('ℹ️ AWS: User profile not found in AWS - first-time user');
+        return; // First-time user, no data to load
       } else {
-        print('Failed to load user profile from AWS');
+        print('❌ AWS: Failed to load user profile from AWS');
+        return;
       }
+
+      // Step 2: Load food analyses from AWS
+      print('📥 AWS: Fetching food analyses from AWS...');
+      print('🔍 AWS: Using userId: $userId');
+      final foodsData = await _awsService.getFoodAnalyses(userId);
+
+      if (foodsData.isNotEmpty) {
+        print('✅ AWS: Found ${foodsData.length} food analyses');
+
+        // Convert AWS data to FoodAnalysis objects
+        final foodAnalyses = foodsData.map((foodData) {
+          // PostgreSQL returns numbers as strings, so we need to parse them
+          final protein = foodData['protein'] is String
+              ? double.parse(foodData['protein'])
+              : (foodData['protein'] as num).toDouble();
+          final carbs = foodData['carbs'] is String
+              ? double.parse(foodData['carbs'])
+              : (foodData['carbs'] as num).toDouble();
+          final fat = foodData['fat'] is String
+              ? double.parse(foodData['fat'])
+              : (foodData['fat'] as num).toDouble();
+          final calories = foodData['calories'] is String
+              ? double.parse(foodData['calories'])
+              : (foodData['calories'] as num).toDouble();
+          final healthScore = foodData['health_score'] is num
+              ? (foodData['health_score'] as num).toDouble()
+              : double.parse(foodData['health_score'].toString());
+
+          return FoodAnalysis(
+            id: foodData['id'] as String,
+            name: foodData['food_name'] as String,
+            protein: protein,
+            carbs: carbs,
+            fat: fat,
+            calories: calories,
+            healthScore: healthScore,
+            imagePath: foodData['image_url'] as String?,
+            date: DateTime.parse(foodData['analysis_date'] as String),
+            syncedToAws: true, // Already in AWS
+          );
+        }).toList();
+
+        // Save all food analyses to local SQLite
+        await _sqliteService.saveFoodAnalyses(foodAnalyses, userId: userId);
+        print(
+            '✅ AWS: Saved ${foodAnalyses.length} food analyses to local SQLite');
+      } else {
+        print('ℹ️ AWS: No food analyses found for user');
+      }
+
+      print('✅ AWS: User data loaded successfully');
     } catch (e) {
-      print('Error loading user profile from AWS: $e');
+      print('❌ AWS: Error loading user data from AWS: $e');
     }
+  }
+
+  // Legacy method - kept for backward compatibility
+  Future<void> loadUserProfileFromAWS() async {
+    await loadUserDataFromAWS();
   }
 
   // Save food analysis to AWS when user is signed in
@@ -206,12 +278,15 @@ class SyncService {
         fat: analysis.fat,
         healthScore: analysis.healthScore.toInt(),
         foodId: analysis.id!,
+        analysisDate:
+            analysis.date.toIso8601String().split('T')[0], // Format: YYYY-MM-DD
       );
 
       if (result != null) {
         // Mark as synced in local database
         await _sqliteService.markFoodAnalysisAsSynced(
-            analysis.name, analysis.date);
+            analysis.name, analysis.date,
+            userId: userId);
         print('✅ AWS: Food analysis saved to AWS successfully');
         print('✅ AWS: Marked as synced in local database');
         print('✅ AWS: Server response: $result');
