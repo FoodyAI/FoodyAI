@@ -6,12 +6,15 @@ class UserProfileUseCase {
 
   UserProfileUseCase(this._repository);
 
-  Future<UserProfile?> getProfile() => _repository.getProfile();
+  Future<UserProfile?> getProfile({String? userId}) =>
+      _repository.getProfile(userId: userId);
 
-  Future<void> saveProfile(UserProfile profile, bool isMetric) =>
-      _repository.saveProfile(profile, isMetric);
+  Future<void> saveProfile(UserProfile profile, bool isMetric,
+          {required String userId}) =>
+      _repository.saveProfile(profile, isMetric, userId: userId);
 
-  Future<void> clearProfile() => _repository.clearProfile();
+  Future<void> clearProfile({String? userId}) =>
+      _repository.clearProfile(userId: userId);
 
   Future<bool> getIsMetric() => _repository.getIsMetric();
 

@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
 import '../../services/sync_service.dart';
 import '../../services/aws_service.dart';
 import '../../services/authentication_flow.dart';
 import '../../data/repositories/user_profile_repository_impl.dart';
+import '../../data/services/sqlite_service.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/events/profile_update_event.dart';
+import 'image_analysis_viewmodel.dart';
 
 enum AuthState {
   initial,
@@ -63,9 +66,16 @@ class AuthViewModel extends ChangeNotifier {
     // Fire and forget - sync in background
     Future.microtask(() async {
       try {
-        await _syncService.syncUserProfileOnSignIn();
-        await _syncService.syncFoodAnalysesOnSignIn();
-        await _syncService.loadUserProfileFromAWS();
+        print('🔄 AuthViewModel: Starting background data sync...');
+        // Load ALL user data from AWS (profile + foods)
+        await _syncService.loadUserDataFromAWS();
+        print('✅ AuthViewModel: Background data sync completed');
+
+        // Notify profile update to refresh UI
+        ProfileUpdateEvent.notifyUpdate();
+        
+        // Note: We can't access ImageAnalysisViewModel here since we don't have context
+        // The authStateChanges listener in ImageAnalysisViewModel will handle reloading
       } catch (e) {
         print('⚠️ AuthViewModel: Background sync failed: $e');
         // Don't propagate background sync errors to UI
@@ -89,12 +99,36 @@ class AuthViewModel extends ChangeNotifier {
 
         print('✅ AuthViewModel: Google Sign-In successful for ${user.email}');
 
+        // Load user data from AWS FIRST before navigation
+        print('🔄 AuthViewModel: Loading user data before navigation...');
+        try {
+          await _syncService.loadUserDataFromAWS();
+          print('✅ AuthViewModel: User data loaded successfully');
+          ProfileUpdateEvent.notifyUpdate();
+          
+          // Reload food analyses in the UI after AWS sync
+          if (context != null && context.mounted) {
+            try {
+              final imageAnalysisVM = context.read<ImageAnalysisViewModel>();
+              await imageAnalysisVM.reloadAnalyses();
+              print('✅ AuthViewModel: Food analyses reloaded in UI');
+            } catch (e) {
+              print('⚠️ AuthViewModel: Failed to reload food analyses: $e');
+              // Continue anyway - this is not critical
+            }
+          }
+        } catch (e) {
+          print('⚠️ AuthViewModel: Failed to load user data: $e');
+          // Continue anyway - navigation will handle this
+        }
+
         // Handle post-authentication flow if context is provided
         if (context != null && context.mounted) {
           await _authFlow.handlePostAuthNavigation(
             context,
             userDisplayName: user.displayName ?? '',
             userEmail: user.email ?? '',
+            useLocalCache: true, // Data was just loaded from AWS
           );
         }
 
@@ -171,21 +205,25 @@ class AuthViewModel extends ChangeNotifier {
       _setLoading(true);
       _clearError();
 
+      print('🔄 AuthViewModel: Starting sign-out process...');
+
+      // Step 1: Clear ALL local data first
+      try {
+        final sqliteService = SQLiteService();
+        await sqliteService.clearAllData();
+        print('✅ AuthViewModel: Cleared all local SQLite data');
+
+        // Notify UserProfileViewModel to refresh its state
+        ProfileUpdateEvent.notifyUpdate();
+      } catch (e) {
+        print('⚠️ AuthViewModel: Failed to clear local data: $e');
+        // Continue anyway - still need to sign out
+      }
+
+      // Step 2: Sign out from Firebase
       await _authService.signOut();
       _user = null;
       _setAuthState(AuthState.unauthenticated);
-
-      // Clear local profile data to reset onboarding state
-      try {
-        await _userProfileRepository.clearProfile();
-        // Notify UserProfileViewModel to refresh its state
-        ProfileUpdateEvent.notifyUpdate();
-        print(
-            '✅ AuthViewModel: Cleared local profile data and notified profile update');
-      } catch (e) {
-        print('⚠️ AuthViewModel: Failed to clear profile data: $e');
-        // Continue anyway - this is less critical
-      }
 
       print('✅ AuthViewModel: User signed out successfully');
 

@@ -20,7 +20,7 @@ exports.handler = async (event) => {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Content-Type,Authorization',
-    'Access-Control-Allow-Methods': 'POST,DELETE,OPTIONS'
+    'Access-Control-Allow-Methods': 'GET,POST,DELETE,OPTIONS'
   };
 
   try {
@@ -35,14 +35,52 @@ exports.handler = async (event) => {
       };
     }
     
-    if (httpMethod === 'POST') {
+    if (httpMethod === 'GET') {
+      // Get all food analyses for a user
+      console.log('GET request received for food analyses');
+      const userId = event.pathParameters?.userId;
+      
+      if (!userId) {
+        return {
+          statusCode: 400,
+          headers,
+          body: JSON.stringify({
+            success: false,
+            error: 'userId is required'
+          })
+        };
+      }
+      
+      console.log('Fetching food analyses for user:', userId);
+      
+      const query = `
+        SELECT id, user_id, image_url, food_name, calories, protein, carbs, fat, health_score, analysis_date, created_at
+        FROM foods
+        WHERE user_id = $1
+        ORDER BY created_at DESC
+      `;
+      
+      const result = await pool.query(query, [userId]);
+      console.log(`Found ${result.rows.length} food analyses for user ${userId}`);
+      
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({
+          success: true,
+          foods: result.rows,
+          count: result.rows.length
+        })
+      };
+      
+    } else if (httpMethod === 'POST') {
       // Create food analysis
       console.log('POST request received for food analysis');
       console.log('Event body:', event.body);
       
-      const { userId, imageUrl, foodName, calories, protein, carbs, fat, healthScore, foodId } = JSON.parse(event.body);
+      const { userId, imageUrl, foodName, calories, protein, carbs, fat, healthScore, foodId, analysisDate } = JSON.parse(event.body);
       
-      console.log('Parsed data:', { userId, imageUrl, foodName, calories, protein, carbs, fat, healthScore, foodId });
+      console.log('Parsed data:', { userId, imageUrl, foodName, calories, protein, carbs, fat, healthScore, foodId, analysisDate });
       
       const query = `
         INSERT INTO foods (id, user_id, image_url, food_name, calories, protein, carbs, fat, health_score, analysis_date)
@@ -60,7 +98,7 @@ exports.handler = async (event) => {
         carbs,
         fat,
         healthScore,
-        new Date()
+        analysisDate || new Date().toISOString().split('T')[0] // Use provided date or default to today
       ];
       
       console.log('Executing query with values:', values);

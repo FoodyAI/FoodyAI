@@ -156,7 +156,7 @@ class _HomeContentState extends State<_HomeContent> {
           ),
         );
       }
-      
+
       // If user is signed in but profile not loaded yet, show loading
       return const Scaffold(
         body: Center(

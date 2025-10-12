@@ -92,11 +92,12 @@ class FoodAnalysis {
   }
 
   // SQLite-specific methods
+  // Note: user_id should be set by the caller (SQLiteService)
   Map<String, dynamic> toMap() {
     const uuid = Uuid();
     return {
       'id': id ?? uuid.v4(), // Generate UUID if not provided
-      'user_id': 'local_user',
+      'user_id': 'placeholder', // Will be overwritten by SQLiteService
       'image_url': imagePath,
       'food_name': name,
       'calories': calories.round(),

@@ -138,7 +138,7 @@ class AuthService {
       }
     } catch (e) {
       print('Error deleting user from Firebase: $e');
-      throw e;
+      rethrow;
     }
   }
 
@@ -217,12 +217,12 @@ class AuthService {
             throw Exception('Re-authentication failed');
           }
         } else {
-          throw e;
+          rethrow;
         }
       }
     } catch (e) {
       print('Error deleting user from Firebase: $e');
-      throw e;
+      rethrow;
     }
   }
 }

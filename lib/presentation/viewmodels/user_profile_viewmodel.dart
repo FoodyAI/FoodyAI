@@ -23,7 +23,6 @@ class UserProfileViewModel extends ChangeNotifier {
   bool get isLoading => _isLoading;
   bool get isMetric => _isMetric;
   bool get hasCompletedOnboarding => _hasCompletedOnboarding;
-  bool get isGuest => _profile?.isGuest ?? false;
 
   UserProfileViewModel(this._useCase) {
     _loadProfile();
@@ -37,13 +36,15 @@ class UserProfileViewModel extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final profile = await _useCase.getProfile();
+      final userId = _auth.currentUser?.uid;
+      final profile = await _useCase.getProfile(userId: userId);
       final isMetric = await _useCase.getIsMetric();
       final hasCompletedOnboarding = await _useCase.getHasCompletedOnboarding();
       _profile = profile;
       _isMetric = isMetric;
       _hasCompletedOnboarding = hasCompletedOnboarding;
     } catch (e) {
+      print('⚠️ UserProfileViewModel: Error loading profile: $e');
       // Handle error silently
     } finally {
       _isLoading = false;
@@ -62,8 +63,13 @@ class UserProfileViewModel extends ChangeNotifier {
     required bool isMetric,
     WeightGoal? weightGoal,
     AIProvider? aiProvider,
-    bool? isGuest,
   }) async {
+    final userId = _auth.currentUser?.uid;
+    if (userId == null) {
+      print('❌ UserProfileViewModel: No authenticated user');
+      throw Exception('User must be authenticated to save profile');
+    }
+
     _isMetric = isMetric;
     final weightKg = weightUnit == 'lbs' ? weight * 0.453592 : weight;
     final heightCm = heightUnit == 'inch' ? height * 2.54 : height;
@@ -76,29 +82,26 @@ class UserProfileViewModel extends ChangeNotifier {
       activityLevel: activityLevel,
       weightGoal: weightGoal ?? _profile?.weightGoal ?? WeightGoal.maintain,
       aiProvider: aiProvider ?? _profile?.aiProvider ?? AIProvider.openai,
-      isGuest: isGuest ?? _profile?.isGuest ?? true,
     );
 
-    await _useCase.saveProfile(_profile!, isMetric);
+    await _useCase.saveProfile(_profile!, isMetric, userId: userId);
 
-    // Sync with AWS if user is signed in
-    if (_auth.currentUser != null) {
-      // Get actual theme preference from SQLite
-      final themePreference =
-          await _sqliteService.getThemePreference() ?? 'system';
+    // Sync with AWS since user is authenticated
+    // Get actual theme preference from SQLite
+    final themePreference =
+        await _sqliteService.getThemePreference() ?? 'system';
 
-      await _syncService.updateUserProfileInAWS(
-        gender: gender,
-        age: age,
-        weight: weightKg,
-        height: heightCm,
-        activityLevel: activityLevel.name,
-        goal: weightGoal?.name,
-        themePreference: themePreference,
-        aiProvider: aiProvider?.name,
-        measurementUnit: isMetric ? 'metric' : 'imperial',
-      );
-    }
+    await _syncService.updateUserProfileInAWS(
+      gender: gender,
+      age: age,
+      weight: weightKg,
+      height: heightCm,
+      activityLevel: activityLevel.name,
+      goal: weightGoal?.name,
+      themePreference: themePreference,
+      aiProvider: aiProvider?.name,
+      measurementUnit: isMetric ? 'metric' : 'imperial',
+    );
 
     notifyListeners();
   }
@@ -110,7 +113,8 @@ class UserProfileViewModel extends ChangeNotifier {
   }
 
   Future<void> clearProfile() async {
-    await _useCase.clearProfile();
+    final userId = _auth.currentUser?.uid;
+    await _useCase.clearProfile(userId: userId);
     _profile = null;
     _hasCompletedOnboarding = false;
     notifyListeners();

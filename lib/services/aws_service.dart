@@ -3,7 +3,8 @@ import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class AWSService {
-  static const String _baseUrl = 'https://xpdvcgcji6.execute-api.us-east-1.amazonaws.com/prod';
+  static const String _baseUrl =
+      'https://xpdvcgcji6.execute-api.us-east-1.amazonaws.com/prod';
   final Dio _dio = Dio();
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -53,23 +54,23 @@ class AWSService {
 
       final response = await _dio.post(
         '/users',
-            data: {
-              'userId': userId,
-              'email': email,
-              'displayName': displayName,
-              'photoUrl': photoUrl,
-              'gender': gender,
-              'age': age,
-              'weight': weight,
-              'height': height,
-              'activityLevel': activityLevel,
-              'goal': goal,
-              'dailyCalories': dailyCalories,
-              'bmi': bmi,
-              'themePreference': themePreference,
-              'aiProvider': aiProvider,
-              'measurementUnit': measurementUnit,
-            },
+        data: {
+          'userId': userId,
+          'email': email,
+          'displayName': displayName,
+          'photoUrl': photoUrl,
+          'gender': gender,
+          'age': age,
+          'weight': weight,
+          'height': height,
+          'activityLevel': activityLevel,
+          'goal': goal,
+          'dailyCalories': dailyCalories,
+          'bmi': bmi,
+          'themePreference': themePreference,
+          'aiProvider': aiProvider,
+          'measurementUnit': measurementUnit,
+        },
         options: Options(
           headers: {
             'Authorization': 'Bearer $idToken',
@@ -81,7 +82,8 @@ class AWSService {
       if (response.statusCode == 200) {
         return response.data;
       } else {
-        throw Exception('Failed to save user profile: ${response.statusMessage}');
+        throw Exception(
+            'Failed to save user profile: ${response.statusMessage}');
       }
     } catch (e) {
       print('Error saving user profile: $e');
@@ -112,10 +114,9 @@ class AWSService {
       );
 
       if (response.statusCode == 200) {
-        return {
-          'success': true,
-          'user': response.data,
-        };
+        // AWS returns {"success": true, "user": {...}}
+        // So response.data already has both 'success' and 'user'
+        return response.data;
       } else if (response.statusCode == 404) {
         // User doesn't exist - this is a valid scenario for first-time users
         print('ℹ️ AWS Service: User profile not found (404) - first-time user');
@@ -128,23 +129,25 @@ class AWSService {
       }
     } catch (e) {
       print('Error getting user profile: $e');
-      
+
       // Check if this is a DioException with 404 status
       if (e.toString().contains('404')) {
-        print('ℹ️ AWS Service: Caught 404 exception - treating as first-time user');
+        print(
+            'ℹ️ AWS Service: Caught 404 exception - treating as first-time user');
         return {
           'success': false,
           'message': 'User not found',
         };
       }
-      
+
       // For other errors, return null to indicate a real error
       return null;
     }
   }
 
   // Save user profile with custom data
-  Future<Map<String, dynamic>?> saveUserProfileWithData(Map<String, dynamic> data) async {
+  Future<Map<String, dynamic>?> saveUserProfileWithData(
+      Map<String, dynamic> data) async {
     try {
       final idToken = await _getIdToken();
       if (idToken == null) {
@@ -165,7 +168,8 @@ class AWSService {
       if (response.statusCode == 200) {
         return response.data;
       } else {
-        throw Exception('Failed to save user profile: ${response.statusMessage}');
+        throw Exception(
+            'Failed to save user profile: ${response.statusMessage}');
       }
     } catch (e) {
       print('Error saving user profile: $e');
@@ -184,12 +188,14 @@ class AWSService {
     required double fat,
     required int healthScore,
     required String foodId,
+    required String analysisDate, // Format: YYYY-MM-DD
   }) async {
     try {
       print('🔄 AWS Service: Starting food analysis save...');
       print('📝 AWS Service: User ID: $userId');
       print('📝 AWS Service: Food: $foodName ($calories cal)');
-      
+      print('📝 AWS Service: Analysis Date: $analysisDate');
+
       final idToken = await _getIdToken();
       if (idToken == null) {
         print('❌ AWS Service: No ID token available');
@@ -206,8 +212,9 @@ class AWSService {
         'fat': fat,
         'healthScore': healthScore,
         'foodId': foodId,
+        'analysisDate': analysisDate,
       };
-      
+
       print('📤 AWS Service: Sending request to /food-analysis');
       print('📤 AWS Service: Request data: $requestData');
 
@@ -229,12 +236,62 @@ class AWSService {
         print('✅ AWS Service: Food analysis saved successfully');
         return response.data;
       } else {
-        print('❌ AWS Service: Failed to save food analysis: ${response.statusMessage}');
-        throw Exception('Failed to save food analysis: ${response.statusMessage}');
+        print(
+            '❌ AWS Service: Failed to save food analysis: ${response.statusMessage}');
+        throw Exception(
+            'Failed to save food analysis: ${response.statusMessage}');
       }
     } catch (e) {
       print('❌ AWS Service: Error saving food analysis: $e');
       return null;
+    }
+  }
+
+  // Get all food analyses for a user
+  Future<List<Map<String, dynamic>>> getFoodAnalyses(String userId) async {
+    try {
+      print('📥 AWS Service: Fetching food analyses for user: $userId');
+
+      final idToken = await _getIdToken();
+      if (idToken == null) {
+        print('❌ AWS Service: No ID token available');
+        throw Exception('User not authenticated');
+      }
+
+      final response = await _dio.get(
+        '/food-analysis/$userId',
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $idToken',
+            'Content-Type': 'application/json',
+          },
+        ),
+      );
+
+      print('📥 AWS Service: Response status: ${response.statusCode}');
+      print('📥 AWS Service: Response data: ${response.data}');
+
+      if (response.statusCode == 200) {
+        print('✅ AWS Service: Food analyses fetched successfully');
+        final data = response.data;
+        print('📥 AWS Service: data[success] = ${data['success']}');
+        print('📥 AWS Service: data[foods] = ${data['foods']}');
+        print('📥 AWS Service: food count = ${data['count']}');
+        if (data['success'] == true && data['foods'] != null) {
+          final foods = List<Map<String, dynamic>>.from(data['foods']);
+          print('✅ AWS Service: Returning ${foods.length} foods');
+          return foods;
+        }
+        print('⚠️ AWS Service: No foods found in response');
+        return [];
+      } else {
+        print(
+            '❌ AWS Service: Failed to fetch food analyses: ${response.statusMessage}');
+        return [];
+      }
+    } catch (e) {
+      print('❌ AWS Service: Error fetching food analyses: $e');
+      return [];
     }
   }
 
@@ -247,7 +304,7 @@ class AWSService {
       print('🗑️ AWS Service: Starting food analysis deletion...');
       print('📝 AWS Service: User ID: $userId');
       print('📝 AWS Service: Food ID: $foodId');
-      
+
       final idToken = await _getIdToken();
       if (idToken == null) {
         print('❌ AWS Service: No ID token available');
@@ -275,9 +332,11 @@ class AWSService {
         print('✅ AWS Service: Food analysis deleted successfully');
         return response.data;
       } else {
-        print('❌ AWS Service: Failed to delete with status ${response.statusCode}');
+        print(
+            '❌ AWS Service: Failed to delete with status ${response.statusCode}');
         print('❌ AWS Service: Error: ${response.statusMessage}');
-        throw Exception('Failed to delete food analysis: ${response.statusMessage}');
+        throw Exception(
+            'Failed to delete food analysis: ${response.statusMessage}');
       }
     } catch (e) {
       print('❌ AWS Service: Exception occurred during deletion: $e');
@@ -290,7 +349,7 @@ class AWSService {
     try {
       print('🗑️ AWS Service: Starting user deletion...');
       print('📝 AWS Service: User ID: $userId');
-      
+
       final idToken = await _getIdToken();
       if (idToken == null) {
         print('❌ AWS Service: No ID token available');
@@ -307,14 +366,16 @@ class AWSService {
         ),
       );
 
-      print('📥 AWS Service: Delete user response status: ${response.statusCode}');
+      print(
+          '📥 AWS Service: Delete user response status: ${response.statusCode}');
       print('📥 AWS Service: Delete user response data: ${response.data}');
 
       if (response.statusCode == 200) {
         print('✅ AWS Service: User deleted successfully');
         return response.data;
       } else {
-        print('❌ AWS Service: Failed to delete user with status ${response.statusCode}');
+        print(
+            '❌ AWS Service: Failed to delete user with status ${response.statusCode}');
         print('❌ AWS Service: Error: ${response.statusMessage}');
         throw Exception('Failed to delete user: ${response.statusMessage}');
       }
@@ -338,19 +399,18 @@ class AWSService {
       // Get local data from SharedPreferences
       // This would be implemented based on your local storage
       print('Syncing local data with AWS for user: $userId');
-      
+
       // Example: Sync user profile
       // final localProfile = await getLocalUserProfile();
       // if (localProfile != null) {
       //   await saveUserProfile(userId: userId, ...);
       // }
-      
+
       // Example: Sync food analyses
       // final localAnalyses = await getLocalFoodAnalyses();
       // for (final analysis in localAnalyses) {
       //   await saveFoodAnalysis(userId: userId, ...);
       // }
-      
     } catch (e) {
       print('Error syncing local data with AWS: $e');
     }
