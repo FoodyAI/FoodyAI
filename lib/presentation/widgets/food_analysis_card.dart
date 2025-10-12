@@ -202,12 +202,20 @@ class FoodAnalysisCard extends StatelessWidget {
           width: 80,
           height: 80,
           fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            // Show placeholder if image fails to load
+            return _buildImagePlaceholder(context, isDark, 80, 80, 32);
+          },
         ),
       );
     }
+    return _buildImagePlaceholder(context, isDark, 80, 80, 32);
+  }
+
+  Widget _buildImagePlaceholder(BuildContext context, bool isDark, double width, double height, double fontSize) {
     return Container(
-      width: 80,
-      height: 80,
+      width: width,
+      height: height,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -226,11 +234,42 @@ class FoodAnalysisCard extends StatelessWidget {
       ),
       child: Center(
         child: Text(
-          analysis.name[0].toUpperCase(),
+          analysis.name.isNotEmpty ? analysis.name[0].toUpperCase() : '?',
           style: TextStyle(
-            fontSize: 32,
+            fontSize: fontSize,
             fontWeight: FontWeight.bold,
             color: Theme.of(context).primaryColor,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildModalImagePlaceholder(BuildContext context) {
+    return Container(
+      height: 300,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Theme.of(context).primaryColor,
+            Theme.of(context).primaryColor.withOpacity(0.7),
+          ],
+        ),
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(32),
+          topRight: Radius.circular(32),
+        ),
+      ),
+      child: Center(
+        child: Text(
+          analysis.name.isNotEmpty ? analysis.name[0].toUpperCase() : '?',
+          style: const TextStyle(
+            fontSize: 72,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
           ),
         ),
       ),
@@ -288,37 +327,26 @@ class FoodAnalysisCard extends StatelessWidget {
                           topLeft: Radius.circular(32),
                           topRight: Radius.circular(32),
                         ),
-                        image: DecorationImage(
-                          image: FileImage(File(analysis.imagePath!)),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(32),
+                          topRight: Radius.circular(32),
+                        ),
+                        child: Image.file(
+                          File(analysis.imagePath!),
+                          width: double.infinity,
+                          height: 300,
                           fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            // Show placeholder if image fails to load
+                            return _buildModalImagePlaceholder(context);
+                          },
                         ),
                       ),
                     )
                   else
-                    Container(
-                      height: 300,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            Theme.of(context).primaryColor,
-                            Theme.of(context).primaryColor.withOpacity(0.7),
-                          ],
-                        ),
-                      ),
-                      child: Center(
-                        child: Text(
-                          analysis.name[0].toUpperCase(),
-                          style: const TextStyle(
-                            fontSize: 72,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
+                    _buildModalImagePlaceholder(context),
                   // Swipe Indicator
                   Positioned(
                     top: 12,
