@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'user_state_service.dart';
 import '../presentation/pages/home_view.dart';
 import '../presentation/pages/onboarding_view.dart';
+import '../presentation/pages/welcome_view.dart';
 import '../core/constants/app_colors.dart';
 
 class AuthenticationFlow {
@@ -367,5 +368,59 @@ class AuthenticationFlow {
   /// Force refresh user state
   Future<UserStateResult> refreshUserState() async {
     return _userStateService.refreshUserState();
+  }
+
+  /// Handle post-logout navigation (sign out or account deletion)
+  Future<void> handlePostLogoutNavigation(
+    BuildContext context, {
+    String? message,
+    bool isAccountDeletion = false,
+  }) async {
+    if (!context.mounted) return;
+
+    try {
+      // Show appropriate message
+      final logoutMessage = message ?? 
+          (isAccountDeletion ? 'Account deleted successfully' : 'Signed out successfully');
+      
+      _showSnackBar(
+        context, 
+        logoutMessage, 
+        isAccountDeletion ? AppColors.success : AppColors.primary,
+      );
+
+      // Clear navigation stack and go to welcome screen
+      Navigator.of(context).pushAndRemoveUntil(
+        _createSlideTransition(const WelcomeScreen()),
+        (route) => false, // Remove all previous routes
+      );
+
+      print('✅ AuthenticationFlow: Navigated to welcome screen after ${isAccountDeletion ? 'account deletion' : 'sign out'}');
+      
+    } catch (e) {
+      print('❌ AuthenticationFlow: Error in post-logout navigation: $e');
+      
+      // Fallback navigation
+      if (context.mounted) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+          (route) => false,
+        );
+      }
+    }
+  }
+
+  /// Navigate to welcome screen (used for sign out and account deletion)
+  Future<void> navigateToWelcome(BuildContext context, {String? message}) async {
+    if (!context.mounted) return;
+
+    if (message != null) {
+      _showSnackBar(context, message, AppColors.primary);
+    }
+
+    Navigator.of(context).pushAndRemoveUntil(
+      _createSlideTransition(const WelcomeScreen()),
+      (route) => false,
+    );
   }
 }

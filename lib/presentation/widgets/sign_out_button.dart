@@ -90,15 +90,8 @@ class SignOutButtonWithAuth extends StatelessWidget {
           isCompact: isCompact,
           isLoading: authVM.isLoading,
           onPressed: () async {
-            await authVM.signOut();
-            if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Signed out successfully'),
-                  backgroundColor: AppColors.success,
-                ),
-              );
-            }
+            // Use the new context-aware signOut method
+            await authVM.signOut(context);
           },
         );
       },
