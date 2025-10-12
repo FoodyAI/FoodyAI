@@ -6,6 +6,7 @@ import '../../services/aws_service.dart';
 import '../../services/authentication_flow.dart';
 import '../../data/repositories/user_profile_repository_impl.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/events/profile_update_event.dart';
 
 enum AuthState {
   initial,
@@ -20,8 +21,9 @@ class AuthViewModel extends ChangeNotifier {
   final SyncService _syncService = SyncService();
   final AWSService _awsService = AWSService();
   final AuthenticationFlow _authFlow = AuthenticationFlow();
-  final UserProfileRepositoryImpl _userProfileRepository = UserProfileRepositoryImpl();
-  
+  final UserProfileRepositoryImpl _userProfileRepository =
+      UserProfileRepositoryImpl();
+
   User? _user;
   AuthState _authState = AuthState.initial;
   String? _errorMessage;
@@ -76,17 +78,17 @@ class AuthViewModel extends ChangeNotifier {
     try {
       _setLoading(true);
       _clearError();
-      
+
       print('🔐 AuthViewModel: Starting Google Sign-In...');
-      
+
       final user = await _authService.signInWithGoogle();
-      
+
       if (user != null) {
         _user = user;
         _setAuthState(AuthState.authenticated);
-        
+
         print('✅ AuthViewModel: Google Sign-In successful for ${user.email}');
-        
+
         // Handle post-authentication flow if context is provided
         if (context != null && context.mounted) {
           await _authFlow.handlePostAuthNavigation(
@@ -95,7 +97,7 @@ class AuthViewModel extends ChangeNotifier {
             userEmail: user.email ?? '',
           );
         }
-        
+
         return true;
       } else {
         _setAuthState(AuthState.unauthenticated);
@@ -116,9 +118,9 @@ class AuthViewModel extends ChangeNotifier {
     try {
       _setLoading(true);
       _clearError();
-      
+
       final user = await _authService.signInWithEmail(email, password);
-      
+
       if (user != null) {
         _user = user;
         _setAuthState(AuthState.authenticated);
@@ -142,9 +144,9 @@ class AuthViewModel extends ChangeNotifier {
     try {
       _setLoading(true);
       _clearError();
-      
+
       final user = await _authService.signUpWithEmail(email, password);
-      
+
       if (user != null) {
         _user = user;
         _setAuthState(AuthState.authenticated);
@@ -168,20 +170,36 @@ class AuthViewModel extends ChangeNotifier {
     try {
       _setLoading(true);
       _clearError();
-      
+
       await _authService.signOut();
       _user = null;
       _setAuthState(AuthState.unauthenticated);
-      
+
+      // Clear local profile data to reset onboarding state
+      try {
+        await _userProfileRepository.clearProfile();
+        // Notify UserProfileViewModel to refresh its state
+        ProfileUpdateEvent.notifyUpdate();
+        print(
+            '✅ AuthViewModel: Cleared local profile data and notified profile update');
+      } catch (e) {
+        print('⚠️ AuthViewModel: Failed to clear profile data: $e');
+        // Continue anyway - this is less critical
+      }
+
       print('✅ AuthViewModel: User signed out successfully');
-      
+
       // Handle navigation if context is provided
       if (context != null && context.mounted) {
+        print('🔄 AuthViewModel: Starting navigation to welcome screen...');
         await _authFlow.handlePostLogoutNavigation(
           context,
           message: 'Signed out successfully',
           isAccountDeletion: false,
         );
+        print('✅ AuthViewModel: Navigation to welcome screen completed');
+      } else {
+        print('⚠️ AuthViewModel: No context provided for navigation');
       }
     } catch (e) {
       print('❌ AuthViewModel: Sign-out error: $e');
@@ -199,7 +217,7 @@ class AuthViewModel extends ChangeNotifier {
     try {
       _setLoading(true);
       _clearError();
-      
+
       if (_user == null) {
         print('No user to delete');
         _setError('No user to delete');
@@ -208,12 +226,14 @@ class AuthViewModel extends ChangeNotifier {
 
       final userId = _user!.uid;
       final userEmail = _user!.email;
-      print('🗑️ AuthViewModel: Starting user deletion process for user: $userId ($userEmail)');
+      print(
+          '🗑️ AuthViewModel: Starting user deletion process for user: $userId ($userEmail)');
 
       // Step 1: Delete from AWS FIRST (while we still have valid token)
       bool awsDeleted = false;
       try {
-        print('🔄 AuthViewModel: Deleting user from AWS first (while token is valid)');
+        print(
+            '🔄 AuthViewModel: Deleting user from AWS first (while token is valid)');
         final awsResult = await _awsService.deleteUser(userId);
         if (awsResult != null) {
           awsDeleted = true;
@@ -245,41 +265,45 @@ class AuthViewModel extends ChangeNotifier {
         print('✅ AuthViewModel: Deleted user from Firebase');
       } catch (e) {
         if (e.toString().contains('requires-recent-login')) {
-          print('🔐 AuthViewModel: Re-authentication required for Firebase deletion');
-          
+          print(
+              '🔐 AuthViewModel: Re-authentication required for Firebase deletion');
+
           // Handle re-authentication flow
           if (context != null && context.mounted) {
             await _handleRecentLoginRequired(context);
             return false; // Let the re-auth flow handle the rest
           } else {
-            _setError('For security reasons, please sign in again to delete your account.');
+            _setError(
+                'For security reasons, please sign in again to delete your account.');
             return false;
           }
         } else {
           // Other Firebase error - this is critical since AWS is already deleted
-          print('❌ AuthViewModel: Firebase deletion failed after AWS deletion: $e');
-          
+          print(
+              '❌ AuthViewModel: Firebase deletion failed after AWS deletion: $e');
+
           // This is a serious problem - AWS is deleted but Firebase isn't
           // We should still sign out the user since their data is gone
           _user = null;
           _setAuthState(AuthState.unauthenticated);
-          
+
           if (context != null && context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Account data deleted, but Firebase deletion failed: ${e.toString()}. You have been signed out for safety.'),
+                content: Text(
+                    'Account data deleted, but Firebase deletion failed: ${e.toString()}. You have been signed out for safety.'),
                 backgroundColor: AppColors.error,
                 duration: const Duration(seconds: 5),
               ),
             );
-            
+
             await _authFlow.handlePostLogoutNavigation(
               context,
               message: 'Account partially deleted - signed out for safety',
               isAccountDeletion: true,
             );
           }
-          
+
           return false; // Consider this a failure even though we signed out
         }
       }
@@ -302,10 +326,10 @@ class AuthViewModel extends ChangeNotifier {
         return true;
       } else {
         // This should not be reached, but just in case
-        print('❌ AuthViewModel: Unexpected state - not all deletions completed');
+        print(
+            '❌ AuthViewModel: Unexpected state - not all deletions completed');
         return false;
       }
-      
     } catch (e) {
       print('❌ AuthViewModel: Unexpected error in user deletion: $e');
       _setError('Failed to delete user: ${e.toString()}');
@@ -368,7 +392,7 @@ class AuthViewModel extends ChangeNotifier {
   Future<void> _attemptReauthentication(BuildContext context) async {
     try {
       _setLoading(true);
-      
+
       // Show loading dialog
       showDialog(
         context: context,
@@ -387,10 +411,10 @@ class AuthViewModel extends ChangeNotifier {
 
       // Attempt re-authentication
       final reauthSuccess = await _authService.reauthenticateWithGoogle();
-      
+
       // Hide loading dialog
       if (context.mounted) Navigator.pop(context);
-      
+
       if (reauthSuccess) {
         // Re-authentication successful, try deletion again
         if (context.mounted) {
@@ -402,7 +426,7 @@ class AuthViewModel extends ChangeNotifier {
             ),
           );
         }
-        
+
         // Retry deletion with fresh authentication
         await _retryDeletion(context);
       } else {
@@ -410,7 +434,8 @@ class AuthViewModel extends ChangeNotifier {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Identity confirmation cancelled. Account not deleted.'),
+              content:
+                  Text('Identity confirmation cancelled. Account not deleted.'),
               backgroundColor: AppColors.warning,
               duration: Duration(seconds: 3),
             ),
@@ -420,9 +445,9 @@ class AuthViewModel extends ChangeNotifier {
     } catch (e) {
       // Hide loading dialog if still showing
       if (context.mounted) Navigator.pop(context);
-      
+
       print('❌ AuthViewModel: Re-authentication error: $e');
-      
+
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -441,14 +466,15 @@ class AuthViewModel extends ChangeNotifier {
   Future<void> _retryDeletion(BuildContext context) async {
     try {
       _setLoading(true);
-      
+
       if (_user == null) {
         throw Exception('No user to delete');
       }
 
       final userId = _user!.uid;
       final userEmail = _user!.email;
-      print('🔄 AuthViewModel: Retrying deletion after re-auth for user: $userId ($userEmail)');
+      print(
+          '🔄 AuthViewModel: Retrying deletion after re-auth for user: $userId ($userEmail)');
 
       // Step 1: Delete from AWS FIRST (while we still have valid token)
       bool awsDeleted = false;
@@ -457,19 +483,22 @@ class AuthViewModel extends ChangeNotifier {
         final awsResult = await _awsService.deleteUser(userId);
         if (awsResult != null) {
           awsDeleted = true;
-          print('✅ AuthViewModel: Successfully deleted user data from AWS after re-auth');
+          print(
+              '✅ AuthViewModel: Successfully deleted user data from AWS after re-auth');
         } else {
-          print('❌ AuthViewModel: Failed to delete user data from AWS after re-auth');
+          print(
+              '❌ AuthViewModel: Failed to delete user data from AWS after re-auth');
           throw Exception('Failed to delete user data from AWS');
         }
       } catch (e) {
         print('❌ AuthViewModel: AWS deletion failed after re-auth: $e');
         _setError('Failed to delete account from database: ${e.toString()}');
-        
+
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Failed to delete account from database: ${e.toString()}'),
+              content: Text(
+                  'Failed to delete account from database: ${e.toString()}'),
               backgroundColor: AppColors.error,
               duration: const Duration(seconds: 3),
             ),
@@ -483,7 +512,8 @@ class AuthViewModel extends ChangeNotifier {
         await _userProfileRepository.clearProfile();
         print('✅ AuthViewModel: Cleared local user profile after re-auth');
       } catch (e) {
-        print('⚠️ AuthViewModel: Failed to clear local profile after re-auth: $e');
+        print(
+            '⚠️ AuthViewModel: Failed to clear local profile after re-auth: $e');
         // Continue anyway - this is less critical
       }
 
@@ -492,25 +522,28 @@ class AuthViewModel extends ChangeNotifier {
       try {
         await _authService.deleteUserWithReauth();
         firebaseDeleted = true;
-        print('✅ AuthViewModel: Deleted user from Firebase after re-authentication');
+        print(
+            '✅ AuthViewModel: Deleted user from Firebase after re-authentication');
       } catch (e) {
         // Firebase deletion failed after re-auth - this is critical since AWS is already deleted
-        print('❌ AuthViewModel: Firebase deletion still failed after re-auth: $e');
-        
+        print(
+            '❌ AuthViewModel: Firebase deletion still failed after re-auth: $e');
+
         // This is a serious problem - AWS is deleted but Firebase isn't
         // We should still sign out the user since their data is gone
         _user = null;
         _setAuthState(AuthState.unauthenticated);
-        
+
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Account data deleted, but Firebase deletion failed: ${e.toString()}. You have been signed out for safety.'),
+              content: Text(
+                  'Account data deleted, but Firebase deletion failed: ${e.toString()}. You have been signed out for safety.'),
               backgroundColor: AppColors.error,
               duration: const Duration(seconds: 5),
             ),
           );
-          
+
           await _authFlow.handlePostLogoutNavigation(
             context,
             message: 'Account partially deleted - signed out for safety',
@@ -534,13 +567,14 @@ class AuthViewModel extends ChangeNotifier {
           );
         }
 
-        print('✅ AuthViewModel: Account deletion completed successfully after re-auth');
+        print(
+            '✅ AuthViewModel: Account deletion completed successfully after re-auth');
       }
-      
     } catch (e) {
       print('❌ AuthViewModel: Retry deletion error: $e');
-      _setError('Failed to delete account after re-authentication: ${e.toString()}');
-      
+      _setError(
+          'Failed to delete account after re-authentication: ${e.toString()}');
+
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -602,8 +636,9 @@ class AuthViewModel extends ChangeNotifier {
           await _handleInconsistentState();
         }
       } catch (e) {
-        print('⚠️ AuthViewModel: Error getting user token - user may be deleted: $e');
-        if (e.toString().contains('user-not-found') || 
+        print(
+            '⚠️ AuthViewModel: Error getting user token - user may be deleted: $e');
+        if (e.toString().contains('user-not-found') ||
             e.toString().contains('user-disabled') ||
             e.toString().contains('invalid-user-token')) {
           await _handleInconsistentState();
@@ -614,12 +649,13 @@ class AuthViewModel extends ChangeNotifier {
 
   /// Handle inconsistent state where user appears signed in but is deleted
   Future<void> _handleInconsistentState() async {
-    print('🔧 AuthViewModel: Handling inconsistent user state - forcing sign out');
-    
+    print(
+        '🔧 AuthViewModel: Handling inconsistent user state - forcing sign out');
+
     // Force local state cleanup
     _user = null;
     _setAuthState(AuthState.unauthenticated);
-    
+
     // Clear local profile data
     try {
       await _userProfileRepository.clearProfile();
@@ -627,7 +663,7 @@ class AuthViewModel extends ChangeNotifier {
     } catch (e) {
       print('⚠️ AuthViewModel: Error clearing profile during state fix: $e');
     }
-    
+
     // Force sign out from all services
     try {
       await _authService.signOut();
