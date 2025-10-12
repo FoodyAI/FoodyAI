@@ -45,7 +45,7 @@ class _ProfileViewState extends State<ProfileView>
     // Handle case where profile is null
     if (profile == null) {
       final authVM = Provider.of<AuthViewModel>(context, listen: false);
-      
+
       // If user is not signed in (after deletion), redirect to welcome page
       if (!authVM.isSignedIn) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -54,24 +54,24 @@ class _ProfileViewState extends State<ProfileView>
             (route) => false,
           );
         });
-        return Scaffold(
-          appBar: const CustomAppBar(
+        return const Scaffold(
+          appBar: CustomAppBar(
             title: 'Profile',
             icon: FontAwesomeIcons.user,
           ),
-          body: const Center(
+          body: Center(
             child: CircularProgressIndicator(),
           ),
         );
       }
-      
+
       // If user is signed in but profile not loaded yet, show loading
-      return Scaffold(
-        appBar: const CustomAppBar(
+      return const Scaffold(
+        appBar: CustomAppBar(
           title: 'Profile',
           icon: FontAwesomeIcons.user,
         ),
-        body: const Center(
+        body: Center(
           child: CircularProgressIndicator(),
         ),
       );
@@ -179,7 +179,8 @@ class _ProfileViewState extends State<ProfileView>
                     crossAxisCount: 2,
                     mainAxisSpacing: 16,
                     crossAxisSpacing: 16,
-                    childAspectRatio: 1.1, // Reduced from 1.2 to 1.1 to give more height
+                    childAspectRatio:
+                        1.1, // Reduced from 1.2 to 1.1 to give more height
                     children: [
                       _buildInfoCard(
                         context,
@@ -734,7 +735,7 @@ class _ProfileViewState extends State<ProfileView>
               ),
             ),
           ),
-          if (profileVM.isGuest) const SizedBox(height: 16),
+          const SizedBox(height: 16),
           // AI Provider Section
           Card(
             elevation: 4,
@@ -1154,7 +1155,7 @@ class _ProfileViewState extends State<ProfileView>
   void _showGenderDialog(BuildContext context, UserProfileViewModel vm) {
     final colorScheme = Theme.of(context).colorScheme;
     final profile = vm.profile;
-    
+
     if (profile == null) return;
 
     showDialog(
@@ -1248,9 +1249,9 @@ class _ProfileViewState extends State<ProfileView>
   void _showAgeDialog(BuildContext context, UserProfileViewModel vm) {
     final colorScheme = Theme.of(context).colorScheme;
     final profile = vm.profile;
-    
+
     if (profile == null) return;
-    
+
     int selectedAge = profile.age;
 
     showDialog(
@@ -1309,9 +1310,9 @@ class _ProfileViewState extends State<ProfileView>
   void _showWeightDialog(BuildContext context, UserProfileViewModel vm) {
     final colorScheme = Theme.of(context).colorScheme;
     final profile = vm.profile;
-    
+
     if (profile == null) return;
-    
+
     double selectedWeight = vm.displayWeight;
 
     showDialog(
@@ -1342,7 +1343,6 @@ class _ProfileViewState extends State<ProfileView>
           ),
           TextButton(
             onPressed: () {
-              if (profile == null) return;
               vm.saveProfile(
                 gender: profile.gender,
                 age: profile.age,
@@ -1372,9 +1372,9 @@ class _ProfileViewState extends State<ProfileView>
   void _showHeightDialog(BuildContext context, UserProfileViewModel vm) {
     final colorScheme = Theme.of(context).colorScheme;
     final profile = vm.profile;
-    
+
     if (profile == null) return;
-    
+
     // HeightInput widget expects height in cm for both metric and imperial
     // For imperial, it will convert cm to feet/inches internally
     double selectedHeight =
@@ -1615,7 +1615,9 @@ class _ProfileViewState extends State<ProfileView>
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
-        onPressed: authVM.isLoading ? null : () => _showDeleteAccountDialog(context, authVM),
+        onPressed: authVM.isLoading
+            ? null
+            : () => _showDeleteAccountDialog(context, authVM),
         icon: authVM.isLoading
             ? SizedBox(
                 width: 16,
@@ -1653,7 +1655,7 @@ class _ProfileViewState extends State<ProfileView>
 
   void _showDeleteAccountDialog(BuildContext context, AuthViewModel authVM) {
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     showDialog(
       context: context,
       builder: (BuildContext dialogContext) {
@@ -1739,7 +1741,8 @@ class _ProfileViewState extends State<ProfileView>
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red.shade600,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               ),
               child: const Text(
                 'Delete Account',
@@ -1777,15 +1780,17 @@ class _ProfileViewState extends State<ProfileView>
     );
   }
 
-  Future<void> _handleDeleteAccount(BuildContext context, AuthViewModel authVM) async {
+  Future<void> _handleDeleteAccount(
+      BuildContext context, AuthViewModel authVM) async {
     try {
       // Use the new context-aware deleteUser method
       final success = await authVM.deleteUser(context);
-      
+
       if (!success && context.mounted) {
         // Deletion failed - show error message
         // (Success case is now handled by AuthViewModel + AuthenticationFlow)
-        final errorMessage = authVM.errorMessage ?? 'Failed to delete account. Please try again.';
+        final errorMessage = authVM.errorMessage ??
+            'Failed to delete account. Please try again.';
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(errorMessage),
@@ -1801,7 +1806,6 @@ class _ProfileViewState extends State<ProfileView>
       }
       // Note: Success case (success == true) is handled automatically by AuthViewModel
       // which shows success message and navigates to welcome screen
-      
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

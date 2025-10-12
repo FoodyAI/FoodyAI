@@ -59,7 +59,6 @@ class UserProfile {
   final ActivityLevel activityLevel;
   final WeightGoal weightGoal;
   final AIProvider aiProvider;
-  final bool isGuest;
 
   UserProfile({
     required this.gender,
@@ -69,7 +68,6 @@ class UserProfile {
     required this.activityLevel,
     this.weightGoal = WeightGoal.maintain,
     this.aiProvider = AIProvider.openai,
-    this.isGuest = true,
   });
 
   double get bmi => weightKg / ((heightCm / 100) * (heightCm / 100));

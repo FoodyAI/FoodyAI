@@ -48,6 +48,18 @@ class ImageAnalysisViewModel extends ChangeNotifier {
   ImageAnalysisViewModel() {
     _loadSavedAnalyses();
     _initializeFirstUseDate();
+
+    // Listen to auth state changes to reload data when user changes
+    _auth.authStateChanges().listen((user) {
+      if (user != null) {
+        // User signed in - reload their data
+        _loadSavedAnalyses();
+      } else {
+        // User signed out - clear local data
+        _savedAnalyses.clear();
+        notifyListeners();
+      }
+    });
   }
 
   void setSelectedDate(DateTime date) {
@@ -69,6 +81,13 @@ class ImageAnalysisViewModel extends ChangeNotifier {
   Future<void> _loadSavedAnalyses() async {
     _savedAnalyses = await _storage.loadAnalyses();
     notifyListeners();
+  }
+
+  // Public method to reload analyses (called after AWS sync)
+  Future<void> reloadAnalyses() async {
+    print('🔄 ImageAnalysisViewModel: Manually reloading analyses after AWS sync...');
+    await _loadSavedAnalyses();
+    print('✅ ImageAnalysisViewModel: Analyses reloaded, count: ${_savedAnalyses.length}');
   }
 
   Future<void> _checkAndShowRating() async {
@@ -157,7 +176,11 @@ class ImageAnalysisViewModel extends ChangeNotifier {
     if (_currentAnalysis != null) {
       print('🔄 ImageAnalysisViewModel: Saving current analysis...');
 
-      // No need to count analyses for ordering anymore
+      final userId = _auth.currentUser?.uid;
+      if (userId == null) {
+        print('❌ ImageAnalysisViewModel: No authenticated user');
+        throw Exception('User must be authenticated to save analysis');
+      }
 
       final analysis = FoodAnalysis(
         id: const Uuid().v4(), // Generate UUID for the object
@@ -169,28 +192,24 @@ class ImageAnalysisViewModel extends ChangeNotifier {
         healthScore: _currentAnalysis!.healthScore,
         imagePath: _currentAnalysis!.imagePath,
         orderNumber: 0, // Not used anymore
-        date: _selectedDate,
+        date: _selectedDate, // Use the selected date!
         dateOrderNumber: 0, // Not used anymore
       );
 
       print(
-          '📝 ImageAnalysisViewModel: Created analysis: ${analysis.name} (${analysis.calories} cal)');
+          '📝 ImageAnalysisViewModel: Created analysis: ${analysis.name} (${analysis.calories} cal) for date: $_selectedDate');
       _savedAnalyses.add(analysis);
 
       print('💾 ImageAnalysisViewModel: Saving to storage...');
       await _storage.saveAnalyses(_savedAnalyses);
 
       // Debug: Check what's in SQLite after saving
-      await _sqliteService.debugPrintFoodAnalyses();
+      await _sqliteService.debugPrintFoodAnalyses(userId: userId);
 
-      // Sync with AWS if user is signed in
-      if (_auth.currentUser != null) {
-        print('🔄 ImageAnalysisViewModel: User is signed in, syncing to AWS...');
-        await _syncService.saveFoodAnalysisToAWS(analysis);
-        print('✅ ImageAnalysisViewModel: AWS sync completed');
-      } else {
-        print('❌ ImageAnalysisViewModel: No user signed in, skipping AWS sync');
-      }
+      // Sync with AWS (user is authenticated)
+      print('🔄 ImageAnalysisViewModel: Syncing to AWS...');
+      await _syncService.saveFoodAnalysisToAWS(analysis);
+      print('✅ ImageAnalysisViewModel: AWS sync completed');
 
       _currentAnalysis = null;
       _selectedImage = null;
@@ -204,21 +223,24 @@ class ImageAnalysisViewModel extends ChangeNotifier {
   Future<FoodAnalysis?> removeAnalysis(int index) async {
     if (index >= 0 && index < _savedAnalyses.length) {
       final removedAnalysis = _savedAnalyses[index];
-      print('🗑️ ImageAnalysisViewModel: Removing analysis: ${removedAnalysis.name}');
-      
+      print(
+          '🗑️ ImageAnalysisViewModel: Removing analysis: ${removedAnalysis.name}');
+
+      final userId = _auth.currentUser?.uid;
+      if (userId == null) {
+        print('❌ ImageAnalysisViewModel: No authenticated user');
+        throw Exception('User must be authenticated to remove analysis');
+      }
+
       _savedAnalyses.removeAt(index);
 
       print('💾 ImageAnalysisViewModel: Saving updated analyses to storage...');
       await _storage.saveAnalyses(_savedAnalyses);
 
-      // Sync deletion with AWS if user is signed in
-      if (_auth.currentUser != null) {
-        print('🔄 ImageAnalysisViewModel: User is signed in, syncing deletion to AWS...');
-        await _syncService.deleteFoodAnalysisFromAWS(removedAnalysis);
-        print('✅ ImageAnalysisViewModel: AWS deletion sync completed');
-      } else {
-        print('❌ ImageAnalysisViewModel: No user signed in, skipping AWS deletion sync');
-      }
+      // Sync deletion with AWS (user is authenticated)
+      print('🔄 ImageAnalysisViewModel: Syncing deletion to AWS...');
+      await _syncService.deleteFoodAnalysisFromAWS(removedAnalysis);
+      print('✅ ImageAnalysisViewModel: AWS deletion sync completed');
 
       notifyListeners();
       return removedAnalysis;
@@ -229,6 +251,12 @@ class ImageAnalysisViewModel extends ChangeNotifier {
   Future<void> addAnalysis(FoodAnalysis analysis) async {
     print('🔄 ImageAnalysisViewModel: Adding analysis: ${analysis.name}');
 
+    final userId = _auth.currentUser?.uid;
+    if (userId == null) {
+      print('❌ ImageAnalysisViewModel: No authenticated user');
+      throw Exception('User must be authenticated to add analysis');
+    }
+
     // Simply add the analysis to the list
     _savedAnalyses.add(analysis);
 
@@ -236,15 +264,11 @@ class ImageAnalysisViewModel extends ChangeNotifier {
     await _storage.saveAnalyses(_savedAnalyses);
 
     // Debug: Check what's in SQLite after saving
-    await _sqliteService.debugPrintFoodAnalyses();
+    await _sqliteService.debugPrintFoodAnalyses(userId: userId);
 
-    // Sync with AWS if user is signed in
-    if (_auth.currentUser != null) {
-      print('🔄 ImageAnalysisViewModel: User is signed in, syncing to AWS...');
-      await _syncService.saveFoodAnalysisToAWS(analysis);
-    } else {
-      print('❌ ImageAnalysisViewModel: No user signed in, skipping AWS sync');
-    }
+    // Sync with AWS (user is authenticated)
+    print('🔄 ImageAnalysisViewModel: Syncing to AWS...');
+    await _syncService.saveFoodAnalysisToAWS(analysis);
 
     notifyListeners();
   }

@@ -12,8 +12,18 @@ class SQLiteService {
   factory SQLiteService() => _instance;
 
   // User Profile Operations
-  Future<UserProfile?> getUserProfile() async {
-    final profileData = await _dbHelper.getFirstUserProfile();
+  Future<UserProfile?> getUserProfile({String? userId}) async {
+    print('🔍 SQLiteService.getUserProfile called with userId: $userId');
+    final profileData = userId != null
+        ? await _dbHelper.getUserProfile(userId)
+        : await _dbHelper.getFirstUserProfile();
+    print(
+        '📋 SQLiteService.getUserProfile: Database returned ${profileData != null ? "data" : "null"}');
+    if (profileData != null) {
+      print('   - user_id: ${profileData['user_id']}');
+      print('   - gender: ${profileData['gender']}');
+      print('   - age: ${profileData['age']}');
+    }
     if (profileData == null) return null;
 
     return UserProfile(
@@ -33,15 +43,19 @@ class SQLiteService {
         (provider) => provider.name == profileData['ai_provider'],
         orElse: () => AIProvider.openai,
       ),
-      isGuest: (profileData['is_guest'] as int) == 1,
     );
   }
 
-  Future<void> saveUserProfile(UserProfile profile, bool isMetric) async {
+  Future<void> saveUserProfile(UserProfile profile, bool isMetric,
+      {required String userId}) async {
+    print('💾 SQLiteService.saveUserProfile called with userId: $userId');
+    print('   - Gender: ${profile.gender}, Age: ${profile.age}');
+    print('   - Weight: ${profile.weightKg}, Height: ${profile.heightCm}');
+
     final now = DateTime.now().millisecondsSinceEpoch;
 
     final profileData = {
-      'user_id': 'local_user', // For local storage
+      'user_id': userId,
       'gender': profile.gender,
       'age': profile.age,
       'weight_kg': profile.weightKg,
@@ -49,7 +63,6 @@ class SQLiteService {
       'activity_level': profile.activityLevel.name,
       'weight_goal': profile.weightGoal.name,
       'ai_provider': profile.aiProvider.name,
-      'is_guest': profile.isGuest ? 1 : 0,
       'measurement_unit': isMetric ? 'metric' : 'imperial',
       'bmi': profile.bmi,
       'daily_calories': profile.dailyCalories.round(),
@@ -58,16 +71,30 @@ class SQLiteService {
     };
 
     // Check if user exists
-    final existingProfile = await _dbHelper.getUserProfile('local_user');
+    final existingProfile = await _dbHelper.getUserProfile(userId);
+    print(
+        '📋 SQLiteService: Existing profile found: ${existingProfile != null}');
+
     if (existingProfile != null) {
-      await _dbHelper.updateUserProfile('local_user', profileData);
+      print('🔄 SQLiteService: Updating existing profile for userId: $userId');
+      await _dbHelper.updateUserProfile(userId, profileData);
+      print('✅ SQLiteService: Profile updated successfully');
     } else {
+      print('➕ SQLiteService: Inserting new profile for userId: $userId');
       await _dbHelper.insertUserProfile(profileData);
+      print('✅ SQLiteService: Profile inserted successfully');
     }
+
+    print('✅ SQLiteService.saveUserProfile completed for userId: $userId');
   }
 
-  Future<void> clearUserProfile() async {
-    await _dbHelper.deleteUserProfile('local_user');
+  Future<void> clearUserProfile({String? userId}) async {
+    if (userId != null) {
+      await _dbHelper.deleteUserProfile(userId);
+    } else {
+      // Clear all user profiles if no userId specified
+      await _dbHelper.clearAllUserProfiles();
+    }
   }
 
   Future<bool> getIsMetric() async {
@@ -88,41 +115,45 @@ class SQLiteService {
   }
 
   // Food Analysis Operations
-  Future<List<FoodAnalysis>> getFoodAnalyses() async {
-    final analysesData = await _dbHelper.getFoods('local_user');
+  Future<List<FoodAnalysis>> getFoodAnalyses({required String userId}) async {
+    final analysesData = await _dbHelper.getFoods(userId);
     return analysesData.map((data) => FoodAnalysis.fromMap(data)).toList();
   }
 
-  Future<List<FoodAnalysis>> getFoodAnalysesByDate(DateTime date) async {
+  Future<List<FoodAnalysis>> getFoodAnalysesByDate(DateTime date,
+      {required String userId}) async {
     final dateString = date.toIso8601String().split('T')[0];
-    final analysesData =
-        await _dbHelper.getFoodsByDate('local_user', dateString);
+    final analysesData = await _dbHelper.getFoodsByDate(userId, dateString);
     return analysesData.map((data) => FoodAnalysis.fromMap(data)).toList();
   }
 
   // Get only unsynced food analyses
-  Future<List<FoodAnalysis>> getUnsyncedFoodAnalyses() async {
-    final analysesData = await _dbHelper.getUnsyncedFoods('local_user');
+  Future<List<FoodAnalysis>> getUnsyncedFoodAnalyses(
+      {required String userId}) async {
+    final analysesData = await _dbHelper.getUnsyncedFoods(userId);
     return analysesData.map((data) => FoodAnalysis.fromMap(data)).toList();
   }
 
   // Mark food analysis as synced
-  Future<void> markFoodAnalysisAsSynced(
-      String foodName, DateTime analysisDate) async {
+  Future<void> markFoodAnalysisAsSynced(String foodName, DateTime analysisDate,
+      {required String userId}) async {
     await _dbHelper.markFoodAsSynced(
-        'local_user', foodName, analysisDate.toIso8601String().split('T')[0]);
+        userId, foodName, analysisDate.toIso8601String().split('T')[0]);
   }
 
-  Future<void> saveFoodAnalyses(List<FoodAnalysis> analyses) async {
-    print('🔄 SQLite: Saving ${analyses.length} food analyses...');
+  Future<void> saveFoodAnalyses(List<FoodAnalysis> analyses,
+      {required String userId}) async {
+    print(
+        '🔄 SQLite: Saving ${analyses.length} food analyses for user $userId...');
 
-    // Clear existing analyses
-    await _dbHelper.deleteAllFoods('local_user');
-    print('🗑️ SQLite: Cleared existing analyses');
+    // Clear existing analyses for this user
+    await _dbHelper.deleteAllFoods(userId);
+    print('🗑️ SQLite: Cleared existing analyses for user $userId');
 
     // Insert new analyses
     for (final analysis in analyses) {
       final analysisMap = analysis.toMap();
+      analysisMap['user_id'] = userId; // Set the correct user_id
       print(
           '📝 SQLite: Inserting analysis: ${analysis.name} (${analysis.calories} cal)');
       await _dbHelper.insertFood(analysisMap);
@@ -130,10 +161,12 @@ class SQLiteService {
     print('✅ SQLite: All analyses saved successfully');
   }
 
-  Future<void> addFoodAnalysis(FoodAnalysis analysis) async {
+  Future<void> addFoodAnalysis(FoodAnalysis analysis,
+      {required String userId}) async {
     print(
         '➕ SQLite: Adding single analysis: ${analysis.name} (${analysis.calories} cal)');
     final analysisMap = analysis.toMap();
+    analysisMap['user_id'] = userId; // Set the correct user_id
     print('📝 SQLite: Analysis map: $analysisMap');
     await _dbHelper.insertFood(analysisMap);
     print('✅ SQLite: Single analysis added successfully');
@@ -205,9 +238,10 @@ class SQLiteService {
   }
 
   // Debug Methods
-  Future<void> debugPrintFoodAnalyses() async {
-    print('🔍 SQLite Debug: Checking food analyses in database...');
-    final analyses = await getFoodAnalyses();
+  Future<void> debugPrintFoodAnalyses({required String userId}) async {
+    print(
+        '🔍 SQLite Debug: Checking food analyses in database for user $userId...');
+    final analyses = await getFoodAnalyses(userId: userId);
     print('📊 SQLite Debug: Found ${analyses.length} food analyses');
 
     for (int i = 0; i < analyses.length; i++) {
