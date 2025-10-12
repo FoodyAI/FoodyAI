@@ -3,6 +3,7 @@ import 'aws_service.dart';
 import '../domain/entities/user_profile.dart';
 import '../domain/entities/ai_provider.dart';
 import '../data/repositories/user_profile_repository_impl.dart';
+import '../data/services/sqlite_service.dart';
 
 enum UserState {
   firstTime,           // New user, no AWS profile
@@ -33,6 +34,7 @@ class UserStateResult {
 class UserStateService {
   final AWSService _awsService = AWSService();
   final UserProfileRepositoryImpl _userProfileRepository = UserProfileRepositoryImpl();
+  final SQLiteService _sqliteService = SQLiteService();
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   static const int _maxRetries = 3;
@@ -54,45 +56,33 @@ class UserStateService {
 
       print('🔍 UserStateService: Determining state for user: ${user.email}');
 
-      // Step 1: Check local profile first for quick response
-      UserProfile? localProfile;
-      bool localOnboardingComplete = false;
+      // Step 1: ALWAYS check AWS first (source of truth)
+      // Don't rely on local data as it might be stale after account deletion
+      print('☁️ UserStateService: Checking AWS first (source of truth)...');
+      final awsResult = await _checkAWSProfileWithRetry(user.uid);
       
-      if (!forceRefresh) {
+      if (awsResult.error != null) {
+        // Network error - fall back to local data only if AWS is unreachable
+        print('⚠️ UserStateService: AWS unreachable, checking local data as fallback');
+        
+        UserProfile? localProfile;
+        bool localOnboardingComplete = false;
+        
         try {
           localProfile = await _userProfileRepository.getProfile();
           localOnboardingComplete = await _userProfileRepository.getHasCompletedOnboarding();
           
-          print('📱 UserStateService: Local profile found: ${localProfile != null}');
-          print('📱 UserStateService: Local onboarding complete: $localOnboardingComplete');
-          
-          // If we have complete local data, use it (but still sync in background)
-          if (localProfile != null && localOnboardingComplete) {
-            _syncAWSInBackground(user.uid);
+          if (localProfile != null) {
+            print('📱 UserStateService: Using local fallback data');
             return UserStateResult(
-              state: UserState.returningComplete,
+              state: localOnboardingComplete ? UserState.returningComplete : UserState.returningIncomplete,
               profile: localProfile,
-              hasCompletedOnboarding: true,
-              message: 'Welcome back! Using cached profile.',
+              hasCompletedOnboarding: localOnboardingComplete,
+              message: 'Using offline profile. Will sync when connection improves.',
             );
           }
         } catch (e) {
-          print('⚠️ UserStateService: Error reading local profile: $e');
-        }
-      }
-
-      // Step 2: Check AWS profile with retry logic
-      final awsResult = await _checkAWSProfileWithRetry(user.uid);
-      
-      if (awsResult.error != null) {
-        // Network error - fall back to local data if available
-        if (localProfile != null) {
-          return UserStateResult(
-            state: localOnboardingComplete ? UserState.returningComplete : UserState.returningIncomplete,
-            profile: localProfile,
-            hasCompletedOnboarding: localOnboardingComplete,
-            message: 'Using offline profile. Will sync when connection improves.',
-          );
+          print('⚠️ UserStateService: Error reading local fallback data: $e');
         }
         
         return UserStateResult(
@@ -102,7 +92,7 @@ class UserStateService {
         );
       }
 
-      // Step 3: Analyze AWS profile data
+      // Step 2: Analyze AWS profile data (definitive source)
       final awsProfile = awsResult.profile;
       final awsOnboardingComplete = awsResult.hasCompletedOnboarding;
 
@@ -111,16 +101,20 @@ class UserStateService {
 
       if (awsProfile == null) {
         // No AWS profile - definitely a first-time user
+        // Clear any stale local data that might exist
+        print('🧹 UserStateService: No AWS profile found - clearing any stale local data');
+        await _clearStaleLocalData();
+        
         return UserStateResult(
           state: UserState.firstTime,
           message: 'Welcome to Foody! Let\'s set up your profile.',
         );
       }
 
-      // Step 4: Sync AWS data to local storage
+      // Step 3: AWS profile exists - sync to local storage
       await _syncAWSToLocal(awsProfile, awsOnboardingComplete);
 
-      // Step 5: Determine final state
+      // Step 4: Determine final state based on AWS data
       if (awsOnboardingComplete && _isProfileComplete(awsProfile)) {
         return UserStateResult(
           state: UserState.returningComplete,
@@ -259,6 +253,34 @@ class UserStateService {
            profile.heightCm > 0;
   }
 
+  /// Clear stale local data when AWS says user doesn't exist
+  Future<void> _clearStaleLocalData() async {
+    try {
+      print('🧹 UserStateService: Clearing ALL stale local data');
+      
+      // Clear user profile from repository (this should clear the ViewModel cache too)
+      await _userProfileRepository.clearProfile();
+      print('✅ UserStateService: Cleared user profile from repository');
+      
+      // CRITICAL: Also clear the SQLite user profile directly to ensure complete cleanup
+      await _sqliteService.clearUserProfile();
+      print('✅ UserStateService: Cleared SQLite user profile directly');
+      
+      // Clear onboarding completion status
+      await _sqliteService.setHasCompletedOnboarding(false);
+      print('✅ UserStateService: Reset onboarding completion status');
+      
+      // Reset measurement unit to default
+      await _sqliteService.setIsMetric(true);
+      print('✅ UserStateService: Reset measurement unit to metric');
+      
+      print('✅ UserStateService: All stale local data cleared successfully');
+    } catch (e) {
+      print('⚠️ UserStateService: Error clearing stale local data: $e');
+      // Don't throw - this is cleanup, not critical
+    }
+  }
+
   /// Sync AWS data to local storage
   Future<void> _syncAWSToLocal(UserProfile profile, bool onboardingComplete) async {
     try {
@@ -268,17 +290,6 @@ class UserStateService {
     } catch (e) {
       print('⚠️ UserStateService: Error syncing AWS to local: $e');
     }
-  }
-
-  /// Sync AWS in background (fire and forget)
-  void _syncAWSInBackground(String userId) {
-    _checkAWSProfileWithRetry(userId).then((result) {
-      if (result.isSuccess && result.profile != null) {
-        _syncAWSToLocal(result.profile!, result.hasCompletedOnboarding);
-      }
-    }).catchError((e) {
-      print('⚠️ UserStateService: Background sync failed: $e');
-    });
   }
 
   /// Parse activity level from string

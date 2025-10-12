@@ -10,7 +10,9 @@ import '../../../core/constants/app_colors.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class OnboardingView extends StatefulWidget {
-  const OnboardingView({Key? key}) : super(key: key);
+  final bool isFirstTimeUser;
+  
+  const OnboardingView({Key? key, this.isFirstTimeUser = false}) : super(key: key);
 
   @override
   State<OnboardingView> createState() => _OnboardingViewState();
@@ -40,6 +42,13 @@ class _OnboardingViewState extends State<OnboardingView> {
 
   void _initializeOnboarding() {
     final profileVM = Provider.of<UserProfileViewModel>(context, listen: false);
+    
+    // If explicitly marked as first-time user, ignore any existing profile data
+    if (widget.isFirstTimeUser) {
+      print('📋 OnboardingView: Explicitly marked as first-time user - starting fresh');
+      _startFreshOnboarding();
+      return;
+    }
     
     if (profileVM.profile != null) {
       // Resuming onboarding - load existing data
@@ -74,19 +83,7 @@ class _OnboardingViewState extends State<OnboardingView> {
       });
     } else {
       // First time onboarding - set defaults
-      _gender = 'Male';
-      _hasSelectedGender = false;
-      _age = 25;
-      _weight = 70;
-      _weightUnit = 'kg';
-      _height = 170;
-      _heightUnit = 'cm';
-      _isMetric = true;
-      _activityLevel = ActivityLevel.sedentary;
-      _weightGoal = WeightGoal.maintain;
-      _currentPage = 0;
-      
-      print('📋 OnboardingView: Starting fresh onboarding');
+      _startFreshOnboarding();
     }
     
     // Navigate to the determined starting page after widget is built
@@ -101,6 +98,22 @@ class _OnboardingViewState extends State<OnboardingView> {
         }
       });
     }
+  }
+
+  void _startFreshOnboarding() {
+    _gender = 'Male';
+    _hasSelectedGender = false;
+    _age = 25;
+    _weight = 70;
+    _weightUnit = 'kg';
+    _height = 170;
+    _heightUnit = 'cm';
+    _isMetric = true;
+    _activityLevel = ActivityLevel.sedentary;
+    _weightGoal = WeightGoal.maintain;
+    _currentPage = 0;
+    
+    print('📋 OnboardingView: Starting fresh onboarding from page 0 (gender selection)');
   }
 
   /// Determine which page to start from based on profile completeness

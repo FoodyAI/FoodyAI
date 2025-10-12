@@ -130,11 +130,15 @@ class AuthenticationFlow {
 
     _showSnackBar(context, welcomeMessage, AppColors.success);
 
+    print('📋 AuthenticationFlow: Navigating to onboarding (isFirstTime: $isFirstTime)');
+
     // Navigate to onboarding with smooth transition
     Navigator.pushReplacement(
       context,
-      _createSlideTransition(const OnboardingView()),
+      _createSlideTransition(OnboardingView(isFirstTimeUser: isFirstTime)),
     );
+    
+    print('✅ AuthenticationFlow: Successfully navigated to onboarding');
   }
 
   /// Handle network errors with retry option
