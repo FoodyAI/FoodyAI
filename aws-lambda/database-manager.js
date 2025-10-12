@@ -224,6 +224,40 @@ async function deleteFoodsByUser(userId) {
   console.log('');
 }
 
+async function deleteAllUsers() {
+  console.log('🗑️ Deleting all users...');
+  console.log('⚠️  This will also delete all associated food analyses (cascade delete)');
+  
+  // First count users
+  const countResult = await client.query('SELECT COUNT(*) FROM users');
+  const userCount = countResult.rows[0].count;
+  
+  console.log(`📊 Found ${userCount} users to delete`);
+  
+  if (userCount === '0') {
+    console.log('✅ No users to delete');
+    return;
+  }
+  
+  // Delete all users (cascade deletes foods)
+  const result = await client.query(`
+    DELETE FROM users 
+    RETURNING user_id, email
+  `);
+  
+  console.log(`✅ Deleted ${result.rows.length} users and all their associated data`);
+  
+  if (result.rows.length > 0 && result.rows.length <= 10) {
+    console.log('Deleted users:');
+    result.rows.forEach(user => {
+      console.log(`  - ${user.email} (ID: ${user.user_id})`);
+    });
+  } else if (result.rows.length > 10) {
+    console.log(`Deleted ${result.rows.length} users (too many to list individually)`);
+  }
+  console.log('');
+}
+
 async function runCustomQuery(query) {
   console.log('🔍 Running custom query...');
   console.log(`Query: ${query}\n`);
@@ -253,6 +287,7 @@ async function showHelp() {
   console.log('  node database-manager.js clear            - Clear test data');
   console.log('  node database-manager.js add-test         - Add test user and analysis');
   console.log('  node database-manager.js delete-foods     - Delete all foods');
+  console.log('  node database-manager.js delete-users     - Delete all users');
   console.log('  node database-manager.js delete-user-foods <user_id> - Delete foods for specific user');
   console.log('  node database-manager.js query "SELECT..." - Run custom SQL query');
   console.log('  node database-manager.js help            - Show this help');
@@ -294,6 +329,10 @@ async function main() {
       
     case 'delete-foods':
       await deleteAllFoods();
+      break;
+      
+    case 'delete-users':
+      await deleteAllUsers();
       break;
       
     case 'delete-user-foods':

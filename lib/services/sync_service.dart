@@ -167,6 +167,10 @@ class SyncService {
         }
 
         print('User profile loaded from AWS successfully');
+      } else if (profileData != null && profileData['success'] == false) {
+        print('User profile not found in AWS - first-time user');
+      } else {
+        print('Failed to load user profile from AWS');
       }
     } catch (e) {
       print('Error loading user profile from AWS: $e');

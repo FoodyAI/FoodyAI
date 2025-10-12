@@ -11,6 +11,7 @@ import '../widgets/google_signin_button.dart';
 import '../widgets/sign_out_button.dart';
 import '../../core/constants/app_colors.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'welcome_view.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
@@ -38,8 +39,43 @@ class _ProfileViewState extends State<ProfileView>
   @override
   Widget build(BuildContext context) {
     final profileVM = Provider.of<UserProfileViewModel>(context);
-    final profile = profileVM.profile!;
+    final profile = profileVM.profile;
     final colorScheme = Theme.of(context).colorScheme;
+
+    // Handle case where profile is null
+    if (profile == null) {
+      final authVM = Provider.of<AuthViewModel>(context, listen: false);
+      
+      // If user is not signed in (after deletion), redirect to welcome page
+      if (!authVM.isSignedIn) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+            (route) => false,
+          );
+        });
+        return Scaffold(
+          appBar: const CustomAppBar(
+            title: 'Profile',
+            icon: FontAwesomeIcons.user,
+          ),
+          body: const Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
+      }
+      
+      // If user is signed in but profile not loaded yet, show loading
+      return Scaffold(
+        appBar: const CustomAppBar(
+          title: 'Profile',
+          icon: FontAwesomeIcons.user,
+        ),
+        body: const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
 
     return Scaffold(
       appBar: const CustomAppBar(
@@ -529,8 +565,15 @@ class _ProfileViewState extends State<ProfileView>
   Widget _buildSettingsTab(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final profileVM = Provider.of<UserProfileViewModel>(context);
-    final profile = profileVM.profile!;
+    final profile = profileVM.profile;
     final authVM = Provider.of<AuthViewModel>(context);
+
+    // Handle case where profile is not yet loaded
+    if (profile == null) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -642,6 +685,9 @@ class _ProfileViewState extends State<ProfileView>
                           const SignOutButtonWithAuth(
                             isFullWidth: true,
                           ),
+                          const SizedBox(height: 12),
+                          // Delete Account Button
+                          _buildDeleteAccountButton(context, authVM),
                         ],
                       ),
                     ),
@@ -1107,6 +1153,9 @@ class _ProfileViewState extends State<ProfileView>
 
   void _showGenderDialog(BuildContext context, UserProfileViewModel vm) {
     final colorScheme = Theme.of(context).colorScheme;
+    final profile = vm.profile;
+    
+    if (profile == null) return;
 
     showDialog(
       context: context,
@@ -1132,25 +1181,25 @@ class _ProfileViewState extends State<ProfileView>
                 ),
               ),
               trailing: FaIcon(
-                vm.profile!.gender == 'Male'
+                profile.gender == 'Male'
                     ? FontAwesomeIcons.circleCheck
                     : FontAwesomeIcons.circle,
-                color: vm.profile!.gender == 'Male'
+                color: profile.gender == 'Male'
                     ? colorScheme.primary
                     : colorScheme.onSurface.withOpacity(0.5),
               ),
               onTap: () {
                 vm.saveProfile(
                   gender: 'Male',
-                  age: vm.profile!.age,
+                  age: profile.age,
                   weight: vm.displayWeight,
                   weightUnit: vm.weightUnit,
                   height: vm.displayHeight,
                   heightUnit: vm.heightUnit,
-                  activityLevel: vm.profile!.activityLevel,
+                  activityLevel: profile.activityLevel,
                   isMetric: vm.isMetric,
-                  weightGoal: vm.profile!.weightGoal,
-                  aiProvider: vm.profile!.aiProvider,
+                  weightGoal: profile.weightGoal,
+                  aiProvider: profile.aiProvider,
                 );
                 Navigator.pop(context);
               },
@@ -1167,25 +1216,25 @@ class _ProfileViewState extends State<ProfileView>
                 ),
               ),
               trailing: FaIcon(
-                vm.profile!.gender == 'Female'
+                profile.gender == 'Female'
                     ? FontAwesomeIcons.circleCheck
                     : FontAwesomeIcons.circle,
-                color: vm.profile!.gender == 'Female'
+                color: profile.gender == 'Female'
                     ? colorScheme.primary
                     : colorScheme.onSurface.withOpacity(0.5),
               ),
               onTap: () {
                 vm.saveProfile(
                   gender: 'Female',
-                  age: vm.profile!.age,
+                  age: profile.age,
                   weight: vm.displayWeight,
                   weightUnit: vm.weightUnit,
                   height: vm.displayHeight,
                   heightUnit: vm.heightUnit,
-                  activityLevel: vm.profile!.activityLevel,
+                  activityLevel: profile.activityLevel,
                   isMetric: vm.isMetric,
-                  weightGoal: vm.profile!.weightGoal,
-                  aiProvider: vm.profile!.aiProvider,
+                  weightGoal: profile.weightGoal,
+                  aiProvider: profile.aiProvider,
                 );
                 Navigator.pop(context);
               },
@@ -1198,7 +1247,11 @@ class _ProfileViewState extends State<ProfileView>
 
   void _showAgeDialog(BuildContext context, UserProfileViewModel vm) {
     final colorScheme = Theme.of(context).colorScheme;
-    int selectedAge = vm.profile!.age;
+    final profile = vm.profile;
+    
+    if (profile == null) return;
+    
+    int selectedAge = profile.age;
 
     showDialog(
       context: context,
@@ -1228,16 +1281,16 @@ class _ProfileViewState extends State<ProfileView>
           TextButton(
             onPressed: () {
               vm.saveProfile(
-                gender: vm.profile!.gender,
+                gender: profile.gender,
                 age: selectedAge,
                 weight: vm.displayWeight,
                 weightUnit: vm.weightUnit,
                 height: vm.displayHeight,
                 heightUnit: vm.heightUnit,
-                activityLevel: vm.profile!.activityLevel,
+                activityLevel: profile.activityLevel,
                 isMetric: vm.isMetric,
-                weightGoal: vm.profile!.weightGoal,
-                aiProvider: vm.profile!.aiProvider,
+                weightGoal: profile.weightGoal,
+                aiProvider: profile.aiProvider,
               );
               Navigator.pop(context);
             },
@@ -1255,6 +1308,10 @@ class _ProfileViewState extends State<ProfileView>
 
   void _showWeightDialog(BuildContext context, UserProfileViewModel vm) {
     final colorScheme = Theme.of(context).colorScheme;
+    final profile = vm.profile;
+    
+    if (profile == null) return;
+    
     double selectedWeight = vm.displayWeight;
 
     showDialog(
@@ -1285,17 +1342,18 @@ class _ProfileViewState extends State<ProfileView>
           ),
           TextButton(
             onPressed: () {
+              if (profile == null) return;
               vm.saveProfile(
-                gender: vm.profile!.gender,
-                age: vm.profile!.age,
+                gender: profile.gender,
+                age: profile.age,
                 weight: selectedWeight,
                 weightUnit: vm.weightUnit,
                 height: vm.displayHeight,
                 heightUnit: vm.heightUnit,
-                activityLevel: vm.profile!.activityLevel,
+                activityLevel: profile.activityLevel,
                 isMetric: vm.isMetric,
-                weightGoal: vm.profile!.weightGoal,
-                aiProvider: vm.profile!.aiProvider,
+                weightGoal: profile.weightGoal,
+                aiProvider: profile.aiProvider,
               );
               Navigator.pop(context);
             },
@@ -1313,6 +1371,10 @@ class _ProfileViewState extends State<ProfileView>
 
   void _showHeightDialog(BuildContext context, UserProfileViewModel vm) {
     final colorScheme = Theme.of(context).colorScheme;
+    final profile = vm.profile;
+    
+    if (profile == null) return;
+    
     // HeightInput widget expects height in cm for both metric and imperial
     // For imperial, it will convert cm to feet/inches internally
     double selectedHeight =
@@ -1350,16 +1412,16 @@ class _ProfileViewState extends State<ProfileView>
               double heightToSave =
                   vm.isMetric ? selectedHeight : selectedHeight / 2.54;
               vm.saveProfile(
-                gender: vm.profile!.gender,
-                age: vm.profile!.age,
+                gender: profile.gender,
+                age: profile.age,
                 weight: vm.displayWeight,
                 weightUnit: vm.weightUnit,
                 height: heightToSave,
                 heightUnit: vm.heightUnit,
-                activityLevel: vm.profile!.activityLevel,
+                activityLevel: profile.activityLevel,
                 isMetric: vm.isMetric,
-                weightGoal: vm.profile!.weightGoal,
-                aiProvider: vm.profile!.aiProvider,
+                weightGoal: profile.weightGoal,
+                aiProvider: profile.aiProvider,
               );
               Navigator.pop(context);
             },
@@ -1546,6 +1608,215 @@ class _ProfileViewState extends State<ProfileView>
         return FontAwesomeIcons.robot;
       case AIProvider.huggingface:
         return FontAwesomeIcons.code;
+    }
+  }
+
+  Widget _buildDeleteAccountButton(BuildContext context, AuthViewModel authVM) {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        onPressed: authVM.isLoading ? null : () => _showDeleteAccountDialog(context, authVM),
+        icon: authVM.isLoading
+            ? SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    Colors.red.shade300,
+                  ),
+                ),
+              )
+            : const FaIcon(
+                FontAwesomeIcons.trash,
+                size: 16,
+              ),
+        label: Text(
+          authVM.isLoading ? 'Deleting Account...' : 'Delete Account',
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.red.shade600,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: 2,
+        ),
+      ),
+    );
+  }
+
+  void _showDeleteAccountDialog(BuildContext context, AuthViewModel authVM) {
+    final colorScheme = Theme.of(context).colorScheme;
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: Row(
+            children: [
+              FaIcon(
+                FontAwesomeIcons.triangleExclamation,
+                color: Colors.red.shade600,
+                size: 24,
+              ),
+              const SizedBox(width: 12),
+              const Text('Delete Account'),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Are you sure you want to delete your account?',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'This action will permanently delete:',
+                style: TextStyle(fontSize: 14),
+              ),
+              const SizedBox(height: 8),
+              _buildDeleteWarningItem('Your profile and personal information'),
+              _buildDeleteWarningItem('All your food analysis history'),
+              _buildDeleteWarningItem('Your account settings and preferences'),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.red.shade200),
+                ),
+                child: Row(
+                  children: [
+                    FaIcon(
+                      FontAwesomeIcons.circleExclamation,
+                      color: Colors.red.shade600,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 8),
+                    const Expanded(
+                      child: Text(
+                        'This action cannot be undone!',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.red,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(
+                'Cancel',
+                style: TextStyle(
+                  color: colorScheme.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.of(dialogContext).pop();
+                await _handleDeleteAccount(context, authVM);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red.shade600,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              ),
+              child: const Text(
+                'Delete Account',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildDeleteWarningItem(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 16, bottom: 4),
+      child: Row(
+        children: [
+          FaIcon(
+            FontAwesomeIcons.solidCircle,
+            size: 6,
+            color: Colors.grey.shade600,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.grey.shade700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _handleDeleteAccount(BuildContext context, AuthViewModel authVM) async {
+    try {
+      // Use the new context-aware deleteUser method
+      final success = await authVM.deleteUser(context);
+      
+      if (!success && context.mounted) {
+        // Deletion failed - show error message
+        // (Success case is now handled by AuthViewModel + AuthenticationFlow)
+        final errorMessage = authVM.errorMessage ?? 'Failed to delete account. Please try again.';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 4),
+            action: SnackBarAction(
+              label: 'Retry',
+              textColor: AppColors.white,
+              onPressed: () => _handleDeleteAccount(context, authVM),
+            ),
+          ),
+        );
+      }
+      // Note: Success case (success == true) is handled automatically by AuthViewModel
+      // which shows success message and navigates to welcome screen
+      
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error deleting account: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 4),
+            action: SnackBarAction(
+              label: 'Retry',
+              textColor: AppColors.white,
+              onPressed: () => _handleDeleteAccount(context, authVM),
+            ),
+          ),
+        );
+      }
     }
   }
 }

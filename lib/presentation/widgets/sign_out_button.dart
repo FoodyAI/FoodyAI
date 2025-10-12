@@ -49,7 +49,7 @@ class SignOutButton extends StatelessWidget {
         ),
       ),
       style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.error.withOpacity(0.1),
+        backgroundColor: AppColors.error.withValues(alpha: 0.1),
         foregroundColor: AppColors.error,
         padding: isCompact
             ? const EdgeInsets.symmetric(horizontal: 12, vertical: 8)
@@ -57,7 +57,7 @@ class SignOutButton extends StatelessWidget {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(isCompact ? 10 : 12),
           side: BorderSide(
-            color: AppColors.error.withOpacity(0.3),
+            color: AppColors.error.withValues(alpha: 0.3),
             width: 1,
           ),
         ),
@@ -74,11 +74,13 @@ class SignOutButton extends StatelessWidget {
 class SignOutButtonWithAuth extends StatelessWidget {
   final bool isFullWidth;
   final bool isCompact;
+  final bool showConfirmation;
 
   const SignOutButtonWithAuth({
     super.key,
     this.isFullWidth = false,
     this.isCompact = false,
+    this.showConfirmation = true,
   });
 
   @override
@@ -89,19 +91,88 @@ class SignOutButtonWithAuth extends StatelessWidget {
           isFullWidth: isFullWidth,
           isCompact: isCompact,
           isLoading: authVM.isLoading,
-          onPressed: () async {
-            await authVM.signOut();
-            if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Signed out successfully'),
-                  backgroundColor: AppColors.success,
-                ),
-              );
-            }
-          },
+          onPressed: () => _handleSignOut(context, authVM),
         );
       },
     );
+  }
+
+  Future<void> _handleSignOut(
+      BuildContext context, AuthViewModel authVM) async {
+    final messenger = ScaffoldMessenger.of(context);
+
+    if (showConfirmation) {
+      final shouldSignOut = await _showSignOutConfirmation(context);
+      if (!shouldSignOut) return;
+    }
+
+    try {
+      // ignore: use_build_context_synchronously
+      await authVM.signOut(context);
+    } catch (e) {
+      if (!context.mounted) return;
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text('Sign out failed: ${e.toString()}'),
+          backgroundColor: AppColors.error,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  Future<bool> _showSignOutConfirmation(BuildContext context) async {
+    return await showDialog<bool>(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: const Row(
+                children: [
+                  FaIcon(
+                    FontAwesomeIcons.rightFromBracket,
+                    color: AppColors.error,
+                    size: 20,
+                  ),
+                  SizedBox(width: 12),
+                  Text('Sign Out'),
+                ],
+              ),
+              content: const Text(
+                'Are you sure you want to sign out? You can sign back in anytime.',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(
+                      color: isDarkMode
+                          ? AppColors.grey600
+                          : AppColors.textSecondary,
+                    ),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.error,
+                    foregroundColor: AppColors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: const Text('Sign Out'),
+                ),
+              ],
+            );
+          },
+        ) ??
+        false;
   }
 }
