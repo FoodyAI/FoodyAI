@@ -6,19 +6,20 @@ class UserProfileRepositoryImpl implements UserProfileRepository {
   final SQLiteService _sqliteService = SQLiteService();
 
   @override
-  Future<UserProfile?> getProfile() async {
-    return await _sqliteService.getUserProfile();
+  Future<UserProfile?> getProfile({String? userId}) async {
+    return await _sqliteService.getUserProfile(userId: userId);
   }
 
   @override
-  Future<void> saveProfile(UserProfile profile, bool isMetric) async {
-    await _sqliteService.saveUserProfile(profile, isMetric);
+  Future<void> saveProfile(UserProfile profile, bool isMetric,
+      {required String userId}) async {
+    await _sqliteService.saveUserProfile(profile, isMetric, userId: userId);
     await _sqliteService.setIsMetric(isMetric);
   }
 
   @override
-  Future<void> clearProfile() async {
-    await _sqliteService.clearUserProfile();
+  Future<void> clearProfile({String? userId}) async {
+    await _sqliteService.clearUserProfile(userId: userId);
   }
 
   @override
