@@ -1,0 +1,16 @@
+{
+  "name": "foody-image-upload",
+  "version": "1.0.0",
+  "description": "AWS Lambda function for uploading food images to S3",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["aws", "lambda", "s3", "image-upload", "foody"],
+  "author": "Foody App Team",
+  "license": "ISC",
+  "dependencies": {
+    "aws-sdk": "^2.1490.0",
+    "uuid": "^9.0.1"
+  }
+}

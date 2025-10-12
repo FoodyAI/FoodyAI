@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'dart:io';
 import '../../data/models/food_analysis.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/utils/image_helper.dart';
 import 'food_analysis_shimmer.dart';
 
 class FoodAnalysisCard extends StatelessWidget {
@@ -197,14 +197,23 @@ class FoodAnalysisCard extends StatelessWidget {
     if (analysis.imagePath != null) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(16),
-        child: Image.file(
-          File(analysis.imagePath!),
+        child: ImageHelper.buildImageWidget(
+          imagePath: analysis.imagePath,
           width: 80,
           height: 80,
           fit: BoxFit.cover,
           errorBuilder: (context, error, stackTrace) {
             // Show placeholder if image fails to load
             return _buildImagePlaceholder(context, isDark, 80, 80, 32);
+          },
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return ImageHelper.createLoadingWidget(
+              width: 80,
+              height: 80,
+              backgroundColor: Colors.grey[300],
+              borderRadius: 16,
+            );
           },
         ),
       );
@@ -333,14 +342,23 @@ class FoodAnalysisCard extends StatelessWidget {
                           topLeft: Radius.circular(32),
                           topRight: Radius.circular(32),
                         ),
-                        child: Image.file(
-                          File(analysis.imagePath!),
+                        child: ImageHelper.buildImageWidget(
+                          imagePath: analysis.imagePath,
                           width: double.infinity,
                           height: 300,
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
                             // Show placeholder if image fails to load
                             return _buildModalImagePlaceholder(context);
+                          },
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return ImageHelper.createLoadingWidget(
+                              width: double.infinity,
+                              height: 300,
+                              backgroundColor: Colors.grey[300],
+                              borderRadius: 32,
+                            );
                           },
                         ),
                       ),

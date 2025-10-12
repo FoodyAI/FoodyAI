@@ -12,6 +12,7 @@ import '../../domain/entities/ai_provider.dart';
 import '../../domain/repositories/user_profile_repository.dart';
 import '../../di/service_locator.dart';
 import '../../services/sync_service.dart';
+import '../../services/aws_service.dart';
 import '../widgets/rating_dialog.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -23,6 +24,7 @@ class ImageAnalysisViewModel extends ChangeNotifier {
   final UserProfileRepository _profileRepository =
       getIt<UserProfileRepository>();
   final SyncService _syncService = SyncService();
+  final AWSService _awsService = AWSService();
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   File? _selectedImage;
@@ -85,9 +87,11 @@ class ImageAnalysisViewModel extends ChangeNotifier {
 
   // Public method to reload analyses (called after AWS sync)
   Future<void> reloadAnalyses() async {
-    print('🔄 ImageAnalysisViewModel: Manually reloading analyses after AWS sync...');
+    print(
+        '🔄 ImageAnalysisViewModel: Manually reloading analyses after AWS sync...');
     await _loadSavedAnalyses();
-    print('✅ ImageAnalysisViewModel: Analyses reloaded, count: ${_savedAnalyses.length}');
+    print(
+        '✅ ImageAnalysisViewModel: Analyses reloaded, count: ${_savedAnalyses.length}');
   }
 
   Future<void> _checkAndShowRating() async {
@@ -182,6 +186,18 @@ class ImageAnalysisViewModel extends ChangeNotifier {
         throw Exception('User must be authenticated to save analysis');
       }
 
+      // Upload image to S3 if we have a selected image
+      String? s3ImageUrl;
+      if (_selectedImage != null) {
+        print('📤 ImageAnalysisViewModel: Uploading image to S3...');
+        s3ImageUrl = await _awsService.uploadImageToS3(_selectedImage!);
+        if (s3ImageUrl == null) {
+          print('❌ ImageAnalysisViewModel: Failed to upload image to S3');
+          throw Exception('Failed to upload image to S3');
+        }
+        print('✅ ImageAnalysisViewModel: Image uploaded to S3: $s3ImageUrl');
+      }
+
       final analysis = FoodAnalysis(
         id: const Uuid().v4(), // Generate UUID for the object
         name: _currentAnalysis!.name,
@@ -190,7 +206,8 @@ class ImageAnalysisViewModel extends ChangeNotifier {
         fat: _currentAnalysis!.fat,
         calories: _currentAnalysis!.calories,
         healthScore: _currentAnalysis!.healthScore,
-        imagePath: _currentAnalysis!.imagePath,
+        imagePath: s3ImageUrl ??
+            _currentAnalysis!.imagePath, // Use S3 URL if available
         orderNumber: 0, // Not used anymore
         date: _selectedDate, // Use the selected date!
         dateOrderNumber: 0, // Not used anymore
