@@ -18,6 +18,7 @@ class UserProfileViewModel extends ChangeNotifier {
   bool _isMetric = true;
   bool _hasCompletedOnboarding = false;
   StreamSubscription? _profileUpdateSubscription;
+  bool _isLoadingProfile = false; // Flag to prevent duplicate profile loading
 
   UserProfile? get profile => _profile;
   bool get isLoading => _isLoading;
@@ -32,6 +33,13 @@ class UserProfileViewModel extends ChangeNotifier {
   }
 
   Future<void> _loadProfile() async {
+    // Skip if already loading to prevent duplicate calls
+    if (_isLoadingProfile) {
+      print('⏭️ UserProfileViewModel: Skipping profile load - already loading');
+      return;
+    }
+    
+    _isLoadingProfile = true;
     _isLoading = true;
     notifyListeners();
 
@@ -48,6 +56,7 @@ class UserProfileViewModel extends ChangeNotifier {
       // Handle error silently
     } finally {
       _isLoading = false;
+      _isLoadingProfile = false;
       notifyListeners();
     }
   }
