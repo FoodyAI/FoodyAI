@@ -142,7 +142,7 @@ class _HomeContentState extends State<_HomeContent> {
 
     // Handle case where profile is null
     if (profile == null) {
-      // If user is not signed in (after deletion), redirect to welcome page
+      // If user is not signed in, redirect to welcome page
       if (!authVM.isSignedIn) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           Navigator.of(context).pushAndRemoveUntil(
@@ -157,7 +157,17 @@ class _HomeContentState extends State<_HomeContent> {
         );
       }
 
-      // If user is signed in but profile not loaded yet, show loading
+      // If user is signed in but profile is null, check if user exists in AWS
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        final shouldRedirect = await authVM.shouldRedirectToWelcome();
+        if (context.mounted && shouldRedirect) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+            (route) => false,
+          );
+        }
+      });
+
       return const Scaffold(
         body: Center(
           child: CircularProgressIndicator(),
