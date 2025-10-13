@@ -284,35 +284,27 @@ class ImageHelper {
     required Widget Function(BuildContext, Object, StackTrace?) errorBuilder,
     Widget Function(BuildContext, Widget, ImageChunkEvent?)? loadingBuilder,
   }) {
-    // Try local image first
+    // Try local image first - OFFLINE FIRST APPROACH
+    // Trust that if localImagePath exists, the file exists and display immediately
+    // Image.file will handle the error case if file doesn't exist
     if (analysis.localImagePath != null && analysis.localImagePath.isNotEmpty) {
-      return FutureBuilder<bool>(
-        future: localFileExists(analysis.localImagePath),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return createLoadingWidget(width: width, height: height);
-          }
-
-          if (snapshot.hasData && snapshot.data == true) {
-            // Local file exists, use it
-            return Image.file(
-              File(analysis.localImagePath),
-              width: width,
-              height: height,
-              fit: fit,
-              errorBuilder: errorBuilder,
-            );
-          } else {
-            // Local file doesn't exist, fall back to S3
-            return _buildS3ImageFromBase64(
-              imagePath: analysis.s3ImageUrl ?? analysis.imagePath,
-              width: width,
-              height: height,
-              fit: fit,
-              errorBuilder: errorBuilder,
-              loadingBuilder: loadingBuilder,
-            );
-          }
+      return Image.file(
+        File(analysis.localImagePath),
+        width: width,
+        height: height,
+        fit: fit,
+        errorBuilder: (context, error, stackTrace) {
+          // If local file fails to load, fall back to S3
+          print(
+              '⚠️ ImageHelper: Local image failed to load, falling back to S3: $error');
+          return _buildS3ImageFromBase64(
+            imagePath: analysis.s3ImageUrl ?? analysis.imagePath,
+            width: width,
+            height: height,
+            fit: fit,
+            errorBuilder: errorBuilder,
+            loadingBuilder: loadingBuilder,
+          );
         },
       );
     }
@@ -332,6 +324,7 @@ class ImageHelper {
     // Fall back to legacy imagePath
     if (analysis.imagePath != null && analysis.imagePath.isNotEmpty) {
       if (isS3Url(analysis.imagePath)) {
+        // Legacy S3 URL - fetch from S3
         return _buildS3ImageFromBase64(
           imagePath: analysis.imagePath,
           width: width,
@@ -341,6 +334,7 @@ class ImageHelper {
           loadingBuilder: loadingBuilder,
         );
       } else {
+        // Legacy local file path - display immediately (offline-first)
         return Image.file(
           File(analysis.imagePath),
           width: width,

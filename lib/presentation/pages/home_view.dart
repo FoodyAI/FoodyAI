@@ -67,6 +67,7 @@ class _HomeContent extends StatefulWidget {
 
 class _HomeContentState extends State<_HomeContent> {
   bool _bannerDismissed = false;
+  bool _hasNavigated = false;
   final SQLiteService _sqliteService = SQLiteService();
 
   @override
@@ -89,6 +90,14 @@ class _HomeContentState extends State<_HomeContent> {
         });
       }
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Validate user state consistency only when dependencies change
+    final authVM = Provider.of<AuthViewModel>(context, listen: false);
+    authVM.validateUserState();
   }
 
   Future<void> _loadBannerState() async {
@@ -151,20 +160,20 @@ class _HomeContentState extends State<_HomeContent> {
     final analysisVM = Provider.of<ImageAnalysisViewModel>(context);
     final authVM = Provider.of<AuthViewModel>(context);
 
-    // Validate user state consistency on each build
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      authVM.validateUserState();
-    });
+    // Validate user state consistency only when needed (moved to didChangeDependencies)
 
     // Handle case where profile is null
     if (profile == null) {
       // If user is not signed in, redirect to welcome page
-      if (!authVM.isSignedIn) {
+      if (!authVM.isSignedIn && !_hasNavigated) {
+        _hasNavigated = true;
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (context) => const WelcomeScreen()),
-            (route) => false,
-          );
+          if (mounted) {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+              (route) => false,
+            );
+          }
         });
         return const Scaffold(
           body: Center(
@@ -174,15 +183,18 @@ class _HomeContentState extends State<_HomeContent> {
       }
 
       // If user is signed in but profile is null, check if user exists in AWS
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        final shouldRedirect = await authVM.shouldRedirectToWelcome();
-        if (context.mounted && shouldRedirect) {
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (context) => const WelcomeScreen()),
-            (route) => false,
-          );
-        }
-      });
+      if (authVM.isSignedIn && !_hasNavigated) {
+        _hasNavigated = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
+          final shouldRedirect = await authVM.shouldRedirectToWelcome();
+          if (context.mounted && shouldRedirect) {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+              (route) => false,
+            );
+          }
+        });
+      }
 
       return const Scaffold(
         body: Center(
