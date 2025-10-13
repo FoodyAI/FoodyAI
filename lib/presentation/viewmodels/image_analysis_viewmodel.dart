@@ -13,6 +13,7 @@ import '../../domain/repositories/user_profile_repository.dart';
 import '../../di/service_locator.dart';
 import '../../services/sync_service.dart';
 import '../../services/aws_service.dart';
+import '../../core/events/food_data_update_event.dart';
 import '../widgets/rating_dialog.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -51,16 +52,22 @@ class ImageAnalysisViewModel extends ChangeNotifier {
     _loadSavedAnalyses();
     _initializeFirstUseDate();
 
-    // Listen to auth state changes to reload data when user changes
+    // Listen to auth state changes to clear data when user signs out
+    // Note: We don't reload on sign-in here because AuthViewModel handles that
+    // with proper timing after AWS data is loaded
     _auth.authStateChanges().listen((user) {
-      if (user != null) {
-        // User signed in - reload their data
-        _loadSavedAnalyses();
-      } else {
+      if (user == null) {
         // User signed out - clear local data
         _savedAnalyses.clear();
         notifyListeners();
       }
+    });
+
+    // Listen to food data update events to refresh the UI
+    FoodDataUpdateEvent.stream.listen((_) {
+      print(
+          '📢 ImageAnalysisViewModel: Food data update event received, reloading...');
+      _loadSavedAnalyses();
     });
   }
 
@@ -89,9 +96,24 @@ class ImageAnalysisViewModel extends ChangeNotifier {
   Future<void> reloadAnalyses() async {
     print(
         '🔄 ImageAnalysisViewModel: Manually reloading analyses after AWS sync...');
-    await _loadSavedAnalyses();
-    print(
-        '✅ ImageAnalysisViewModel: Analyses reloaded, count: ${_savedAnalyses.length}');
+
+    try {
+      await _loadSavedAnalyses();
+      print(
+          '✅ ImageAnalysisViewModel: Analyses reloaded, count: ${_savedAnalyses.length}');
+    } catch (e) {
+      print('❌ ImageAnalysisViewModel: Failed to reload analyses: $e');
+      // If reload fails, try again after a short delay
+      Future.delayed(const Duration(milliseconds: 1000), () async {
+        try {
+          await _loadSavedAnalyses();
+          print(
+              '✅ ImageAnalysisViewModel: Retry successful, count: ${_savedAnalyses.length}');
+        } catch (retryError) {
+          print('❌ ImageAnalysisViewModel: Retry also failed: $retryError');
+        }
+      });
+    }
   }
 
   Future<void> _checkAndShowRating() async {
@@ -301,5 +323,13 @@ class ImageAnalysisViewModel extends ChangeNotifier {
   Future<void> handleMaybeLater() async {
     await _sqliteService
         .setMaybeLaterTimestamp(DateTime.now().millisecondsSinceEpoch);
+  }
+
+  // Force refresh the UI - useful after sign-in when data might not be immediately available
+  Future<void> forceRefresh() async {
+    print('🔄 ImageAnalysisViewModel: Force refreshing UI...');
+    await _loadSavedAnalyses();
+    print(
+        '✅ ImageAnalysisViewModel: Force refresh completed, count: ${_savedAnalyses.length}');
   }
 }
