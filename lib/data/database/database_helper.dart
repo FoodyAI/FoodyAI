@@ -21,7 +21,7 @@ class DatabaseHelper {
     print('Database path: $path');
     return await openDatabase(
       path,
-      version: 3,
+      version: 4,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -60,6 +60,8 @@ class DatabaseHelper {
         id TEXT PRIMARY KEY,
         user_id TEXT,
         image_url TEXT,
+        local_image_path TEXT,
+        s3_image_url TEXT,
         food_name TEXT NOT NULL,
         calories INTEGER,
         protein REAL,
@@ -100,6 +102,14 @@ class DatabaseHelper {
       await db.execute(
           'ALTER TABLE foods ADD COLUMN synced_to_aws INTEGER DEFAULT 0');
       print('Database upgraded: Added synced_to_aws column to foods table');
+    }
+
+    if (oldVersion < 4) {
+      // Add local_image_path and s3_image_url columns to foods table
+      await db.execute('ALTER TABLE foods ADD COLUMN local_image_path TEXT');
+      await db.execute('ALTER TABLE foods ADD COLUMN s3_image_url TEXT');
+      print(
+          'Database upgraded: Added local_image_path and s3_image_url columns to foods table');
     }
 
     if (oldVersion < 3) {

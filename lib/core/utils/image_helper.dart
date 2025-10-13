@@ -12,6 +12,24 @@ class ImageHelper {
     return imagePath != null && imagePath.startsWith('s3://');
   }
 
+  /// Determines if the imagePath is a local file path
+  static bool isLocalPath(String? imagePath) {
+    return imagePath != null &&
+        !imagePath.startsWith('s3://') &&
+        !imagePath.startsWith('http');
+  }
+
+  /// Checks if local file exists
+  static Future<bool> localFileExists(String? filePath) async {
+    if (filePath == null || !isLocalPath(filePath)) return false;
+    try {
+      final file = File(filePath);
+      return await file.exists();
+    } catch (e) {
+      return false;
+    }
+  }
+
   /// Converts S3 URL to image serve endpoint URL
   /// Example: s3://bucket/key -> https://api.foody.com/image-serve?key=key
   static String s3UrlToImageServeUrl(String s3Url) {
@@ -25,7 +43,7 @@ class ImageHelper {
   }
 
   /// Creates appropriate image widget for both local files and S3 URLs
-  /// 
+  ///
   /// Parameters:
   /// - [imagePath]: Either a local file path or S3 URL
   /// - [width]: Image width
@@ -84,9 +102,8 @@ class ImageHelper {
       height: height,
       decoration: BoxDecoration(
         color: backgroundColor ?? Colors.grey[300],
-        borderRadius: borderRadius != null 
-            ? BorderRadius.circular(borderRadius) 
-            : null,
+        borderRadius:
+            borderRadius != null ? BorderRadius.circular(borderRadius) : null,
       ),
       child: const Center(
         child: CircularProgressIndicator(),
@@ -108,9 +125,8 @@ class ImageHelper {
       height: height,
       decoration: BoxDecoration(
         color: backgroundColor ?? Colors.grey[300],
-        borderRadius: borderRadius != null 
-            ? BorderRadius.circular(borderRadius) 
-            : null,
+        borderRadius:
+            borderRadius != null ? BorderRadius.circular(borderRadius) : null,
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -198,7 +214,8 @@ class ImageHelper {
         }
 
         final imageBytes = snapshot.data!;
-        print('🖼️ ImageHelper: Loading image from bytes (${imageBytes.length} bytes)');
+        print(
+            '🖼️ ImageHelper: Loading image from bytes (${imageBytes.length} bytes)');
 
         return Image.memory(
           imageBytes,
@@ -232,19 +249,114 @@ class ImageHelper {
       if (response.statusCode == 200) {
         // The response body contains base64 encoded image data
         final base64Data = response.body;
-        print('✅ ImageHelper: Got base64 data (${base64Data.length} characters)');
-        
+        print(
+            '✅ ImageHelper: Got base64 data (${base64Data.length} characters)');
+
         // Decode base64 to bytes
         final imageBytes = base64Decode(base64Data);
         print('✅ ImageHelper: Decoded to ${imageBytes.length} bytes');
-        
+
         return imageBytes;
       } else {
-        throw Exception('Failed to get image data: ${response.statusCode} ${response.reasonPhrase}');
+        throw Exception(
+            'Failed to get image data: ${response.statusCode} ${response.reasonPhrase}');
       }
     } catch (e) {
       print('❌ ImageHelper: Error fetching image data: $e');
       rethrow;
     }
+  }
+
+  /// Creates appropriate image widget for FoodAnalysis with hybrid local/S3 support
+  ///
+  /// Parameters:
+  /// - [analysis]: FoodAnalysis object with local and S3 image paths
+  /// - [width]: Image width
+  /// - [height]: Image height
+  /// - [fit]: How the image should fit within the bounds
+  /// - [errorBuilder]: Widget to show if image fails to load
+  /// - [loadingBuilder]: Optional loading widget for network images
+  static Widget buildHybridImageWidget({
+    required dynamic analysis, // FoodAnalysis object
+    required double width,
+    required double height,
+    required BoxFit fit,
+    required Widget Function(BuildContext, Object, StackTrace?) errorBuilder,
+    Widget Function(BuildContext, Widget, ImageChunkEvent?)? loadingBuilder,
+  }) {
+    // Try local image first
+    if (analysis.localImagePath != null && analysis.localImagePath.isNotEmpty) {
+      return FutureBuilder<bool>(
+        future: localFileExists(analysis.localImagePath),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return createLoadingWidget(width: width, height: height);
+          }
+
+          if (snapshot.hasData && snapshot.data == true) {
+            // Local file exists, use it
+            return Image.file(
+              File(analysis.localImagePath),
+              width: width,
+              height: height,
+              fit: fit,
+              errorBuilder: errorBuilder,
+            );
+          } else {
+            // Local file doesn't exist, fall back to S3
+            return _buildS3ImageFromBase64(
+              imagePath: analysis.s3ImageUrl ?? analysis.imagePath,
+              width: width,
+              height: height,
+              fit: fit,
+              errorBuilder: errorBuilder,
+              loadingBuilder: loadingBuilder,
+            );
+          }
+        },
+      );
+    }
+
+    // No local image, try S3
+    if (analysis.s3ImageUrl != null && analysis.s3ImageUrl.isNotEmpty) {
+      return _buildS3ImageFromBase64(
+        imagePath: analysis.s3ImageUrl,
+        width: width,
+        height: height,
+        fit: fit,
+        errorBuilder: errorBuilder,
+        loadingBuilder: loadingBuilder,
+      );
+    }
+
+    // Fall back to legacy imagePath
+    if (analysis.imagePath != null && analysis.imagePath.isNotEmpty) {
+      if (isS3Url(analysis.imagePath)) {
+        return _buildS3ImageFromBase64(
+          imagePath: analysis.imagePath,
+          width: width,
+          height: height,
+          fit: fit,
+          errorBuilder: errorBuilder,
+          loadingBuilder: loadingBuilder,
+        );
+      } else {
+        return Image.file(
+          File(analysis.imagePath),
+          width: width,
+          height: height,
+          fit: fit,
+          errorBuilder: errorBuilder,
+        );
+      }
+    }
+
+    // No image available
+    return Container(
+      width: width,
+      height: height,
+      color: Colors.grey[300],
+      child: const Icon(Icons.image_not_supported),
+    );
   }
 }
