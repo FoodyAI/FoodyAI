@@ -10,6 +10,7 @@ import 'presentation/viewmodels/theme_viewmodel.dart';
 import 'presentation/viewmodels/auth_viewmodel.dart';
 import 'presentation/pages/home_view.dart';
 import 'presentation/pages/onboarding_view.dart';
+import 'presentation/pages/welcome_view.dart';
 import 'core/utils/theme.dart';
 import 'core/services/connection_service.dart';
 import 'presentation/widgets/connection_banner.dart';
@@ -91,6 +92,7 @@ class _AppNavigatorState extends State<AppNavigator> {
   @override
   Widget build(BuildContext context) {
     final userProfileVM = context.watch<UserProfileViewModel>();
+    final authVM = context.watch<AuthViewModel>();
 
     // Show loading indicator while checking user state
     if (userProfileVM.isLoading) {
@@ -101,12 +103,17 @@ class _AppNavigatorState extends State<AppNavigator> {
       );
     }
 
-    // If onboarding is not completed, show onboarding screen (not welcome screen)
+    // If user is not signed in, show welcome screen
+    if (!authVM.isSignedIn) {
+      return const WelcomeScreen();
+    }
+
+    // If user is signed in but onboarding is not completed, show onboarding screen
     if (!userProfileVM.hasCompletedOnboarding) {
       return const OnboardingView(isFirstTimeUser: true);
     }
 
-    // If onboarding is completed, show home with connection banner
+    // If user is signed in and onboarding is completed, show home with connection banner
     return HomeView(
       connectionBanner: ConnectionBanner(
         isConnected: _isConnected,
