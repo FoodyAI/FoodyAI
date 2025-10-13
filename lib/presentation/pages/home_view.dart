@@ -21,6 +21,8 @@ import 'barcode_scanner_view.dart';
 import 'welcome_view.dart';
 import '../../../core/constants/app_colors.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import '../../config/routes/navigation_service.dart';
+import '../../config/routes/app_routes.dart';
 
 class HomeView extends StatefulWidget {
   final ConnectionBanner? connectionBanner;
@@ -169,10 +171,7 @@ class _HomeContentState extends State<_HomeContent> {
         _hasNavigated = true;
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) {
-            Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(builder: (context) => const WelcomeScreen()),
-              (route) => false,
-            );
+            NavigationService.navigateToWelcome();
           }
         });
         return const Scaffold(
@@ -188,10 +187,7 @@ class _HomeContentState extends State<_HomeContent> {
         WidgetsBinding.instance.addPostFrameCallback((_) async {
           final shouldRedirect = await authVM.shouldRedirectToWelcome();
           if (context.mounted && shouldRedirect) {
-            Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(builder: (context) => const WelcomeScreen()),
-              (route) => false,
-            );
+            NavigationService.navigateToWelcome();
           }
         });
       }
@@ -345,12 +341,7 @@ class _HomeContentState extends State<_HomeContent> {
                         ),
                         onTap: () {
                           Navigator.pop(context);
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const BarcodeScannerView(),
-                            ),
-                          );
+                          NavigationService.navigateToBarcodeScanner();
                         },
                       ),
                       const SizedBox(height: 16),
