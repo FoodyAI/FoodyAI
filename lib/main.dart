@@ -8,27 +8,28 @@ import 'presentation/viewmodels/user_profile_viewmodel.dart';
 import 'presentation/viewmodels/image_analysis_viewmodel.dart';
 import 'presentation/viewmodels/theme_viewmodel.dart';
 import 'presentation/viewmodels/auth_viewmodel.dart';
-import 'presentation/pages/home_view.dart';
-import 'presentation/pages/onboarding_view.dart';
 import 'presentation/pages/welcome_view.dart';
+import 'presentation/pages/error_page.dart';
 import 'core/utils/theme.dart';
-import 'core/services/connection_service.dart';
 import 'presentation/widgets/connection_banner.dart';
+import 'config/routes/app_routes.dart';
+import 'config/routes/route_transitions.dart';
+import 'config/routes/navigation_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize Firebase
   await Firebase.initializeApp();
   print('Firebase initialized successfully!');
-  
+
   await dotenv.load(fileName: ".env");
   setupServiceLocator();
-  
+
   // Initialize migration from SharedPreferences to SQLite
   final migrationService = MigrationService();
   await migrationService.migrateFromSharedPreferences();
-  
+
   runApp(const MyApp());
 }
 
@@ -49,74 +50,92 @@ class MyApp extends StatelessWidget {
           return MaterialApp(
             title: 'foody',
             debugShowCheckedModeBanner: false,
-            navigatorKey: navigatorKey,
+            navigatorKey: NavigationService.navigatorKey,
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             themeMode: themeVM.themeMode,
-            home: const AppNavigator(),
+            initialRoute: AppRoutes.welcome,
+            onGenerateRoute: _generateRoute,
+            onUnknownRoute: _unknownRoute,
           );
         },
       ),
     );
   }
-}
 
-class AppNavigator extends StatefulWidget {
-  const AppNavigator({super.key});
+  /// Generate routes dynamically with authentication and onboarding checks
+  static Route<dynamic>? _generateRoute(RouteSettings settings) {
+    final routeName = settings.name ?? AppRoutes.welcome;
 
-  @override
-  State<AppNavigator> createState() => _AppNavigatorState();
-}
+    // Handle initial route - determine where to go based on user state
+    if (routeName == AppRoutes.welcome) {
+      return _handleInitialRoute(settings);
+    }
 
-class _AppNavigatorState extends State<AppNavigator> {
-  final ConnectionService _connectionService = ConnectionService();
-  bool _isConnected = true;
+    // Get the route builder
+    final routes = AppRoutes.getRoutes();
+    final routeBuilder = routes[routeName];
 
-  @override
-  void initState() {
-    super.initState();
-    _connectionService.startMonitoring();
-    _connectionService.connectionStream.listen((isConnected) {
-      setState(() {
-        _isConnected = isConnected;
-      });
-    });
-  }
-
-  @override
-  void dispose() {
-    _connectionService.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final userProfileVM = context.watch<UserProfileViewModel>();
-    final authVM = context.watch<AuthViewModel>();
-
-    // Show loading indicator while checking user state
-    if (userProfileVM.isLoading) {
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
+    if (routeBuilder == null) {
+      return RouteTransitions.slideFromRight(
+        ErrorPage(
+          errorMessage: 'Route not found: $routeName',
+          routeName: routeName,
         ),
       );
     }
 
-    // If user is not signed in, show welcome screen
+    // Create the page with arguments
+    final page = routeBuilder(NavigationService.navigatorKey.currentContext!);
+
+    // Return route with custom transition
+    return RouteTransitions.getTransitionForRoute(routeName, page);
+  }
+
+  /// Handle initial route determination
+  static Route<dynamic> _handleInitialRoute(RouteSettings settings) {
+    final context = NavigationService.navigatorKey.currentContext!;
+
+    // Get ViewModels
+    final userProfileVM = context.read<UserProfileViewModel>();
+    final authVM = context.read<AuthViewModel>();
+
+    // Determine the correct initial route
+    String targetRoute;
+    Map<String, dynamic>? arguments;
+
     if (!authVM.isSignedIn) {
-      return const WelcomeScreen();
+      targetRoute = AppRoutes.welcome;
+    } else if (!userProfileVM.hasCompletedOnboarding) {
+      targetRoute = AppRoutes.onboarding;
+      arguments = {AppRoutes.isFirstTimeUser: true};
+    } else {
+      targetRoute = AppRoutes.home;
+      arguments = {
+        AppRoutes.connectionBanner: ConnectionBanner(isConnected: true),
+      };
     }
 
-    // If user is signed in but onboarding is not completed, show onboarding screen
-    if (!userProfileVM.hasCompletedOnboarding) {
-      return const OnboardingView(isFirstTimeUser: true);
+    // If we need to redirect, do it after the current route is built
+    if (targetRoute != AppRoutes.welcome) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        NavigationService.pushNamedAndRemoveUntil(
+          targetRoute,
+          arguments: arguments,
+        );
+      });
     }
 
-    // If user is signed in and onboarding is completed, show home with connection banner
-    return HomeView(
-      connectionBanner: ConnectionBanner(
-        isConnected: _isConnected,
+    // Return the welcome screen as the initial route
+    return RouteTransitions.slideFromRight(const WelcomeScreen());
+  }
+
+  /// Handle unknown routes
+  static Route<dynamic> _unknownRoute(RouteSettings settings) {
+    return RouteTransitions.slideFromRight(
+      ErrorPage(
+        errorMessage: 'Page not found',
+        routeName: settings.name,
       ),
     );
   }
