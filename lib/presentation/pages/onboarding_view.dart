@@ -8,11 +8,13 @@ import '../widgets/profile_inputs.dart';
 import 'analysis_loading_view.dart';
 import '../../../core/constants/app_colors.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import '../../config/routes/navigation_service.dart';
 
 class OnboardingView extends StatefulWidget {
   final bool isFirstTimeUser;
-  
-  const OnboardingView({Key? key, this.isFirstTimeUser = false}) : super(key: key);
+
+  const OnboardingView({Key? key, this.isFirstTimeUser = false})
+      : super(key: key);
 
   @override
   State<OnboardingView> createState() => _OnboardingViewState();
@@ -42,14 +44,15 @@ class _OnboardingViewState extends State<OnboardingView> {
 
   void _initializeOnboarding() {
     final profileVM = Provider.of<UserProfileViewModel>(context, listen: false);
-    
+
     // If explicitly marked as first-time user, ignore any existing profile data
     if (widget.isFirstTimeUser) {
-      print('📋 OnboardingView: Explicitly marked as first-time user - starting fresh');
+      print(
+          '📋 OnboardingView: Explicitly marked as first-time user - starting fresh');
       _startFreshOnboarding();
       return;
     }
-    
+
     if (profileVM.profile != null) {
       // Resuming onboarding - load existing data
       final profile = profileVM.profile!;
@@ -63,12 +66,12 @@ class _OnboardingViewState extends State<OnboardingView> {
       _activityLevel = profile.activityLevel;
       _weightGoal = profile.weightGoal;
       _hasSelectedGender = true; // Profile exists, so gender was selected
-      
+
       // Determine which page to start from based on completeness
       _currentPage = _determineStartingPage(profile);
-      
+
       print('📋 OnboardingView: Resuming onboarding from page $_currentPage');
-      
+
       // Show resume message
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
@@ -85,7 +88,7 @@ class _OnboardingViewState extends State<OnboardingView> {
       // First time onboarding - set defaults
       _startFreshOnboarding();
     }
-    
+
     // Navigate to the determined starting page after widget is built
     if (_currentPage > 0) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -112,8 +115,9 @@ class _OnboardingViewState extends State<OnboardingView> {
     _activityLevel = ActivityLevel.sedentary;
     _weightGoal = WeightGoal.maintain;
     _currentPage = 0;
-    
-    print('📋 OnboardingView: Starting fresh onboarding from page 0 (gender selection)');
+
+    print(
+        '📋 OnboardingView: Starting fresh onboarding from page 0 (gender selection)');
   }
 
   /// Determine which page to start from based on profile completeness
@@ -122,12 +126,12 @@ class _OnboardingViewState extends State<OnboardingView> {
     if (profile.gender.isEmpty || profile.age <= 0) {
       return 0;
     }
-    
+
     // Check measurements (weight, height) - Page 1
     if (profile.weightKg <= 0 || profile.heightCm <= 0) {
       return 1;
     }
-    
+
     // Check activity level and goals - Page 2
     // Activity level and weight goal always have defaults, so check if they seem intentionally set
     // For now, assume if we got this far, we should go to the summary page
@@ -199,7 +203,7 @@ class _OnboardingViewState extends State<OnboardingView> {
       );
 
       print('📝 OnboardingView: Saving profile...');
-      
+
       await vm.saveProfile(
         gender: _gender,
         age: _age,
@@ -231,18 +235,14 @@ class _OnboardingViewState extends State<OnboardingView> {
         ),
       );
 
-      // Navigate to home
-      Navigator.pushReplacement(
-        ctx,
-        MaterialPageRoute(builder: (_) => const AnalysisLoadingView()),
-      );
-      
+      // Navigate to analysis loading
+      NavigationService.navigateToAnalysisLoading();
     } catch (e) {
       print('❌ OnboardingView: Error saving profile: $e');
-      
+
       // Hide loading dialog
       if (ctx.mounted) Navigator.pop(ctx);
-      
+
       if (ctx.mounted) {
         ScaffoldMessenger.of(ctx).showSnackBar(
           SnackBar(
@@ -431,7 +431,6 @@ class _OnboardingViewState extends State<OnboardingView> {
       ),
     );
   }
-
 
   Widget _buildMeasurementsPage() {
     return SingleChildScrollView(
