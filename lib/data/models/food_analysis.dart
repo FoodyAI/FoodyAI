@@ -10,7 +10,9 @@ class FoodAnalysis {
   final double fat;
   final double calories;
   final double healthScore;
-  final String? imagePath;
+  final String? imagePath; // Legacy field - will be deprecated
+  final String? localImagePath; // Local file path
+  final String? s3ImageUrl; // S3 URL
   final int orderNumber;
   final DateTime date;
   final int dateOrderNumber;
@@ -25,6 +27,8 @@ class FoodAnalysis {
     required this.calories,
     required this.healthScore,
     this.imagePath,
+    this.localImagePath,
+    this.s3ImageUrl,
     this.orderNumber = 0,
     DateTime? date,
     this.dateOrderNumber = 0,
@@ -98,7 +102,9 @@ class FoodAnalysis {
     return {
       'id': id ?? uuid.v4(), // Generate UUID if not provided
       'user_id': 'placeholder', // Will be overwritten by SQLiteService
-      'image_url': imagePath,
+      'image_url': imagePath, // Legacy field
+      'local_image_path': localImagePath,
+      's3_image_url': s3ImageUrl,
       'food_name': name,
       'calories': calories.round(),
       'protein': protein,
@@ -120,13 +126,33 @@ class FoodAnalysis {
       fat: (map['fat'] as num).toDouble(),
       calories: (map['calories'] as num).toDouble(),
       healthScore: (map['health_score'] as num).toDouble(),
-      imagePath: map['image_url'] as String?,
+      imagePath: map['image_url'] as String?, // Legacy field
+      localImagePath: map['local_image_path'] as String?,
+      s3ImageUrl: map['s3_image_url'] as String?,
       orderNumber: 0, // Not stored in database anymore
       date: DateTime.parse(map['analysis_date'] as String),
       dateOrderNumber: 0, // Not stored in database anymore
       syncedToAws: (map['synced_to_aws'] as int? ?? 0) == 1,
     );
   }
+
+  /// Gets the best available image path (local first, then S3, then legacy)
+  String? getBestImagePath() {
+    if (localImagePath != null && localImagePath!.isNotEmpty) {
+      return localImagePath;
+    }
+    if (s3ImageUrl != null && s3ImageUrl!.isNotEmpty) {
+      return s3ImageUrl;
+    }
+    return imagePath; // Legacy fallback
+  }
+
+  /// Checks if local image file exists
+  bool get hasLocalImage =>
+      localImagePath != null && localImagePath!.isNotEmpty;
+
+  /// Checks if S3 image URL is available
+  bool get hasS3Image => s3ImageUrl != null && s3ImageUrl!.isNotEmpty;
 
   // Method to create a copy with updated sync status
   FoodAnalysis copyWith({

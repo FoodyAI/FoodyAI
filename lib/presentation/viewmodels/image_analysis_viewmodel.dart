@@ -210,7 +210,11 @@ class ImageAnalysisViewModel extends ChangeNotifier {
 
       // Upload image to S3 if we have a selected image
       String? s3ImageUrl;
+      String? localImagePath;
       if (_selectedImage != null) {
+        // Keep local file path for immediate display
+        localImagePath = _selectedImage!.path;
+
         print('📤 ImageAnalysisViewModel: Uploading image to S3...');
         s3ImageUrl = await _awsService.uploadImageToS3(_selectedImage!);
         if (s3ImageUrl == null) {
@@ -228,8 +232,9 @@ class ImageAnalysisViewModel extends ChangeNotifier {
         fat: _currentAnalysis!.fat,
         calories: _currentAnalysis!.calories,
         healthScore: _currentAnalysis!.healthScore,
-        imagePath: s3ImageUrl ??
-            _currentAnalysis!.imagePath, // Use S3 URL if available
+        imagePath: s3ImageUrl ?? _currentAnalysis!.imagePath, // Legacy field
+        localImagePath: localImagePath, // Local file path
+        s3ImageUrl: s3ImageUrl, // S3 URL
         orderNumber: 0, // Not used anymore
         date: _selectedDate, // Use the selected date!
         dateOrderNumber: 0, // Not used anymore

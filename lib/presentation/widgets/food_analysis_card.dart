@@ -194,11 +194,14 @@ class FoodAnalysisCard extends StatelessWidget {
   Widget _buildImage(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    if (analysis.imagePath != null) {
+    // Use hybrid approach: try local first, then S3
+    if (analysis.localImagePath != null ||
+        analysis.s3ImageUrl != null ||
+        analysis.imagePath != null) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(16),
-        child: ImageHelper.buildImageWidget(
-          imagePath: analysis.imagePath,
+        child: ImageHelper.buildHybridImageWidget(
+          analysis: analysis,
           width: 80,
           height: 80,
           fit: BoxFit.cover,
@@ -221,7 +224,8 @@ class FoodAnalysisCard extends StatelessWidget {
     return _buildImagePlaceholder(context, isDark, 80, 80, 32);
   }
 
-  Widget _buildImagePlaceholder(BuildContext context, bool isDark, double width, double height, double fontSize) {
+  Widget _buildImagePlaceholder(BuildContext context, bool isDark, double width,
+      double height, double fontSize) {
     return Container(
       width: width,
       height: height,
@@ -327,7 +331,9 @@ class FoodAnalysisCard extends StatelessWidget {
               // Header Image Section
               Stack(
                 children: [
-                  if (analysis.imagePath != null)
+                  if (analysis.localImagePath != null ||
+                      analysis.s3ImageUrl != null ||
+                      analysis.imagePath != null)
                     Container(
                       height: 300,
                       width: double.infinity,
@@ -342,8 +348,8 @@ class FoodAnalysisCard extends StatelessWidget {
                           topLeft: Radius.circular(32),
                           topRight: Radius.circular(32),
                         ),
-                        child: ImageHelper.buildImageWidget(
-                          imagePath: analysis.imagePath,
+                        child: ImageHelper.buildHybridImageWidget(
+                          analysis: analysis,
                           width: double.infinity,
                           height: 300,
                           fit: BoxFit.cover,
