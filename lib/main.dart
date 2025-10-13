@@ -8,8 +8,8 @@ import 'presentation/viewmodels/user_profile_viewmodel.dart';
 import 'presentation/viewmodels/image_analysis_viewmodel.dart';
 import 'presentation/viewmodels/theme_viewmodel.dart';
 import 'presentation/viewmodels/auth_viewmodel.dart';
-import 'presentation/pages/welcome_view.dart';
 import 'presentation/pages/home_view.dart';
+import 'presentation/pages/onboarding_view.dart';
 import 'core/utils/theme.dart';
 import 'core/services/connection_service.dart';
 import 'presentation/widgets/connection_banner.dart';
@@ -101,9 +101,9 @@ class _AppNavigatorState extends State<AppNavigator> {
       );
     }
 
-    // If onboarding is not completed, show welcome screen
+    // If onboarding is not completed, show onboarding screen (not welcome screen)
     if (!userProfileVM.hasCompletedOnboarding) {
-      return const WelcomeScreen();
+      return const OnboardingView(isFirstTimeUser: true);
     }
 
     // If onboarding is completed, show home with connection banner
