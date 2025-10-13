@@ -109,13 +109,18 @@ exports.handler = async (event) => {
         }
       }
       
-      // Update headers with correct content type
+      // Update headers with correct content type and add content length
       headers['Content-Type'] = contentType;
+      headers['Content-Length'] = s3Object.Body.length.toString();
+      headers['Cache-Control'] = 'public, max-age=31536000'; // Cache for 1 year
+      headers['Accept-Ranges'] = 'bytes';
       
       console.log('✅ Successfully fetched image from S3');
       console.log('📊 Content-Type:', contentType);
       console.log('📊 Content-Length:', s3Object.Body.length);
       
+      // Return the image data as base64 encoded string
+      // Flutter will decode this base64 data to raw bytes
       return {
         statusCode: 200,
         headers,
