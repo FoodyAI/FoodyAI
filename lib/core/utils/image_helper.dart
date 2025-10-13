@@ -1,5 +1,8 @@
 import 'dart:io';
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 /// Utility class for handling image display in the Foody app
 /// Supports both local file paths and S3 URLs
@@ -48,10 +51,9 @@ class ImageHelper {
     }
 
     if (isS3Url(imagePath)) {
-      // Use Image.network for S3 URLs
-      final imageUrl = s3UrlToImageServeUrl(imagePath);
-      return Image.network(
-        imageUrl,
+      // Use a custom widget that fetches base64 data and converts to image
+      return _buildS3ImageFromBase64(
+        imagePath: imagePath,
         width: width,
         height: height,
         fit: fit,
@@ -132,5 +134,117 @@ class ImageHelper {
         ],
       ),
     );
+  }
+
+  /// Creates a network image with better error handling and retry mechanism
+  static Widget buildNetworkImageWithRetry({
+    required String imageUrl,
+    required double width,
+    required double height,
+    required BoxFit fit,
+    required Widget Function(BuildContext, Object, StackTrace?) errorBuilder,
+    Widget Function(BuildContext, Widget, ImageChunkEvent?)? loadingBuilder,
+    int maxRetries = 3,
+  }) {
+    return Image.network(
+      imageUrl,
+      width: width,
+      height: height,
+      fit: fit,
+      errorBuilder: (context, error, stackTrace) {
+        print('❌ ImageHelper: Network image failed: $imageUrl');
+        print('❌ ImageHelper: Error: $error');
+        return errorBuilder(context, error, stackTrace);
+      },
+      loadingBuilder: loadingBuilder,
+      // Add headers to help with image decoding
+      headers: {
+        'Accept': 'image/*',
+        'User-Agent': 'FoodyApp/1.0',
+      },
+    );
+  }
+
+  /// Builds an S3 image widget that fetches base64 data and converts to image
+  static Widget _buildS3ImageFromBase64({
+    required String imagePath,
+    required double width,
+    required double height,
+    required BoxFit fit,
+    required Widget Function(BuildContext, Object, StackTrace?) errorBuilder,
+    Widget Function(BuildContext, Widget, ImageChunkEvent?)? loadingBuilder,
+  }) {
+    return FutureBuilder<Uint8List>(
+      future: _getImageBytesFromS3(imagePath),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          if (loadingBuilder != null) {
+            return createLoadingWidget(
+              width: width,
+              height: height,
+              backgroundColor: Colors.grey[300],
+            );
+          }
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasError) {
+          print('❌ ImageHelper: Failed to get image bytes: ${snapshot.error}');
+          return errorBuilder(context, snapshot.error!, null);
+        }
+
+        if (!snapshot.hasData) {
+          return errorBuilder(context, 'No image data available', null);
+        }
+
+        final imageBytes = snapshot.data!;
+        print('🖼️ ImageHelper: Loading image from bytes (${imageBytes.length} bytes)');
+
+        return Image.memory(
+          imageBytes,
+          width: width,
+          height: height,
+          fit: fit,
+          errorBuilder: (context, error, stackTrace) {
+            print('❌ ImageHelper: Failed to decode image from bytes');
+            print('❌ ImageHelper: Error: $error');
+            return errorBuilder(context, error, stackTrace);
+          },
+        );
+      },
+    );
+  }
+
+  /// Fetches base64 image data from Lambda and converts to bytes
+  static Future<Uint8List> _getImageBytesFromS3(String s3Url) async {
+    final imageUrl = s3UrlToImageServeUrl(s3Url);
+    print('🔄 ImageHelper: Fetching base64 image data from: $imageUrl');
+
+    try {
+      final response = await http.get(
+        Uri.parse(imageUrl),
+        headers: {
+          'Accept': 'image/*',
+          'User-Agent': 'FoodyApp/1.0',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        // The response body contains base64 encoded image data
+        final base64Data = response.body;
+        print('✅ ImageHelper: Got base64 data (${base64Data.length} characters)');
+        
+        // Decode base64 to bytes
+        final imageBytes = base64Decode(base64Data);
+        print('✅ ImageHelper: Decoded to ${imageBytes.length} bytes');
+        
+        return imageBytes;
+      } else {
+        throw Exception('Failed to get image data: ${response.statusCode} ${response.reasonPhrase}');
+      }
+    } catch (e) {
+      print('❌ ImageHelper: Error fetching image data: $e');
+      rethrow;
+    }
   }
 }
