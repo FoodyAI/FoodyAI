@@ -121,6 +121,8 @@ class AuthViewModel extends ChangeNotifier {
           if (context != null && context.mounted) {
             try {
               final imageAnalysisVM = context.read<ImageAnalysisViewModel>();
+              // Add a small delay to ensure data is fully saved to SQLite
+              await Future.delayed(const Duration(milliseconds: 500));
               await imageAnalysisVM.reloadAnalyses();
               print('✅ AuthViewModel: Food analyses reloaded in UI');
             } catch (e) {
@@ -143,6 +145,17 @@ class AuthViewModel extends ChangeNotifier {
             userEmail: user.email ?? '',
             useLocalCache: true, // Data was just loaded from AWS
           );
+
+          // Reload food analyses after navigation is complete
+          // This ensures the UI is ready to display the data
+          try {
+            final imageAnalysisVM = context.read<ImageAnalysisViewModel>();
+            await imageAnalysisVM.reloadAnalyses();
+            print('✅ AuthViewModel: Food analyses reloaded after navigation');
+          } catch (e) {
+            print(
+                '⚠️ AuthViewModel: Failed to reload food analyses after navigation: $e');
+          }
         }
 
         return true;
@@ -292,7 +305,6 @@ class AuthViewModel extends ChangeNotifier {
     }
   }
 
-
   /// Set loading state
   void _setLoading(bool loading) {
     _isLoading = loading;
@@ -354,7 +366,7 @@ class AuthViewModel extends ChangeNotifier {
   /// Check if user should be redirected to welcome (user exists in Firebase but not in AWS)
   Future<bool> shouldRedirectToWelcome() async {
     if (_user == null) return false;
-    
+
     try {
       // Check if user exists in AWS
       final profileData = await _awsService.getUserProfile(_user!.uid);

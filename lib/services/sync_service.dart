@@ -4,6 +4,7 @@ import '../data/models/food_analysis.dart';
 import '../data/services/sqlite_service.dart';
 import '../domain/entities/user_profile.dart';
 import '../domain/entities/ai_provider.dart';
+import '../core/events/food_data_update_event.dart';
 
 class SyncService {
   final AWSService _awsService = AWSService();
@@ -286,11 +287,26 @@ class SyncService {
         print(
             '✅ AWS: Saved ${foodAnalyses.length} food analyses to local SQLite');
 
+        // Verify data was saved correctly
+        final savedAnalyses =
+            await _sqliteService.getFoodAnalyses(userId: userId);
+        if (savedAnalyses.length == foodAnalyses.length) {
+          print(
+              '✅ AWS: Data verification successful - ${savedAnalyses.length} analyses confirmed in SQLite');
+        } else {
+          print(
+              '⚠️ AWS: Data verification warning - Expected ${foodAnalyses.length}, found ${savedAnalyses.length}');
+        }
+
         // Log each food item
         for (var food in foodAnalyses) {
           print(
               '   - ${food.name}: ${food.calories.toInt()} cal, Score: ${food.healthScore.toInt()}/10');
         }
+
+        // Notify that food data has been updated
+        FoodDataUpdateEvent.notifyUpdate();
+        print('📢 SyncService: Food data update event fired');
       } else {
         print('ℹ️ AWS: No food analyses found for user');
       }
