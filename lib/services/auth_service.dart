@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:foody/core/utils/image_helper.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthService {
@@ -102,6 +103,7 @@ class AuthService {
   
   // Sign out
   Future<void> signOut() async {
+    ImageHelper.clearCache();
     await _auth.signOut();
     await _googleSignIn.signOut();
   }
