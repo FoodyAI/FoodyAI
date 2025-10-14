@@ -5,6 +5,7 @@ import '../../services/auth_service.dart';
 import '../../services/sync_service.dart';
 import '../../services/aws_service.dart';
 import '../../services/authentication_flow.dart';
+import '../../services/notification_service.dart';
 import '../../data/repositories/user_profile_repository_impl.dart';
 import '../../data/services/sqlite_service.dart';
 import '../../core/events/profile_update_event.dart';
@@ -23,6 +24,7 @@ class AuthViewModel extends ChangeNotifier {
   final SyncService _syncService = SyncService();
   final AWSService _awsService = AWSService();
   final AuthenticationFlow _authFlow = AuthenticationFlow();
+  final NotificationService _notificationService = NotificationService();
   final UserProfileRepositoryImpl _userProfileRepository =
       UserProfileRepositoryImpl();
 
@@ -116,6 +118,11 @@ class AuthViewModel extends ChangeNotifier {
           await _syncService.loadUserDataFromAWS();
           print('✅ AuthViewModel: User data loaded successfully');
           ProfileUpdateEvent.notifyUpdate();
+
+          // Initialize notification service after successful sign-in
+          print('🔔 AuthViewModel: Initializing notification service...');
+          await _notificationService.initialize(userId: user.uid);
+          print('✅ AuthViewModel: Notification service initialized');
 
           // Reload food analyses in the UI after AWS sync
           if (context != null && context.mounted) {
@@ -231,6 +238,11 @@ class AuthViewModel extends ChangeNotifier {
       _setLoading(true);
       _clearError();
 
+      // Delete FCM token before sign out
+      print('🔔 AuthViewModel: Deleting FCM token...');
+      await _notificationService.deleteToken();
+      print('✅ AuthViewModel: FCM token deleted');
+
       // Clear local data
       await SQLiteService().clearAllData();
       ProfileUpdateEvent.notifyUpdate();
@@ -270,6 +282,11 @@ class AuthViewModel extends ChangeNotifier {
       }
 
       final userId = _user!.uid;
+
+      // Delete FCM token before account deletion
+      print('🔔 AuthViewModel: Deleting FCM token...');
+      await _notificationService.deleteToken();
+      print('✅ AuthViewModel: FCM token deleted');
 
       // Delete from AWS first
       final awsResult = await _awsService.deleteUser(userId);
