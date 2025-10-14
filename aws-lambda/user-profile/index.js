@@ -79,12 +79,12 @@ exports.handler = async (event) => {
         const query = `
           INSERT INTO users (
             user_id, email, display_name, photo_url, gender, age, weight, height,
-            activity_level, goal, daily_calories, bmi, theme_preference, ai_provider, 
-            measurement_unit, created_at, updated_at
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+            activity_level, goal, daily_calories, bmi, theme_preference, ai_provider,
+            measurement_unit, fcm_token, notifications_enabled, created_at, updated_at
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
           RETURNING user_id
         `;
-        
+
         const values = [
           userId,
           email,
@@ -101,6 +101,8 @@ exports.handler = async (event) => {
           userData.themePreference || 'system',
           userData.aiProvider || 'openai',
           userData.measurementUnit || 'metric',
+          userData.fcmToken || null,
+          userData.notificationsEnabled !== undefined ? userData.notificationsEnabled : true,
           new Date(),
           new Date()
         ];
@@ -180,7 +182,15 @@ exports.handler = async (event) => {
           updateFields.push(`measurement_unit = $${paramIndex++}`);
           updateValues.push(userData.measurementUnit);
         }
-        
+        if (userData.fcmToken !== undefined) {
+          updateFields.push(`fcm_token = $${paramIndex++}`);
+          updateValues.push(userData.fcmToken);
+        }
+        if (userData.notificationsEnabled !== undefined) {
+          updateFields.push(`notifications_enabled = $${paramIndex++}`);
+          updateValues.push(userData.notificationsEnabled);
+        }
+
         // Always update email and timestamp
         updateFields.push(`email = $${paramIndex++}`);
         updateValues.push(email);
