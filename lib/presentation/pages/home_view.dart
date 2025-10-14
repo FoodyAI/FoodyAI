@@ -21,6 +21,8 @@ import 'barcode_scanner_view.dart';
 import 'welcome_view.dart';
 import '../../../core/constants/app_colors.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import '../../config/routes/navigation_service.dart';
+import '../../config/routes/app_routes.dart';
 
 class HomeView extends StatefulWidget {
   final ConnectionBanner? connectionBanner;
@@ -67,12 +69,37 @@ class _HomeContent extends StatefulWidget {
 
 class _HomeContentState extends State<_HomeContent> {
   bool _bannerDismissed = false;
+  bool _hasNavigated = false;
   final SQLiteService _sqliteService = SQLiteService();
 
   @override
   void initState() {
     super.initState();
     _loadBannerState();
+
+    // Listen for auth state changes to refresh data when user signs in
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final authVM = Provider.of<AuthViewModel>(context, listen: false);
+      final analysisVM =
+          Provider.of<ImageAnalysisViewModel>(context, listen: false);
+
+      // If user is authenticated and we have no data, try to reload
+      if (authVM.isSignedIn && analysisVM.savedAnalyses.isEmpty) {
+        Future.delayed(const Duration(milliseconds: 1000), () {
+          if (mounted) {
+            analysisVM.forceRefresh();
+          }
+        });
+      }
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Validate user state consistency only when dependencies change
+    final authVM = Provider.of<AuthViewModel>(context, listen: false);
+    authVM.validateUserState();
   }
 
   Future<void> _loadBannerState() async {
@@ -135,20 +162,17 @@ class _HomeContentState extends State<_HomeContent> {
     final analysisVM = Provider.of<ImageAnalysisViewModel>(context);
     final authVM = Provider.of<AuthViewModel>(context);
 
-    // Validate user state consistency on each build
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      authVM.validateUserState();
-    });
+    // Validate user state consistency only when needed (moved to didChangeDependencies)
 
     // Handle case where profile is null
     if (profile == null) {
-      // If user is not signed in (after deletion), redirect to welcome page
-      if (!authVM.isSignedIn) {
+      // If user is not signed in, redirect to welcome page
+      if (!authVM.isSignedIn && !_hasNavigated) {
+        _hasNavigated = true;
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (context) => const WelcomeScreen()),
-            (route) => false,
-          );
+          if (mounted) {
+            NavigationService.navigateToWelcome();
+          }
         });
         return const Scaffold(
           body: Center(
@@ -157,7 +181,17 @@ class _HomeContentState extends State<_HomeContent> {
         );
       }
 
-      // If user is signed in but profile not loaded yet, show loading
+      // If user is signed in but profile is null, check if user exists in AWS
+      if (authVM.isSignedIn && !_hasNavigated) {
+        _hasNavigated = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
+          final shouldRedirect = await authVM.shouldRedirectToWelcome();
+          if (context.mounted && shouldRedirect) {
+            NavigationService.navigateToWelcome();
+          }
+        });
+      }
+
       return const Scaffold(
         body: Center(
           child: CircularProgressIndicator(),
@@ -307,12 +341,7 @@ class _HomeContentState extends State<_HomeContent> {
                         ),
                         onTap: () {
                           Navigator.pop(context);
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const BarcodeScannerView(),
-                            ),
-                          );
+                          NavigationService.navigateToBarcodeScanner();
                         },
                       ),
                       const SizedBox(height: 16),
@@ -325,174 +354,184 @@ class _HomeContentState extends State<_HomeContent> {
         },
         child: const FaIcon(FontAwesomeIcons.plus),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Guest Sign-In Banner (Top) - Show if user is not signed in with Firebase and banner not dismissed
-            if (!authVM.isSignedIn && !_bannerDismissed)
-              GuestSignInBanner(
-                onDismiss: _dismissBanner,
+      body: RefreshIndicator(
+        onRefresh: () async {
+          // Force refresh the food analyses when user pulls to refresh
+          final analysisVM =
+              Provider.of<ImageAnalysisViewModel>(context, listen: false);
+          await analysisVM.forceRefresh();
+        },
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Guest Sign-In Banner (Top) - Show if user is not signed in with Firebase and banner not dismissed
+              if (!authVM.isSignedIn && !_bannerDismissed)
+                GuestSignInBanner(
+                  onDismiss: _dismissBanner,
+                ),
+              // Calorie Tracking Section
+              CalorieTrackingCard(
+                totalCaloriesConsumed: totalCaloriesConsumed,
+                recommendedCalories: recommendedCalories,
+                savedAnalyses: analysisVM.filteredAnalyses,
+                selectedDate: analysisVM.selectedDate,
+                onDateSelected: (date) => analysisVM.setSelectedDate(date),
               ),
-            // Calorie Tracking Section
-            CalorieTrackingCard(
-              totalCaloriesConsumed: totalCaloriesConsumed,
-              recommendedCalories: recommendedCalories,
-              savedAnalyses: analysisVM.filteredAnalyses,
-              selectedDate: analysisVM.selectedDate,
-              onDateSelected: (date) => analysisVM.setSelectedDate(date),
-            ),
-            // Image Analysis Section
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Consumer<ImageAnalysisViewModel>(
-                builder: (ctx, vm, _) => Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    if (vm.error != null)
-                      Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Text(
-                          vm.error!,
-                          style: const TextStyle(color: AppColors.error),
-                          textAlign: TextAlign.center,
+              // Image Analysis Section
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Consumer<ImageAnalysisViewModel>(
+                  builder: (ctx, vm, _) => Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      if (vm.error != null)
+                        Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Text(
+                            vm.error!,
+                            style: const TextStyle(color: AppColors.error),
+                            textAlign: TextAlign.center,
+                          ),
+                        )
+                      else if (vm.currentAnalysis != null)
+                        FoodAnalysisCard(
+                          analysis: vm.currentAnalysis!,
+                        )
+                      else if (vm.isLoading && vm.filteredAnalyses.isEmpty)
+                        FoodAnalysisCard(
+                          analysis: FoodAnalysis(
+                            name: 'Loading...',
+                            protein: 0,
+                            carbs: 0,
+                            fat: 0,
+                            calories: 0,
+                            healthScore: 0,
+                            date: DateTime(2024),
+                          ),
+                          isLoading: true,
                         ),
-                      )
-                    else if (vm.currentAnalysis != null)
-                      FoodAnalysisCard(
-                        analysis: vm.currentAnalysis!,
-                      )
-                    else if (vm.isLoading && vm.filteredAnalyses.isEmpty)
-                      FoodAnalysisCard(
-                        analysis: FoodAnalysis(
-                          name: 'Loading...',
-                          protein: 0,
-                          carbs: 0,
-                          fat: 0,
-                          calories: 0,
-                          healthScore: 0,
-                          date: DateTime(2024),
-                        ),
-                        isLoading: true,
-                      ),
-                    if (vm.filteredAnalyses.isNotEmpty) ...[
-                      ...vm.filteredAnalyses.asMap().entries.map((entry) {
-                        final index = entry.key;
-                        final analysis = entry.value;
-                        final isLastItem =
-                            index == vm.filteredAnalyses.length - 1;
-                        return Column(
-                          children: [
-                            Dismissible(
-                              key: Key('analysis_${analysis.name}_$index'),
-                              direction: DismissDirection.endToStart,
-                              background: Container(
-                                color: AppColors.error,
-                                alignment: Alignment.centerRight,
-                                padding: const EdgeInsets.only(right: 16),
-                                child: const FaIcon(
-                                  FontAwesomeIcons.trash,
-                                  color: AppColors.white,
+                      if (vm.filteredAnalyses.isNotEmpty) ...[
+                        ...vm.filteredAnalyses.asMap().entries.map((entry) {
+                          final index = entry.key;
+                          final analysis = entry.value;
+                          final isLastItem =
+                              index == vm.filteredAnalyses.length - 1;
+                          return Column(
+                            children: [
+                              Dismissible(
+                                key: Key('analysis_${analysis.name}_$index'),
+                                direction: DismissDirection.endToStart,
+                                background: Container(
+                                  color: AppColors.error,
+                                  alignment: Alignment.centerRight,
+                                  padding: const EdgeInsets.only(right: 16),
+                                  child: const FaIcon(
+                                    FontAwesomeIcons.trash,
+                                    color: AppColors.white,
+                                  ),
                                 ),
-                              ),
-                              confirmDismiss: (_) async {
-                                return await showDialog(
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    return AlertDialog(
-                                      title: const Text('Confirm Delete'),
-                                      content: Text(
-                                          'Are you sure you want to delete ${analysis.name}?'),
-                                      actions: <Widget>[
-                                        TextButton(
-                                          onPressed: () =>
-                                              Navigator.of(context).pop(false),
-                                          child: const Text('Cancel'),
-                                        ),
-                                        TextButton(
-                                          onPressed: () =>
-                                              Navigator.of(context).pop(true),
-                                          child: const Text(
-                                            'Delete',
-                                            style: TextStyle(
-                                                color: AppColors.error),
+                                confirmDismiss: (_) async {
+                                  return await showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        title: const Text('Confirm Delete'),
+                                        content: Text(
+                                            'Are you sure you want to delete ${analysis.name}?'),
+                                        actions: <Widget>[
+                                          TextButton(
+                                            onPressed: () =>
+                                                Navigator.of(context)
+                                                    .pop(false),
+                                            child: const Text('Cancel'),
                                           ),
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                );
-                              },
-                              onDismissed: (direction) async {
-                                final analysisToRemove =
-                                    vm.filteredAnalyses[index];
-                                final fullIndex =
-                                    vm.savedAnalyses.indexOf(analysisToRemove);
-                                final removedAnalysis =
-                                    await vm.removeAnalysis(fullIndex);
-                                if (removedAnalysis != null) {
-                                  _showUndoSnackbar(removedAnalysis, vm);
-                                }
-                              },
-                              child: FoodAnalysisCard(
-                                analysis: analysis,
-                                onDelete: () => vm.removeAnalysis(index),
-                              ),
-                            ),
-                            if (isLastItem && vm.isLoading)
-                              FoodAnalysisCard(
-                                analysis: FoodAnalysis(
-                                  name: 'Loading...',
-                                  protein: 0,
-                                  carbs: 0,
-                                  fat: 0,
-                                  calories: 0,
-                                  healthScore: 0,
-                                  date: DateTime(2024),
+                                          TextButton(
+                                            onPressed: () =>
+                                                Navigator.of(context).pop(true),
+                                            child: const Text(
+                                              'Delete',
+                                              style: TextStyle(
+                                                  color: AppColors.error),
+                                            ),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                },
+                                onDismissed: (direction) async {
+                                  final analysisToRemove =
+                                      vm.filteredAnalyses[index];
+                                  final fullIndex = vm.savedAnalyses
+                                      .indexOf(analysisToRemove);
+                                  final removedAnalysis =
+                                      await vm.removeAnalysis(fullIndex);
+                                  if (removedAnalysis != null) {
+                                    _showUndoSnackbar(removedAnalysis, vm);
+                                  }
+                                },
+                                child: FoodAnalysisCard(
+                                  analysis: analysis,
+                                  onDelete: () => vm.removeAnalysis(index),
                                 ),
-                                isLoading: true,
                               ),
-                          ],
-                        );
-                      }).toList(),
-                    ] else if (!vm.isLoading) ...[
-                      const SizedBox(height: 32),
-                      const Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            FaIcon(
-                              FontAwesomeIcons.utensils,
-                              size: 64,
-                              color: AppColors.grey400,
-                            ),
-                            SizedBox(height: 16),
-                            Text(
-                              'No food added yet',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.grey600,
+                              if (isLastItem && vm.isLoading)
+                                FoodAnalysisCard(
+                                  analysis: FoodAnalysis(
+                                    name: 'Loading...',
+                                    protein: 0,
+                                    carbs: 0,
+                                    fat: 0,
+                                    calories: 0,
+                                    healthScore: 0,
+                                    date: DateTime(2024),
+                                  ),
+                                  isLoading: true,
+                                ),
+                            ],
+                          );
+                        }).toList(),
+                      ] else if (!vm.isLoading) ...[
+                        const SizedBox(height: 32),
+                        const Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              FaIcon(
+                                FontAwesomeIcons.utensils,
+                                size: 64,
+                                color: AppColors.grey400,
                               ),
-                            ),
-                            SizedBox(height: 8),
-                            Text(
-                              'Tap the + button to add your first meal',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: AppColors.grey500,
+                              SizedBox(height: 16),
+                              Text(
+                                'No food added yet',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.grey600,
+                                ),
                               ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ],
+                              SizedBox(height: 8),
+                              Text(
+                                'Tap the + button to add your first meal',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: AppColors.grey500,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

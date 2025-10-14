@@ -3,7 +3,9 @@ import 'user_state_service.dart';
 import '../presentation/pages/home_view.dart';
 import '../presentation/pages/onboarding_view.dart';
 import '../presentation/pages/welcome_view.dart';
+import '../presentation/widgets/connection_banner.dart';
 import '../core/constants/app_colors.dart';
+import '../config/routes/navigation_service.dart';
 
 class AuthenticationFlow {
   final UserStateService _userStateService = UserStateService();
@@ -14,7 +16,7 @@ class AuthenticationFlow {
     required String userDisplayName,
     required String userEmail,
     bool showLoadingDialog = true,
-    bool useLocalCache = false, // If data was just loaded from AWS
+    bool useLocalCache = false,
   }) async {
     if (!context.mounted) return;
 
@@ -32,77 +34,24 @@ class AuthenticationFlow {
         useLocalCache: useLocalCache,
       );
 
-      print('🔀 AuthFlow: User state determined: ${userStateResult.state}');
-      print(
-          '🔀 AuthFlow: Has completed onboarding: ${userStateResult.hasCompletedOnboarding}');
-
       // Hide loading dialog
       loadingOverlay?.remove();
       loadingOverlay = null;
 
-      if (!context.mounted) {
-        print('⚠️ AuthFlow: Context not mounted, aborting navigation');
-        return;
-      }
+      if (!context.mounted) return;
 
-      // Handle different user states
-      print('🔀 AuthFlow: Switching on state: ${userStateResult.state}');
-      switch (userStateResult.state) {
-        case UserState.returningComplete:
-          print('🏠 AuthFlow: Navigating to HOME (returning complete)');
-
-          await _navigateToHome(
-            context,
-            userDisplayName: userDisplayName,
-            userEmail: userEmail,
-            message: userStateResult.message ?? 'Welcome back!',
-          );
-          break;
-
-        case UserState.firstTime:
-          print('📝 AuthFlow: Navigating to ONBOARDING (first time)');
-          await _navigateToOnboarding(
-            context,
-            userDisplayName: userDisplayName,
-            userEmail: userEmail,
-            message: userStateResult.message ?? 'Welcome to Foody!',
-            isFirstTime: true,
-          );
-          break;
-
-        case UserState.returningIncomplete:
-          print('📝 AuthFlow: Navigating to ONBOARDING (incomplete profile)');
-          await _navigateToOnboarding(
-            context,
-            userDisplayName: userDisplayName,
-            userEmail: userEmail,
-            message: userStateResult.message ?? 'Let\'s complete your profile.',
-            isFirstTime: false,
-          );
-          break;
-
-        case UserState.networkError:
-          await _handleNetworkError(
-            context,
-            userDisplayName: userDisplayName,
-            userEmail: userEmail,
-            error: userStateResult.error,
-            message: userStateResult.message,
-          );
-          break;
-
-        case UserState.authError:
-          await _handleAuthError(
-            context,
-            error: userStateResult.error,
-            message: userStateResult.message,
-          );
-          break;
+      // Simple navigation logic
+      if (userStateResult.state == UserState.returningComplete) {
+        // User exists in AWS with complete profile → Home
+        await _navigateToHome(context,
+            userDisplayName: userDisplayName, userEmail: userEmail);
+      } else {
+        // First time or incomplete → Onboarding
+        await _navigateToOnboarding(context,
+            userDisplayName: userDisplayName, userEmail: userEmail);
       }
     } catch (e) {
-      // Hide loading dialog if still showing
       loadingOverlay?.remove();
-
       if (context.mounted) {
         await _handleUnexpectedError(context, e);
       }
@@ -114,198 +63,35 @@ class AuthenticationFlow {
     BuildContext context, {
     required String userDisplayName,
     required String userEmail,
-    required String message,
   }) async {
-    // Show success message
     _showSnackBar(
       context,
       'Welcome back, ${userDisplayName.isNotEmpty ? userDisplayName : userEmail}!',
       AppColors.success,
     );
 
-    // Navigate to home with smooth transition
-    Navigator.pushReplacement(
-      context,
-      _createSlideTransition(const HomeView()),
-    );
+    NavigationService.navigateToHome();
   }
 
-  /// Navigate to onboarding with appropriate message
+  /// Navigate to onboarding
   Future<void> _navigateToOnboarding(
     BuildContext context, {
     required String userDisplayName,
     required String userEmail,
-    required String message,
-    required bool isFirstTime,
   }) async {
-    // Show welcome message
     final displayName =
         userDisplayName.isNotEmpty ? userDisplayName : userEmail;
-    final welcomeMessage = isFirstTime
-        ? 'Welcome to Foody, $displayName!'
-        : 'Welcome back, $displayName! Let\'s complete your profile.';
+    _showSnackBar(
+        context, 'Welcome to Foody, $displayName!', AppColors.success);
 
-    _showSnackBar(context, welcomeMessage, AppColors.success);
-
-    print(
-        '📋 AuthenticationFlow: Navigating to onboarding (isFirstTime: $isFirstTime)');
-
-    // Navigate to onboarding with smooth transition
-    Navigator.pushReplacement(
-      context,
-      _createSlideTransition(OnboardingView(isFirstTimeUser: isFirstTime)),
-    );
-
-    print('✅ AuthenticationFlow: Successfully navigated to onboarding');
-  }
-
-  /// Handle network errors with retry option
-  Future<void> _handleNetworkError(
-    BuildContext context, {
-    required String userDisplayName,
-    required String userEmail,
-    Exception? error,
-    String? message,
-  }) async {
-    final result = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: const Row(
-          children: [
-            Icon(Icons.wifi_off, color: AppColors.warning),
-            SizedBox(width: 8),
-            Text('Connection Issue'),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              message ??
-                  'Unable to verify your profile due to a connection issue.',
-              style: const TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'You can:',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            const Text('• Try again with a better connection'),
-            const Text('• Continue offline (limited features)'),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Continue Offline'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Try Again'),
-          ),
-        ],
-      ),
-    );
-
-    if (!context.mounted) return;
-
-    if (result == true) {
-      // Retry authentication flow
-      await handlePostAuthNavigation(
-        context,
-        userDisplayName: userDisplayName,
-        userEmail: userEmail,
-        showLoadingDialog: true,
-      );
-    } else {
-      // Continue offline - navigate to onboarding as safe fallback
-      await _navigateToOnboarding(
-        context,
-        userDisplayName: userDisplayName,
-        userEmail: userEmail,
-        message: 'Continuing offline. Some features may be limited.',
-        isFirstTime: true,
-      );
-    }
-  }
-
-  /// Handle authentication errors
-  Future<void> _handleAuthError(
-    BuildContext context, {
-    Exception? error,
-    String? message,
-  }) async {
-    await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Row(
-          children: [
-            Icon(Icons.error, color: AppColors.error),
-            SizedBox(width: 8),
-            Text('Authentication Error'),
-          ],
-        ),
-        content: Text(
-          message ??
-              'An authentication error occurred. Please try signing in again.',
-          style: const TextStyle(fontSize: 16),
-        ),
-        actions: [
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.pop(context); // Go back to sign-in screen
-            },
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
+    NavigationService.navigateToOnboarding(isFirstTimeUser: true);
   }
 
   /// Handle unexpected errors
   Future<void> _handleUnexpectedError(
       BuildContext context, dynamic error) async {
-    print('❌ AuthenticationFlow: Unexpected error: $error');
-
-    await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Row(
-          children: [
-            Icon(Icons.error_outline, color: AppColors.error),
-            SizedBox(width: 8),
-            Text('Unexpected Error'),
-          ],
-        ),
-        content: const Text(
-          'An unexpected error occurred. Please try again or contact support if the problem persists.',
-          style: TextStyle(fontSize: 16),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              // Retry the flow
-              handlePostAuthNavigation(
-                context,
-                userDisplayName: '',
-                userEmail: '',
-                showLoadingDialog: true,
-              );
-            },
-            child: const Text('Try Again'),
-          ),
-        ],
-      ),
-    );
+    _showSnackBar(
+        context, 'An error occurred. Please try again.', AppColors.error);
   }
 
   /// Show loading overlay
@@ -419,10 +205,7 @@ class AuthenticationFlow {
       );
 
       // Clear navigation stack and go to welcome screen
-      Navigator.of(context).pushAndRemoveUntil(
-        _createSlideTransition(const WelcomeScreen()),
-        (route) => false, // Remove all previous routes
-      );
+      NavigationService.navigateToWelcome();
 
       print(
           '✅ AuthenticationFlow: Navigated to welcome screen after ${isAccountDeletion ? 'account deletion' : 'sign out'}');
@@ -431,10 +214,7 @@ class AuthenticationFlow {
 
       // Fallback navigation
       if (context.mounted) {
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const WelcomeScreen()),
-          (route) => false,
-        );
+        NavigationService.navigateToWelcome();
       }
     }
   }
@@ -448,9 +228,6 @@ class AuthenticationFlow {
       _showSnackBar(context, message, AppColors.primary);
     }
 
-    Navigator.of(context).pushAndRemoveUntil(
-      _createSlideTransition(const WelcomeScreen()),
-      (route) => false,
-    );
+    NavigationService.navigateToWelcome();
   }
 }

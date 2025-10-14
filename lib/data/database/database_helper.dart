@@ -21,7 +21,7 @@ class DatabaseHelper {
     print('Database path: $path');
     return await openDatabase(
       path,
-      version: 3,
+      version: 5, // Increment version to trigger migration
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -60,6 +60,8 @@ class DatabaseHelper {
         id TEXT PRIMARY KEY,
         user_id TEXT,
         image_url TEXT,
+        local_image_path TEXT,
+        s3_image_url TEXT,
         food_name TEXT NOT NULL,
         calories INTEGER,
         protein REAL,
@@ -95,17 +97,19 @@ class DatabaseHelper {
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     // Handle database migrations here
+    print('🔄 Database upgrading from version $oldVersion to $newVersion');
+
     if (oldVersion < 2) {
       // Add synced_to_aws column to foods table
-      await db.execute(
-          'ALTER TABLE foods ADD COLUMN synced_to_aws INTEGER DEFAULT 0');
-      print('Database upgraded: Added synced_to_aws column to foods table');
+      await _addColumnIfNotExists(
+          db, 'foods', 'synced_to_aws', 'INTEGER DEFAULT 0');
+      print('✅ Database upgraded: Added synced_to_aws column to foods table');
     }
 
     if (oldVersion < 3) {
       // Migrate from INTEGER id to TEXT id (UUID)
       print(
-          'Database upgraded: Migrating foods table to use UUID for id column');
+          '🔄 Database upgraded: Migrating foods table to use UUID for id column');
 
       // Create new table with UUID support
       await db.execute('''
@@ -144,7 +148,47 @@ class DatabaseHelper {
       await db.execute(
           'CREATE INDEX idx_foods_analysis_date ON foods(analysis_date)');
 
-      print('Database upgraded: Successfully migrated to UUID-based food IDs');
+      print(
+          '✅ Database upgraded: Successfully migrated to UUID-based food IDs');
+    }
+
+    if (oldVersion < 4) {
+      // Add local_image_path and s3_image_url columns to foods table
+      await _addColumnIfNotExists(db, 'foods', 'local_image_path', 'TEXT');
+      await _addColumnIfNotExists(db, 'foods', 's3_image_url', 'TEXT');
+      print(
+          '✅ Database upgraded: Added local_image_path and s3_image_url columns to foods table');
+    }
+
+    if (oldVersion < 5) {
+      // Version 5: Ensure all columns exist and handle any migration issues
+      print(
+          '🔄 Database upgraded: Version 5 migration - ensuring column consistency');
+
+      // Ensure all required columns exist
+      await _addColumnIfNotExists(db, 'foods', 'local_image_path', 'TEXT');
+      await _addColumnIfNotExists(db, 'foods', 's3_image_url', 'TEXT');
+      await _addColumnIfNotExists(
+          db, 'foods', 'synced_to_aws', 'INTEGER DEFAULT 0');
+
+      print(
+          '✅ Database upgraded: Version 5 migration completed - all columns verified');
+    }
+  }
+
+  /// Helper method to add a column only if it doesn't exist
+  Future<void> _addColumnIfNotExists(Database db, String tableName,
+      String columnName, String columnDefinition) async {
+    try {
+      // Check if column exists by trying to query it
+      await db.rawQuery('SELECT $columnName FROM $tableName LIMIT 1');
+      print(
+          '📋 Column $columnName already exists in table $tableName, skipping...');
+    } catch (e) {
+      // Column doesn't exist, add it
+      await db.execute(
+          'ALTER TABLE $tableName ADD COLUMN $columnName $columnDefinition');
+      print('✅ Added column $columnName to table $tableName');
     }
   }
 

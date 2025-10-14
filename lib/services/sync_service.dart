@@ -4,6 +4,7 @@ import '../data/models/food_analysis.dart';
 import '../data/services/sqlite_service.dart';
 import '../domain/entities/user_profile.dart';
 import '../domain/entities/ai_provider.dart';
+import '../core/events/food_data_update_event.dart';
 
 class SyncService {
   final AWSService _awsService = AWSService();
@@ -137,7 +138,14 @@ class SyncService {
       // Step 1: Load user profile from AWS
       final profileData = await _awsService.getUserProfile(userId);
 
-      if (profileData != null && profileData['success'] == true) {
+      // If user doesn't exist in AWS (deleted account), clear local data and return
+      if (profileData == null || profileData['success'] == false) {
+        print('ℹ️ AWS: User not found in AWS - clearing local data');
+        await _sqliteService.clearAllData();
+        return;
+      }
+
+      if (profileData['success'] == true) {
         final userData = profileData['user'];
         print('✅ AWS: User profile found in AWS');
         print('📋 AWS: Full user data received:');
@@ -228,9 +236,6 @@ class SyncService {
             print('   - Theme: ${userData['theme_preference']}');
           }
         }
-      } else if (profileData != null && profileData['success'] == false) {
-        print('ℹ️ AWS: User profile not found in AWS - first-time user');
-        return; // First-time user, no data to load
       } else {
         print('❌ AWS: Failed to load user profile from AWS');
         return;
@@ -282,11 +287,26 @@ class SyncService {
         print(
             '✅ AWS: Saved ${foodAnalyses.length} food analyses to local SQLite');
 
+        // Verify data was saved correctly
+        final savedAnalyses =
+            await _sqliteService.getFoodAnalyses(userId: userId);
+        if (savedAnalyses.length == foodAnalyses.length) {
+          print(
+              '✅ AWS: Data verification successful - ${savedAnalyses.length} analyses confirmed in SQLite');
+        } else {
+          print(
+              '⚠️ AWS: Data verification warning - Expected ${foodAnalyses.length}, found ${savedAnalyses.length}');
+        }
+
         // Log each food item
         for (var food in foodAnalyses) {
           print(
               '   - ${food.name}: ${food.calories.toInt()} cal, Score: ${food.healthScore.toInt()}/10');
         }
+
+        // Notify that food data has been updated
+        FoodDataUpdateEvent.notifyUpdate();
+        print('📢 SyncService: Food data update event fired');
       } else {
         print('ℹ️ AWS: No food analyses found for user');
       }

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -385,14 +386,6 @@ class AWSService {
     }
   }
 
-  // Upload image to S3 (placeholder - would need S3 SDK)
-  Future<String?> uploadImageToS3(File imageFile) async {
-    // This would require AWS S3 SDK for Flutter
-    // For now, return a placeholder URL
-    // In production, you'd implement S3 upload here
-    return 'https://foody-images-1759858489.s3.amazonaws.com/placeholder.jpg';
-  }
-
   // Sync local data with AWS when user signs in
   Future<void> syncLocalDataWithAWS(String userId) async {
     try {
@@ -413,6 +406,91 @@ class AWSService {
       // }
     } catch (e) {
       print('Error syncing local data with AWS: $e');
+    }
+  }
+
+  /// Upload image to S3 via the image-upload Lambda function
+  /// Returns the S3 URL if successful, null otherwise
+  Future<String?> uploadImageToS3(File imageFile) async {
+    try {
+      print('🔄 AWS Service: Starting S3 image upload...');
+      print('📝 AWS Service: Image file: ${imageFile.path}');
+
+      final idToken = await _getIdToken();
+      if (idToken == null) {
+        print('❌ AWS Service: No ID token available');
+        throw Exception('User not authenticated');
+      }
+
+      // Read image file and convert to base64
+      final imageBytes = await imageFile.readAsBytes();
+      final base64Image = base64Encode(imageBytes);
+
+      // Get file extension and determine content type
+      final fileName = imageFile.path.split('/').last;
+      final contentType = _getContentType(fileName);
+
+      final requestData = {
+        'imageData': base64Image,
+        'fileName': fileName,
+        'contentType': contentType,
+      };
+
+      print('📤 AWS Service: Sending request to /image-upload');
+      print('📤 AWS Service: File size: ${imageBytes.length} bytes');
+      print('📤 AWS Service: Content type: $contentType');
+
+      final response = await _dio.post(
+        '/image-upload',
+        data: requestData,
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $idToken',
+            'Content-Type': 'application/json',
+          },
+        ),
+      );
+
+      print(
+          '📥 AWS Service: S3 upload response status: ${response.statusCode}');
+      print('📥 AWS Service: S3 upload response data: ${response.data}');
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+        if (data['success'] == true && data['s3Url'] != null) {
+          print('✅ AWS Service: Image uploaded to S3 successfully');
+          print('📝 AWS Service: S3 URL: ${data['s3Url']}');
+          return data['s3Url'] as String;
+        } else {
+          print('❌ AWS Service: S3 upload failed: ${data['error']}');
+          return null;
+        }
+      } else {
+        print(
+            '❌ AWS Service: Failed to upload to S3: ${response.statusMessage}');
+        return null;
+      }
+    } catch (e) {
+      print('❌ AWS Service: Error uploading to S3: $e');
+      return null;
+    }
+  }
+
+  /// Determine content type based on file extension
+  String _getContentType(String fileName) {
+    final extension = fileName.toLowerCase().split('.').last;
+    switch (extension) {
+      case 'jpg':
+      case 'jpeg':
+        return 'image/jpeg';
+      case 'png':
+        return 'image/png';
+      case 'gif':
+        return 'image/gif';
+      case 'webp':
+        return 'image/webp';
+      default:
+        return 'image/jpeg'; // Default to JPEG
     }
   }
 }

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'dart:io';
 import '../../data/models/food_analysis.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/utils/image_helper.dart';
 import 'food_analysis_shimmer.dart';
 
 class FoodAnalysisCard extends StatelessWidget {
@@ -194,11 +194,14 @@ class FoodAnalysisCard extends StatelessWidget {
   Widget _buildImage(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    if (analysis.imagePath != null) {
+    // Use hybrid approach: try local first, then S3
+    if (analysis.localImagePath != null ||
+        analysis.s3ImageUrl != null ||
+        analysis.imagePath != null) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(16),
-        child: Image.file(
-          File(analysis.imagePath!),
+        child: ImageHelper.buildHybridImageWidget(
+          analysis: analysis,
           width: 80,
           height: 80,
           fit: BoxFit.cover,
@@ -206,13 +209,23 @@ class FoodAnalysisCard extends StatelessWidget {
             // Show placeholder if image fails to load
             return _buildImagePlaceholder(context, isDark, 80, 80, 32);
           },
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null) return child;
+            return ImageHelper.createLoadingWidget(
+              width: 80,
+              height: 80,
+              backgroundColor: Colors.grey[300],
+              borderRadius: 16,
+            );
+          },
         ),
       );
     }
     return _buildImagePlaceholder(context, isDark, 80, 80, 32);
   }
 
-  Widget _buildImagePlaceholder(BuildContext context, bool isDark, double width, double height, double fontSize) {
+  Widget _buildImagePlaceholder(BuildContext context, bool isDark, double width,
+      double height, double fontSize) {
     return Container(
       width: width,
       height: height,
@@ -318,7 +331,9 @@ class FoodAnalysisCard extends StatelessWidget {
               // Header Image Section
               Stack(
                 children: [
-                  if (analysis.imagePath != null)
+                  if (analysis.localImagePath != null ||
+                      analysis.s3ImageUrl != null ||
+                      analysis.imagePath != null)
                     Container(
                       height: 300,
                       width: double.infinity,
@@ -333,14 +348,23 @@ class FoodAnalysisCard extends StatelessWidget {
                           topLeft: Radius.circular(32),
                           topRight: Radius.circular(32),
                         ),
-                        child: Image.file(
-                          File(analysis.imagePath!),
+                        child: ImageHelper.buildHybridImageWidget(
+                          analysis: analysis,
                           width: double.infinity,
                           height: 300,
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
                             // Show placeholder if image fails to load
                             return _buildModalImagePlaceholder(context);
+                          },
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return ImageHelper.createLoadingWidget(
+                              width: double.infinity,
+                              height: 300,
+                              backgroundColor: Colors.grey[300],
+                              borderRadius: 32,
+                            );
                           },
                         ),
                       ),
