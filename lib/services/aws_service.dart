@@ -493,4 +493,103 @@ class AWSService {
         return 'image/jpeg'; // Default to JPEG
     }
   }
+
+  /// Update FCM token for push notifications
+  Future<Map<String, dynamic>?> updateFCMToken({
+    required String userId,
+    required String fcmToken,
+  }) async {
+    try {
+      print('🔄 AWS Service: Updating FCM token...');
+      print('📝 AWS Service: User ID: $userId');
+
+      final idToken = await _getIdToken();
+      if (idToken == null) {
+        print('❌ AWS Service: No ID token available');
+        throw Exception('User not authenticated');
+      }
+
+      // Get current user's email (required by backend)
+      final user = _auth.currentUser;
+      if (user == null || user.email == null) {
+        print('❌ AWS Service: No user email available');
+        throw Exception('User email not found');
+      }
+
+      final response = await _dio.post(
+        '/users',
+        data: {
+          'userId': userId,
+          'email': user.email,
+          'fcmToken': fcmToken,
+        },
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $idToken',
+            'Content-Type': 'application/json',
+          },
+        ),
+      );
+
+      print('📥 AWS Service: FCM token update response status: ${response.statusCode}');
+      print('📥 AWS Service: FCM token update response data: ${response.data}');
+
+      if (response.statusCode == 200) {
+        print('✅ AWS Service: FCM token updated successfully');
+        return response.data;
+      } else {
+        print('❌ AWS Service: Failed to update FCM token: ${response.statusMessage}');
+        throw Exception('Failed to update FCM token: ${response.statusMessage}');
+      }
+    } catch (e) {
+      print('❌ AWS Service: Error updating FCM token: $e');
+      return null;
+    }
+  }
+
+  /// Update notification preferences
+  Future<Map<String, dynamic>?> updateNotificationPreferences({
+    required String userId,
+    required bool notificationsEnabled,
+  }) async {
+    try {
+      print('🔄 AWS Service: Updating notification preferences...');
+      print('📝 AWS Service: User ID: $userId');
+      print('📝 AWS Service: Notifications enabled: $notificationsEnabled');
+
+      final idToken = await _getIdToken();
+      if (idToken == null) {
+        print('❌ AWS Service: No ID token available');
+        throw Exception('User not authenticated');
+      }
+
+      final response = await _dio.post(
+        '/users',
+        data: {
+          'userId': userId,
+          'notificationsEnabled': notificationsEnabled,
+        },
+        options: Options(
+          headers: {
+            'Authorization': 'Bearer $idToken',
+            'Content-Type': 'application/json',
+          },
+        ),
+      );
+
+      print('📥 AWS Service: Notification preferences update response status: ${response.statusCode}');
+      print('📥 AWS Service: Notification preferences update response data: ${response.data}');
+
+      if (response.statusCode == 200) {
+        print('✅ AWS Service: Notification preferences updated successfully');
+        return response.data;
+      } else {
+        print('❌ AWS Service: Failed to update notification preferences: ${response.statusMessage}');
+        throw Exception('Failed to update notification preferences: ${response.statusMessage}');
+      }
+    } catch (e) {
+      print('❌ AWS Service: Error updating notification preferences: $e');
+      return null;
+    }
+  }
 }
