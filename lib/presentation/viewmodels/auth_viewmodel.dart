@@ -7,7 +7,6 @@ import '../../services/aws_service.dart';
 import '../../services/authentication_flow.dart';
 import '../../data/repositories/user_profile_repository_impl.dart';
 import '../../data/services/sqlite_service.dart';
-import '../../core/constants/app_colors.dart';
 import '../../core/events/profile_update_event.dart';
 import 'image_analysis_viewmodel.dart';
 
@@ -31,6 +30,7 @@ class AuthViewModel extends ChangeNotifier {
   AuthState _authState = AuthState.initial;
   String? _errorMessage;
   bool _isLoading = false;
+  bool _isDataLoading = false; // Flag to prevent duplicate data loading
 
   // Getters
   User? get user => _user;
@@ -65,20 +65,30 @@ class AuthViewModel extends ChangeNotifier {
   void _performBackgroundSync() {
     // Fire and forget - sync in background
     Future.microtask(() async {
+      // Skip if data is already being loaded
+      if (_isDataLoading) {
+        print(
+            '⏭️ AuthViewModel: Skipping background sync - data already loading');
+        return;
+      }
+
       try {
+        _isDataLoading = true;
         print('🔄 AuthViewModel: Starting background data sync...');
         // Load ALL user data from AWS (profile + foods)
         await _syncService.loadUserDataFromAWS();
         print('✅ AuthViewModel: Background data sync completed');
 
-        // Notify profile update to refresh UI
-        ProfileUpdateEvent.notifyUpdate();
-        
+        // Note: ProfileUpdateEvent.notifyUpdate() is handled by the main sign-in flow
+        // to avoid duplicate UI updates
+
         // Note: We can't access ImageAnalysisViewModel here since we don't have context
         // The authStateChanges listener in ImageAnalysisViewModel will handle reloading
       } catch (e) {
         print('⚠️ AuthViewModel: Background sync failed: $e');
         // Don't propagate background sync errors to UI
+      } finally {
+        _isDataLoading = false;
       }
     });
   }
@@ -102,14 +112,17 @@ class AuthViewModel extends ChangeNotifier {
         // Load user data from AWS FIRST before navigation
         print('🔄 AuthViewModel: Loading user data before navigation...');
         try {
+          _isDataLoading = true;
           await _syncService.loadUserDataFromAWS();
           print('✅ AuthViewModel: User data loaded successfully');
           ProfileUpdateEvent.notifyUpdate();
-          
+
           // Reload food analyses in the UI after AWS sync
           if (context != null && context.mounted) {
             try {
               final imageAnalysisVM = context.read<ImageAnalysisViewModel>();
+              // Add a small delay to ensure data is fully saved to SQLite
+              await Future.delayed(const Duration(milliseconds: 500));
               await imageAnalysisVM.reloadAnalyses();
               print('✅ AuthViewModel: Food analyses reloaded in UI');
             } catch (e) {
@@ -120,6 +133,8 @@ class AuthViewModel extends ChangeNotifier {
         } catch (e) {
           print('⚠️ AuthViewModel: Failed to load user data: $e');
           // Continue anyway - navigation will handle this
+        } finally {
+          _isDataLoading = false;
         }
 
         // Handle post-authentication flow if context is provided
@@ -130,6 +145,17 @@ class AuthViewModel extends ChangeNotifier {
             userEmail: user.email ?? '',
             useLocalCache: true, // Data was just loaded from AWS
           );
+
+          // Reload food analyses after navigation is complete
+          // This ensures the UI is ready to display the data
+          try {
+            final imageAnalysisVM = context.read<ImageAnalysisViewModel>();
+            await imageAnalysisVM.reloadAnalyses();
+            print('✅ AuthViewModel: Food analyses reloaded after navigation');
+          } catch (e) {
+            print(
+                '⚠️ AuthViewModel: Failed to reload food analyses after navigation: $e');
+          }
         }
 
         return true;
@@ -205,42 +231,24 @@ class AuthViewModel extends ChangeNotifier {
       _setLoading(true);
       _clearError();
 
-      print('🔄 AuthViewModel: Starting sign-out process...');
+      // Clear local data
+      await SQLiteService().clearAllData();
+      ProfileUpdateEvent.notifyUpdate();
 
-      // Step 1: Clear ALL local data first
-      try {
-        final sqliteService = SQLiteService();
-        await sqliteService.clearAllData();
-        print('✅ AuthViewModel: Cleared all local SQLite data');
-
-        // Notify UserProfileViewModel to refresh its state
-        ProfileUpdateEvent.notifyUpdate();
-      } catch (e) {
-        print('⚠️ AuthViewModel: Failed to clear local data: $e');
-        // Continue anyway - still need to sign out
-      }
-
-      // Step 2: Sign out from Firebase
+      // Sign out from Firebase
       await _authService.signOut();
       _user = null;
       _setAuthState(AuthState.unauthenticated);
 
-      print('✅ AuthViewModel: User signed out successfully');
-
-      // Handle navigation if context is provided
+      // Navigate to welcome with success message
       if (context != null && context.mounted) {
-        print('🔄 AuthViewModel: Starting navigation to welcome screen...');
         await _authFlow.handlePostLogoutNavigation(
           context,
           message: 'Signed out successfully',
           isAccountDeletion: false,
         );
-        print('✅ AuthViewModel: Navigation to welcome screen completed');
-      } else {
-        print('⚠️ AuthViewModel: No context provided for navigation');
       }
     } catch (e) {
-      print('❌ AuthViewModel: Sign-out error: $e');
       _setError('Sign-out failed: ${e.toString()}');
     } finally {
       _setLoading(false);
@@ -257,371 +265,41 @@ class AuthViewModel extends ChangeNotifier {
       _clearError();
 
       if (_user == null) {
-        print('No user to delete');
         _setError('No user to delete');
         return false;
       }
 
       final userId = _user!.uid;
-      final userEmail = _user!.email;
-      print(
-          '🗑️ AuthViewModel: Starting user deletion process for user: $userId ($userEmail)');
 
-      // Step 1: Delete from AWS FIRST (while we still have valid token)
-      bool awsDeleted = false;
-      try {
-        print(
-            '🔄 AuthViewModel: Deleting user from AWS first (while token is valid)');
-        final awsResult = await _awsService.deleteUser(userId);
-        if (awsResult != null) {
-          awsDeleted = true;
-          print('✅ AuthViewModel: Successfully deleted user data from AWS');
-        } else {
-          print('❌ AuthViewModel: Failed to delete user data from AWS');
-          throw Exception('Failed to delete user data from AWS');
-        }
-      } catch (e) {
-        print('❌ AuthViewModel: AWS deletion failed: $e');
-        _setError('Failed to delete account from database: ${e.toString()}');
-        return false; // Don't proceed if AWS deletion fails
-      }
-
-      // Step 2: Clear local profile data (while we still have user context)
-      try {
-        await _userProfileRepository.clearProfile();
-        print('✅ AuthViewModel: Cleared local user profile');
-      } catch (e) {
-        print('⚠️ AuthViewModel: Failed to clear local profile: $e');
-        // Continue anyway - this is less critical
-      }
-
-      // Step 3: Delete from Firebase LAST (this invalidates the token)
-      bool firebaseDeleted = false;
-      try {
-        await _authService.deleteUser();
-        firebaseDeleted = true;
-        print('✅ AuthViewModel: Deleted user from Firebase');
-      } catch (e) {
-        if (e.toString().contains('requires-recent-login')) {
-          print(
-              '🔐 AuthViewModel: Re-authentication required for Firebase deletion');
-
-          // Handle re-authentication flow
-          if (context != null && context.mounted) {
-            await _handleRecentLoginRequired(context);
-            return false; // Let the re-auth flow handle the rest
-          } else {
-            _setError(
-                'For security reasons, please sign in again to delete your account.');
-            return false;
-          }
-        } else {
-          // Other Firebase error - this is critical since AWS is already deleted
-          print(
-              '❌ AuthViewModel: Firebase deletion failed after AWS deletion: $e');
-
-          // This is a serious problem - AWS is deleted but Firebase isn't
-          // We should still sign out the user since their data is gone
-          _user = null;
-          _setAuthState(AuthState.unauthenticated);
-
-          if (context != null && context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                    'Account data deleted, but Firebase deletion failed: ${e.toString()}. You have been signed out for safety.'),
-                backgroundColor: AppColors.error,
-                duration: const Duration(seconds: 5),
-              ),
-            );
-
-            await _authFlow.handlePostLogoutNavigation(
-              context,
-              message: 'Account partially deleted - signed out for safety',
-              isAccountDeletion: true,
-            );
-          }
-
-          return false; // Consider this a failure even though we signed out
-        }
-      }
-
-      // Step 4: If everything succeeded, update local state and navigate
-      if (awsDeleted && firebaseDeleted) {
-        _user = null;
-        _setAuthState(AuthState.unauthenticated);
-
-        // Handle navigation
-        if (context != null && context.mounted) {
-          await _authFlow.handlePostLogoutNavigation(
-            context,
-            message: 'Account deleted successfully',
-            isAccountDeletion: true,
-          );
-        }
-
-        print('✅ AuthViewModel: Account deletion completed successfully');
-        return true;
-      } else {
-        // This should not be reached, but just in case
-        print(
-            '❌ AuthViewModel: Unexpected state - not all deletions completed');
+      // Delete from AWS first
+      final awsResult = await _awsService.deleteUser(userId);
+      if (awsResult == null) {
+        _setError('Failed to delete account from database');
         return false;
       }
+
+      // Clear local data
+      await SQLiteService().clearAllData();
+      ProfileUpdateEvent.notifyUpdate();
+
+      // Delete from Firebase
+      await _authService.deleteUser();
+      _user = null;
+      _setAuthState(AuthState.unauthenticated);
+
+      // Navigate to welcome with success message
+      if (context != null && context.mounted) {
+        await _authFlow.handlePostLogoutNavigation(
+          context,
+          message: 'Account deleted successfully',
+          isAccountDeletion: true,
+        );
+      }
+
+      return true;
     } catch (e) {
-      print('❌ AuthViewModel: Unexpected error in user deletion: $e');
-      _setError('Failed to delete user: ${e.toString()}');
+      _setError('Failed to delete account: ${e.toString()}');
       return false;
-    } finally {
-      _setLoading(false);
-    }
-  }
-
-  /// Handle the requires-recent-login error by prompting re-authentication
-  Future<void> _handleRecentLoginRequired(BuildContext context) async {
-    final result = await showDialog<String>(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        title: const Row(
-          children: [
-            Icon(Icons.security, color: AppColors.warning),
-            SizedBox(width: 8),
-            Text('Security Check'),
-          ],
-        ),
-        content: const Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'For security reasons, you need to confirm your identity to delete your account.',
-              style: TextStyle(fontSize: 16),
-            ),
-            SizedBox(height: 16),
-            Text(
-              'This ensures that only you can delete your account.',
-              style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, 'cancel'),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, 'reauth'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-            ),
-            child: const Text('Confirm Identity'),
-          ),
-        ],
-      ),
-    );
-
-    if (result == 'reauth' && context.mounted) {
-      await _attemptReauthentication(context);
-    }
-  }
-
-  /// Attempt to re-authenticate the user and retry deletion
-  Future<void> _attemptReauthentication(BuildContext context) async {
-    try {
-      _setLoading(true);
-
-      // Show loading dialog
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => const AlertDialog(
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              CircularProgressIndicator(),
-              SizedBox(height: 16),
-              Text('Confirming your identity...'),
-            ],
-          ),
-        ),
-      );
-
-      // Attempt re-authentication
-      final reauthSuccess = await _authService.reauthenticateWithGoogle();
-
-      // Hide loading dialog
-      if (context.mounted) Navigator.pop(context);
-
-      if (reauthSuccess) {
-        // Re-authentication successful, try deletion again
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Identity confirmed. Deleting account...'),
-              backgroundColor: AppColors.success,
-              duration: Duration(seconds: 2),
-            ),
-          );
-        }
-
-        // Retry deletion with fresh authentication
-        await _retryDeletion(context);
-      } else {
-        // Re-authentication failed
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content:
-                  Text('Identity confirmation cancelled. Account not deleted.'),
-              backgroundColor: AppColors.warning,
-              duration: Duration(seconds: 3),
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      // Hide loading dialog if still showing
-      if (context.mounted) Navigator.pop(context);
-
-      print('❌ AuthViewModel: Re-authentication error: $e');
-
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Identity confirmation failed: ${e.toString()}'),
-            backgroundColor: AppColors.error,
-            duration: const Duration(seconds: 3),
-          ),
-        );
-      }
-    } finally {
-      _setLoading(false);
-    }
-  }
-
-  /// Retry deletion after successful re-authentication
-  Future<void> _retryDeletion(BuildContext context) async {
-    try {
-      _setLoading(true);
-
-      if (_user == null) {
-        throw Exception('No user to delete');
-      }
-
-      final userId = _user!.uid;
-      final userEmail = _user!.email;
-      print(
-          '🔄 AuthViewModel: Retrying deletion after re-auth for user: $userId ($userEmail)');
-
-      // Step 1: Delete from AWS FIRST (while we still have valid token)
-      bool awsDeleted = false;
-      try {
-        print('🔄 AuthViewModel: Deleting user from AWS first (after re-auth)');
-        final awsResult = await _awsService.deleteUser(userId);
-        if (awsResult != null) {
-          awsDeleted = true;
-          print(
-              '✅ AuthViewModel: Successfully deleted user data from AWS after re-auth');
-        } else {
-          print(
-              '❌ AuthViewModel: Failed to delete user data from AWS after re-auth');
-          throw Exception('Failed to delete user data from AWS');
-        }
-      } catch (e) {
-        print('❌ AuthViewModel: AWS deletion failed after re-auth: $e');
-        _setError('Failed to delete account from database: ${e.toString()}');
-
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                  'Failed to delete account from database: ${e.toString()}'),
-              backgroundColor: AppColors.error,
-              duration: const Duration(seconds: 3),
-            ),
-          );
-        }
-        return; // Don't proceed if AWS deletion fails
-      }
-
-      // Step 2: Clear local profile data
-      try {
-        await _userProfileRepository.clearProfile();
-        print('✅ AuthViewModel: Cleared local user profile after re-auth');
-      } catch (e) {
-        print(
-            '⚠️ AuthViewModel: Failed to clear local profile after re-auth: $e');
-        // Continue anyway - this is less critical
-      }
-
-      // Step 3: Delete from Firebase LAST (with fresh authentication)
-      bool firebaseDeleted = false;
-      try {
-        await _authService.deleteUserWithReauth();
-        firebaseDeleted = true;
-        print(
-            '✅ AuthViewModel: Deleted user from Firebase after re-authentication');
-      } catch (e) {
-        // Firebase deletion failed after re-auth - this is critical since AWS is already deleted
-        print(
-            '❌ AuthViewModel: Firebase deletion still failed after re-auth: $e');
-
-        // This is a serious problem - AWS is deleted but Firebase isn't
-        // We should still sign out the user since their data is gone
-        _user = null;
-        _setAuthState(AuthState.unauthenticated);
-
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                  'Account data deleted, but Firebase deletion failed: ${e.toString()}. You have been signed out for safety.'),
-              backgroundColor: AppColors.error,
-              duration: const Duration(seconds: 5),
-            ),
-          );
-
-          await _authFlow.handlePostLogoutNavigation(
-            context,
-            message: 'Account partially deleted - signed out for safety',
-            isAccountDeletion: true,
-          );
-        }
-        return; // Don't continue - this is a failure
-      }
-
-      // Step 4: If everything succeeded, update local state and navigate
-      if (awsDeleted && firebaseDeleted) {
-        _user = null;
-        _setAuthState(AuthState.unauthenticated);
-
-        // Handle navigation
-        if (context.mounted) {
-          await _authFlow.handlePostLogoutNavigation(
-            context,
-            message: 'Account deleted successfully',
-            isAccountDeletion: true,
-          );
-        }
-
-        print(
-            '✅ AuthViewModel: Account deletion completed successfully after re-auth');
-      }
-    } catch (e) {
-      print('❌ AuthViewModel: Retry deletion error: $e');
-      _setError(
-          'Failed to delete account after re-authentication: ${e.toString()}');
-
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to delete account: ${e.toString()}'),
-            backgroundColor: AppColors.error,
-            duration: const Duration(seconds: 3),
-          ),
-        );
-      }
     } finally {
       _setLoading(false);
     }
@@ -682,6 +360,20 @@ class AuthViewModel extends ChangeNotifier {
           await _handleInconsistentState();
         }
       }
+    }
+  }
+
+  /// Check if user should be redirected to welcome (user exists in Firebase but not in AWS)
+  Future<bool> shouldRedirectToWelcome() async {
+    if (_user == null) return false;
+
+    try {
+      // Check if user exists in AWS
+      final profileData = await _awsService.getUserProfile(_user!.uid);
+      return profileData == null || profileData['success'] == false;
+    } catch (e) {
+      // If we can't check AWS, assume user should stay
+      return false;
     }
   }
 

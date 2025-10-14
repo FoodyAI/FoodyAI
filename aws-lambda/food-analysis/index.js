@@ -121,16 +121,17 @@ exports.handler = async (event) => {
       
       console.log(`Deleting food ID: ${foodId} for user: ${userId}`);
       
-      const query = `
-        DELETE FROM foods 
+      // First, get the food record to extract image URL before deleting
+      const getQuery = `
+        SELECT id, food_name, image_url 
+        FROM foods 
         WHERE user_id = $1 AND id = $2
-        RETURNING id, food_name
       `;
       
-      const values = [userId, foodId];
-      const result = await pool.query(query, values);
+      const getValues = [userId, foodId];
+      const getResult = await pool.query(getQuery, getValues);
       
-      if (result.rows.length === 0) {
+      if (getResult.rows.length === 0) {
         return {
           statusCode: 404,
           headers,
@@ -141,14 +142,74 @@ exports.handler = async (event) => {
         };
       }
       
+      const foodRecord = getResult.rows[0];
+      const imageUrl = foodRecord.image_url;
+      
+      // Delete the S3 image file if it exists
+      if (imageUrl && imageUrl.startsWith('s3://')) {
+        try {
+          // Extract bucket and key from S3 URL (format: s3://bucket/key)
+          const s3UrlParts = imageUrl.replace('s3://', '').split('/');
+          const bucket = s3UrlParts[0];
+          const key = s3UrlParts.slice(1).join('/');
+          
+          console.log(`Deleting S3 image: bucket=${bucket}, key=${key}`);
+          
+          const deleteParams = {
+            Bucket: bucket,
+            Key: key
+          };
+          
+          await s3.deleteObject(deleteParams).promise();
+          console.log(`✅ S3 image deleted successfully: ${imageUrl}`);
+        } catch (s3Error) {
+          console.error(`⚠️ Failed to delete S3 image: ${s3Error.message}`);
+          // Continue with database deletion even if S3 deletion fails
+        }
+      } else if (imageUrl && imageUrl.startsWith('https://')) {
+        // Handle public URLs - extract S3 key from the URL
+        try {
+          const urlParts = imageUrl.split('/');
+          const bucketIndex = urlParts.findIndex(part => part.includes('.s3.'));
+          if (bucketIndex !== -1) {
+            const bucket = urlParts[bucketIndex].split('.')[0];
+            const key = urlParts.slice(bucketIndex + 1).join('/');
+            
+            console.log(`Deleting S3 image from public URL: bucket=${bucket}, key=${key}`);
+            
+            const deleteParams = {
+              Bucket: bucket,
+              Key: key
+            };
+            
+            await s3.deleteObject(deleteParams).promise();
+            console.log(`✅ S3 image deleted successfully from public URL: ${imageUrl}`);
+          }
+        } catch (s3Error) {
+          console.error(`⚠️ Failed to delete S3 image from public URL: ${s3Error.message}`);
+          // Continue with database deletion even if S3 deletion fails
+        }
+      }
+      
+      // Now delete the database record
+      const deleteQuery = `
+        DELETE FROM foods 
+        WHERE user_id = $1 AND id = $2
+        RETURNING id, food_name
+      `;
+      
+      const deleteValues = [userId, foodId];
+      const deleteResult = await pool.query(deleteQuery, deleteValues);
+      
       return {
         statusCode: 200,
         headers,
         body: JSON.stringify({
           success: true,
-          deletedId: result.rows[0].id,
-          deletedFood: result.rows[0].food_name,
-          message: 'Food analysis deleted successfully'
+          deletedId: deleteResult.rows[0].id,
+          deletedFood: deleteResult.rows[0].food_name,
+          deletedImage: imageUrl ? true : false,
+          message: 'Food analysis and image deleted successfully'
         })
       };
       

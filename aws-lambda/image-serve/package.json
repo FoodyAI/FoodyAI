@@ -1,0 +1,15 @@
+{
+  "name": "foody-image-serve",
+  "version": "1.0.0",
+  "description": "AWS Lambda function for serving food images from S3",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["aws", "lambda", "s3", "image-serve", "foody"],
+  "author": "Foody App Team",
+  "license": "ISC",
+  "dependencies": {
+    "aws-sdk": "^2.1490.0"
+  }
+}
