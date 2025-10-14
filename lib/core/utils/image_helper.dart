@@ -49,7 +49,8 @@ class ImageHelper {
   static void clearCache() {
     _imageCache.clear();
     _localFileExistsCache.clear();
-    print('🗑️ ImageHelper: Cache cleared');
+    _imageSourceCache.clear();
+    print('🗑️ ImageHelper: All caches cleared');
   }
 
   /// Converts S3 URL to image serve endpoint URL
@@ -318,8 +319,12 @@ class ImageHelper {
     }
   }
 
+  // Cache for determined image sources (keyed by a combination of paths)
+  static final Map<String, _ImageSource> _imageSourceCache = {};
+
   /// Creates appropriate image widget for FoodAnalysis with hybrid local/S3 support
   /// This properly handles offline-first with validation and fallback
+  /// OPTIMIZED: Caches source determination to avoid blink on refresh
   ///
   /// Parameters:
   /// - [analysis]: FoodAnalysis object with local and S3 image paths
@@ -336,7 +341,25 @@ class ImageHelper {
     required Widget Function(BuildContext, Object, StackTrace?) errorBuilder,
     Widget Function(BuildContext, Widget, ImageChunkEvent?)? loadingBuilder,
   }) {
-    // Use FutureBuilder to validate local file existence first
+    // Create a unique key for this analysis based on its image paths
+    final cacheKey = _createCacheKey(analysis);
+    
+    // Check if we've already determined the source for this analysis
+    if (_imageSourceCache.containsKey(cacheKey)) {
+      final cachedSource = _imageSourceCache[cacheKey]!;
+      print('⚡ ImageHelper: Using cached source determination');
+      
+      return _buildImageFromSource(
+        imageSource: cachedSource,
+        width: width,
+        height: height,
+        fit: fit,
+        errorBuilder: errorBuilder,
+        loadingBuilder: loadingBuilder,
+      );
+    }
+
+    // First time seeing this analysis - determine source with FutureBuilder
     return FutureBuilder<_ImageSource>(
       future: _determineImageSource(analysis),
       builder: (context, snapshot) {
@@ -359,40 +382,70 @@ class ImageHelper {
         }
 
         final imageSource = snapshot.data!;
+        
+        // Cache the determined source for future rebuilds
+        _imageSourceCache[cacheKey] = imageSource;
+        print('💾 ImageHelper: Cached source determination for: $cacheKey');
 
-        // Load from appropriate source
-        switch (imageSource.type) {
-          case _ImageSourceType.local:
-            print('📱 ImageHelper: Using LOCAL image: ${imageSource.path}');
-            return Image.file(
-              File(imageSource.path!),
-              width: width,
-              height: height,
-              fit: fit,
-              errorBuilder: errorBuilder,
-            );
-
-          case _ImageSourceType.s3:
-            print('☁️ ImageHelper: Using S3 image: ${imageSource.path}');
-            return _buildS3ImageFromBase64(
-              imagePath: imageSource.path!,
-              width: width,
-              height: height,
-              fit: fit,
-              errorBuilder: errorBuilder,
-              loadingBuilder: loadingBuilder,
-            );
-
-          case _ImageSourceType.none:
-            return Container(
-              width: width,
-              height: height,
-              color: Colors.grey[300],
-              child: const Icon(Icons.image_not_supported),
-            );
-        }
+        return _buildImageFromSource(
+          imageSource: imageSource,
+          width: width,
+          height: height,
+          fit: fit,
+          errorBuilder: errorBuilder,
+          loadingBuilder: loadingBuilder,
+        );
       },
     );
+  }
+
+  /// Creates a cache key from analysis image paths
+  static String _createCacheKey(dynamic analysis) {
+    final local = analysis.localImagePath ?? '';
+    final s3 = analysis.s3ImageUrl ?? '';
+    final legacy = analysis.imagePath ?? '';
+    return '$local|$s3|$legacy';
+  }
+
+  /// Builds image widget from a determined image source
+  static Widget _buildImageFromSource({
+    required _ImageSource imageSource,
+    required double width,
+    required double height,
+    required BoxFit fit,
+    required Widget Function(BuildContext, Object, StackTrace?) errorBuilder,
+    Widget Function(BuildContext, Widget, ImageChunkEvent?)? loadingBuilder,
+  }) {
+    switch (imageSource.type) {
+      case _ImageSourceType.local:
+        print('📱 ImageHelper: Using LOCAL image: ${imageSource.path}');
+        return Image.file(
+          File(imageSource.path!),
+          width: width,
+          height: height,
+          fit: fit,
+          errorBuilder: errorBuilder,
+        );
+
+      case _ImageSourceType.s3:
+        print('☁️ ImageHelper: Using S3 image: ${imageSource.path}');
+        return _buildS3ImageFromBase64(
+          imagePath: imageSource.path!,
+          width: width,
+          height: height,
+          fit: fit,
+          errorBuilder: errorBuilder,
+          loadingBuilder: loadingBuilder,
+        );
+
+      case _ImageSourceType.none:
+        return Container(
+          width: width,
+          height: height,
+          color: Colors.grey[300],
+          child: const Icon(Icons.image_not_supported),
+        );
+    }
   }
 
   /// Determines the best image source to use (local or S3)
