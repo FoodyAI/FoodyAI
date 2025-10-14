@@ -3,7 +3,9 @@ import 'user_state_service.dart';
 import '../presentation/pages/home_view.dart';
 import '../presentation/pages/onboarding_view.dart';
 import '../presentation/pages/welcome_view.dart';
+import '../presentation/widgets/connection_banner.dart';
 import '../core/constants/app_colors.dart';
+import '../config/routes/navigation_service.dart';
 
 class AuthenticationFlow {
   final UserStateService _userStateService = UserStateService();
@@ -23,7 +25,8 @@ class AuthenticationFlow {
     try {
       // Show loading dialog
       if (showLoadingDialog) {
-        loadingOverlay = _showLoadingOverlay(context, 'Checking your profile...');
+        loadingOverlay =
+            _showLoadingOverlay(context, 'Checking your profile...');
       }
 
       // Determine user state
@@ -40,10 +43,12 @@ class AuthenticationFlow {
       // Simple navigation logic
       if (userStateResult.state == UserState.returningComplete) {
         // User exists in AWS with complete profile → Home
-        await _navigateToHome(context, userDisplayName: userDisplayName, userEmail: userEmail);
+        await _navigateToHome(context,
+            userDisplayName: userDisplayName, userEmail: userEmail);
       } else {
         // First time or incomplete → Onboarding
-        await _navigateToOnboarding(context, userDisplayName: userDisplayName, userEmail: userEmail);
+        await _navigateToOnboarding(context,
+            userDisplayName: userDisplayName, userEmail: userEmail);
       }
     } catch (e) {
       loadingOverlay?.remove();
@@ -65,10 +70,7 @@ class AuthenticationFlow {
       AppColors.success,
     );
 
-    Navigator.pushReplacement(
-      context,
-      _createSlideTransition(const HomeView()),
-    );
+    NavigationService.navigateToHome();
   }
 
   /// Navigate to onboarding
@@ -77,19 +79,19 @@ class AuthenticationFlow {
     required String userDisplayName,
     required String userEmail,
   }) async {
-    final displayName = userDisplayName.isNotEmpty ? userDisplayName : userEmail;
-    _showSnackBar(context, 'Welcome to Foody, $displayName!', AppColors.success);
+    final displayName =
+        userDisplayName.isNotEmpty ? userDisplayName : userEmail;
+    _showSnackBar(
+        context, 'Welcome to Foody, $displayName!', AppColors.success);
 
-    Navigator.pushReplacement(
-      context,
-      _createSlideTransition(const OnboardingView(isFirstTimeUser: true)),
-    );
+    NavigationService.navigateToOnboarding(isFirstTimeUser: true);
   }
 
-
   /// Handle unexpected errors
-  Future<void> _handleUnexpectedError(BuildContext context, dynamic error) async {
-    _showSnackBar(context, 'An error occurred. Please try again.', AppColors.error);
+  Future<void> _handleUnexpectedError(
+      BuildContext context, dynamic error) async {
+    _showSnackBar(
+        context, 'An error occurred. Please try again.', AppColors.error);
   }
 
   /// Show loading overlay
@@ -203,10 +205,7 @@ class AuthenticationFlow {
       );
 
       // Clear navigation stack and go to welcome screen
-      Navigator.of(context).pushAndRemoveUntil(
-        _createSlideTransition(const WelcomeScreen()),
-        (route) => false, // Remove all previous routes
-      );
+      NavigationService.navigateToWelcome();
 
       print(
           '✅ AuthenticationFlow: Navigated to welcome screen after ${isAccountDeletion ? 'account deletion' : 'sign out'}');
@@ -215,10 +214,7 @@ class AuthenticationFlow {
 
       // Fallback navigation
       if (context.mounted) {
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const WelcomeScreen()),
-          (route) => false,
-        );
+        NavigationService.navigateToWelcome();
       }
     }
   }
@@ -232,9 +228,6 @@ class AuthenticationFlow {
       _showSnackBar(context, message, AppColors.primary);
     }
 
-    Navigator.of(context).pushAndRemoveUntil(
-      _createSlideTransition(const WelcomeScreen()),
-      (route) => false,
-    );
+    NavigationService.navigateToWelcome();
   }
 }
