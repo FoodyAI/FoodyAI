@@ -6,6 +6,7 @@ import 'home_view.dart';
 import '../../../core/constants/app_colors.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/user_profile_viewmodel.dart';
+import '../../config/routes/navigation_service.dart';
 
 class AnalysisLoadingView extends StatefulWidget {
   const AnalysisLoadingView({super.key});
@@ -96,33 +97,7 @@ class _AnalysisLoadingViewState extends State<AnalysisLoadingView>
                           Center(
                             child: ElevatedButton(
                               onPressed: () {
-                                Navigator.pushReplacement(
-                                  context,
-                                  PageRouteBuilder(
-                                    pageBuilder: (context, animation,
-                                            secondaryAnimation) =>
-                                        const HomeView(),
-                                    transitionsBuilder: (context, animation,
-                                        secondaryAnimation, child) {
-                                      const begin = Offset(1.0, 0.0);
-                                      const end = Offset.zero;
-                                      const curve = Curves.easeInOutCubic;
-                                      var tween = Tween(begin: begin, end: end)
-                                          .chain(CurveTween(curve: curve));
-                                      var offsetAnimation =
-                                          animation.drive(tween);
-                                      return SlideTransition(
-                                        position: offsetAnimation,
-                                        child: FadeTransition(
-                                          opacity: animation,
-                                          child: child,
-                                        ),
-                                      );
-                                    },
-                                    transitionDuration:
-                                        const Duration(milliseconds: 800),
-                                  ),
-                                );
+                                NavigationService.navigateToHome();
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.primary,
