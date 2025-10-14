@@ -14,6 +14,7 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+        isCoreLibraryDesugaringEnabled = true
     }
 
     kotlinOptions {
@@ -47,12 +48,15 @@ flutter {
 dependencies {
     // Firebase BOM (Bill of Materials) - manages all Firebase versions
     implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
-    
+
     // Firebase services
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-messaging")
-    
+
     // Google Sign In
     implementation("com.google.android.gms:play-services-auth:20.7.0")
+
+    // Core library desugaring for Java 8+ API support
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 }
