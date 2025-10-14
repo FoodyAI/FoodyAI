@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'di/service_locator.dart';
 import 'data/services/migration_service.dart';
 import 'presentation/viewmodels/user_profile_viewmodel.dart';
@@ -15,6 +16,7 @@ import 'presentation/widgets/connection_banner.dart';
 import 'config/routes/app_routes.dart';
 import 'config/routes/route_transitions.dart';
 import 'config/routes/navigation_service.dart';
+import 'services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,6 +24,10 @@ void main() async {
   // Initialize Firebase
   await Firebase.initializeApp();
   print('Firebase initialized successfully!');
+
+  // Set background message handler for FCM
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+  print('FCM background message handler registered');
 
   await dotenv.load(fileName: ".env");
   setupServiceLocator();
