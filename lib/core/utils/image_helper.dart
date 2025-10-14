@@ -5,8 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 /// Utility class for handling image display in the Foody app
-/// Supports both local file paths and S3 URLs
+/// Supports both local file paths and S3 URLs with proper caching
 class ImageHelper {
+  // In-memory cache to store fetched image bytes
+  static final Map<String, Uint8List> _imageCache = {};
+  
+  // Track which local paths have been verified to exist
+  static final Map<String, bool> _localFileExistsCache = {};
+
   /// Determines if the imagePath is an S3 URL or local file path
   static bool isS3Url(String? imagePath) {
     return imagePath != null && imagePath.startsWith('s3://');
@@ -19,15 +25,31 @@ class ImageHelper {
         !imagePath.startsWith('http');
   }
 
-  /// Checks if local file exists
+  /// Checks if local file exists (with caching)
   static Future<bool> localFileExists(String? filePath) async {
     if (filePath == null || !isLocalPath(filePath)) return false;
+    
+    // Check cache first
+    if (_localFileExistsCache.containsKey(filePath)) {
+      return _localFileExistsCache[filePath]!;
+    }
+    
     try {
       final file = File(filePath);
-      return await file.exists();
+      final exists = await file.exists();
+      _localFileExistsCache[filePath] = exists;
+      return exists;
     } catch (e) {
+      _localFileExistsCache[filePath] = false;
       return false;
     }
+  }
+
+  /// Clears the image cache (useful when user signs out)
+  static void clearCache() {
+    _imageCache.clear();
+    _localFileExistsCache.clear();
+    print('🗑️ ImageHelper: Cache cleared');
   }
 
   /// Converts S3 URL to image serve endpoint URL
@@ -182,6 +204,7 @@ class ImageHelper {
   }
 
   /// Builds an S3 image widget that fetches base64 data and converts to image
+  /// Uses in-memory cache to avoid re-fetching on every rebuild
   static Widget _buildS3ImageFromBase64({
     required String imagePath,
     required double width,
@@ -190,6 +213,25 @@ class ImageHelper {
     required Widget Function(BuildContext, Object, StackTrace?) errorBuilder,
     Widget Function(BuildContext, Widget, ImageChunkEvent?)? loadingBuilder,
   }) {
+    // Check if image is already in cache
+    if (_imageCache.containsKey(imagePath)) {
+      final cachedBytes = _imageCache[imagePath]!;
+      print('✅ ImageHelper: Using cached image (${cachedBytes.length} bytes)');
+      
+      return Image.memory(
+        cachedBytes,
+        width: width,
+        height: height,
+        fit: fit,
+        errorBuilder: (context, error, stackTrace) {
+          print('❌ ImageHelper: Failed to decode cached image from bytes');
+          print('❌ ImageHelper: Error: $error');
+          return errorBuilder(context, error, stackTrace);
+        },
+      );
+    }
+
+    // Image not in cache, fetch it
     return FutureBuilder<Uint8List>(
       future: _getImageBytesFromS3(imagePath),
       builder: (context, snapshot) {
@@ -214,8 +256,7 @@ class ImageHelper {
         }
 
         final imageBytes = snapshot.data!;
-        print(
-            '🖼️ ImageHelper: Loading image from bytes (${imageBytes.length} bytes)');
+        print('🖼️ ImageHelper: Loading image from bytes (${imageBytes.length} bytes)');
 
         return Image.memory(
           imageBytes,
@@ -233,7 +274,14 @@ class ImageHelper {
   }
 
   /// Fetches base64 image data from Lambda and converts to bytes
+  /// Caches the result in memory to avoid repeated network calls
   static Future<Uint8List> _getImageBytesFromS3(String s3Url) async {
+    // Check cache first
+    if (_imageCache.containsKey(s3Url)) {
+      print('✅ ImageHelper: Returning cached image bytes');
+      return _imageCache[s3Url]!;
+    }
+
     final imageUrl = s3UrlToImageServeUrl(s3Url);
     print('🔄 ImageHelper: Fetching base64 image data from: $imageUrl');
 
@@ -249,12 +297,15 @@ class ImageHelper {
       if (response.statusCode == 200) {
         // The response body contains base64 encoded image data
         final base64Data = response.body;
-        print(
-            '✅ ImageHelper: Got base64 data (${base64Data.length} characters)');
+        print('✅ ImageHelper: Got base64 data (${base64Data.length} characters)');
 
         // Decode base64 to bytes
         final imageBytes = base64Decode(base64Data);
         print('✅ ImageHelper: Decoded to ${imageBytes.length} bytes');
+
+        // Cache the bytes
+        _imageCache[s3Url] = imageBytes;
+        print('💾 ImageHelper: Cached image bytes for: $s3Url');
 
         return imageBytes;
       } else {
@@ -268,6 +319,7 @@ class ImageHelper {
   }
 
   /// Creates appropriate image widget for FoodAnalysis with hybrid local/S3 support
+  /// This properly handles offline-first with validation and fallback
   ///
   /// Parameters:
   /// - [analysis]: FoodAnalysis object with local and S3 image paths
@@ -284,73 +336,127 @@ class ImageHelper {
     required Widget Function(BuildContext, Object, StackTrace?) errorBuilder,
     Widget Function(BuildContext, Widget, ImageChunkEvent?)? loadingBuilder,
   }) {
-    // Try local image first - OFFLINE FIRST APPROACH
-    // Trust that if localImagePath exists, the file exists and display immediately
-    // Image.file will handle the error case if file doesn't exist
-    if (analysis.localImagePath != null && analysis.localImagePath.isNotEmpty) {
-      return Image.file(
-        File(analysis.localImagePath),
-        width: width,
-        height: height,
-        fit: fit,
-        errorBuilder: (context, error, stackTrace) {
-          // If local file fails to load, fall back to S3
-          print(
-              '⚠️ ImageHelper: Local image failed to load, falling back to S3: $error');
-          return _buildS3ImageFromBase64(
-            imagePath: analysis.s3ImageUrl ?? analysis.imagePath,
+    // Use FutureBuilder to validate local file existence first
+    return FutureBuilder<_ImageSource>(
+      future: _determineImageSource(analysis),
+      builder: (context, snapshot) {
+        // While determining source, show loading if available
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return createLoadingWidget(
             width: width,
             height: height,
-            fit: fit,
-            errorBuilder: errorBuilder,
-            loadingBuilder: loadingBuilder,
+            backgroundColor: Colors.grey[300],
           );
-        },
-      );
-    }
+        }
 
-    // No local image, try S3
-    if (analysis.s3ImageUrl != null && analysis.s3ImageUrl.isNotEmpty) {
-      return _buildS3ImageFromBase64(
-        imagePath: analysis.s3ImageUrl,
-        width: width,
-        height: height,
-        fit: fit,
-        errorBuilder: errorBuilder,
-        loadingBuilder: loadingBuilder,
-      );
-    }
+        // If determination failed, show error
+        if (snapshot.hasError || !snapshot.hasData) {
+          return errorBuilder(
+            context,
+            snapshot.error ?? 'No image source available',
+            null,
+          );
+        }
 
-    // Fall back to legacy imagePath
-    if (analysis.imagePath != null && analysis.imagePath.isNotEmpty) {
-      if (isS3Url(analysis.imagePath)) {
-        // Legacy S3 URL - fetch from S3
-        return _buildS3ImageFromBase64(
-          imagePath: analysis.imagePath,
-          width: width,
-          height: height,
-          fit: fit,
-          errorBuilder: errorBuilder,
-          loadingBuilder: loadingBuilder,
+        final imageSource = snapshot.data!;
+
+        // Load from appropriate source
+        switch (imageSource.type) {
+          case _ImageSourceType.local:
+            print('📱 ImageHelper: Using LOCAL image: ${imageSource.path}');
+            return Image.file(
+              File(imageSource.path!),
+              width: width,
+              height: height,
+              fit: fit,
+              errorBuilder: errorBuilder,
+            );
+
+          case _ImageSourceType.s3:
+            print('☁️ ImageHelper: Using S3 image: ${imageSource.path}');
+            return _buildS3ImageFromBase64(
+              imagePath: imageSource.path!,
+              width: width,
+              height: height,
+              fit: fit,
+              errorBuilder: errorBuilder,
+              loadingBuilder: loadingBuilder,
+            );
+
+          case _ImageSourceType.none:
+            return Container(
+              width: width,
+              height: height,
+              color: Colors.grey[300],
+              child: const Icon(Icons.image_not_supported),
+            );
+        }
+      },
+    );
+  }
+
+  /// Determines the best image source to use (local or S3)
+  /// OFFLINE-FIRST: Prioritizes local file if it exists
+  static Future<_ImageSource> _determineImageSource(dynamic analysis) async {
+    // 1. Check if local file exists and is valid
+    if (analysis.localImagePath != null &&
+        analysis.localImagePath.isNotEmpty) {
+      final localExists = await localFileExists(analysis.localImagePath);
+      if (localExists) {
+        print('✅ ImageHelper: Local file exists: ${analysis.localImagePath}');
+        return _ImageSource(
+          type: _ImageSourceType.local,
+          path: analysis.localImagePath,
         );
       } else {
-        // Legacy local file path - display immediately (offline-first)
-        return Image.file(
-          File(analysis.imagePath),
-          width: width,
-          height: height,
-          fit: fit,
-          errorBuilder: errorBuilder,
-        );
+        print('⚠️ ImageHelper: Local file does NOT exist: ${analysis.localImagePath}');
       }
     }
 
-    // No image available
-    return Container(
-      width: width,
-      height: height,
-      color: Colors.grey[300],
-      child: const Icon(Icons.image_not_supported),
-    );
+    // 2. Try S3 URL (new field)
+    if (analysis.s3ImageUrl != null && analysis.s3ImageUrl.isNotEmpty) {
+      print('☁️ ImageHelper: Using S3 URL: ${analysis.s3ImageUrl}');
+      return _ImageSource(
+        type: _ImageSourceType.s3,
+        path: analysis.s3ImageUrl,
+      );
+    }
+
+    // 3. Try legacy imagePath field
+    if (analysis.imagePath != null && analysis.imagePath.isNotEmpty) {
+      if (isS3Url(analysis.imagePath)) {
+        print('☁️ ImageHelper: Using legacy S3 URL: ${analysis.imagePath}');
+        return _ImageSource(
+          type: _ImageSourceType.s3,
+          path: analysis.imagePath,
+        );
+      } else {
+        // Legacy local path - verify it exists
+        final localExists = await localFileExists(analysis.imagePath);
+        if (localExists) {
+          print('✅ ImageHelper: Legacy local file exists: ${analysis.imagePath}');
+          return _ImageSource(
+            type: _ImageSourceType.local,
+            path: analysis.imagePath,
+          );
+        } else {
+          print('⚠️ ImageHelper: Legacy local file does NOT exist: ${analysis.imagePath}');
+        }
+      }
+    }
+
+    // 4. No valid image source found
+    print('❌ ImageHelper: No valid image source found');
+    return _ImageSource(type: _ImageSourceType.none);
   }
+}
+
+/// Internal class to represent image source determination result
+enum _ImageSourceType { local, s3, none }
+
+class _ImageSource {
+  final _ImageSourceType type;
+  final String? path;
+
+  _ImageSource({required this.type, this.path});
 }
