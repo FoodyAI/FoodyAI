@@ -1,1 +1,9 @@
 *.zip
+
+# Firebase Service Account (NEVER commit this!)
+firebase-service-account.json
+*firebase-adminsdk*.json
+
+# Environment variables
+.env
+.env.local
