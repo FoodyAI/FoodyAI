@@ -1,0 +1,4 @@
+{
+  "httpMethod": "POST",
+  "body": "{\"filter\":{\"type\":\"userIds\",\"userIds\":[\"XKO61eTIQtW9PVX9mACpihChywM2\"]},\"notification\":{\"title\":\"Test Notification\",\"body\":\"Testing Lambda deployment!\"},\"data\":{\"screen\":\"/home\",\"type\":\"test\"}}"
+}
