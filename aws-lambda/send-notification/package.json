@@ -1,0 +1,22 @@
+{
+  "name": "send-notification-lambda",
+  "version": "1.0.0",
+  "description": "AWS Lambda function for sending push notifications to filtered user segments",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test-local.js"
+  },
+  "keywords": [
+    "aws",
+    "lambda",
+    "firebase",
+    "fcm",
+    "push-notifications"
+  ],
+  "author": "Foody Team",
+  "license": "ISC",
+  "dependencies": {
+    "pg": "^8.11.3",
+    "firebase-admin": "^12.0.0"
+  }
+}

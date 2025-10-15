@@ -1,0 +1,1 @@
+{"statusCode":200,"headers":{"Content-Type":"application/json","Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"Content-Type,Authorization","Access-Control-Allow-Methods":"POST,OPTIONS"},"body":"{\"success\":true,\"sentCount\":0,\"failedCount\":2,\"totalRecipients\":2,\"invalidTokensCleared\":0,\"message\":\"Sent to 0 users, 2 failed\"}"}

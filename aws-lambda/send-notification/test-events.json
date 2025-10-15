@@ -1,0 +1,66 @@
+{
+  "testEvent_SendToAll": {
+    "httpMethod": "POST",
+    "body": "{\"filter\":{\"type\":\"all\"},\"notification\":{\"title\":\"Welcome to Foody!\",\"body\":\"Start tracking your nutrition today\"},\"data\":{\"screen\":\"/home\",\"type\":\"general\"},\"options\":{\"badge\":1}}"
+  },
+
+  "testEvent_SendToPremium": {
+    "httpMethod": "POST",
+    "body": "{\"filter\":{\"type\":\"premium\"},\"notification\":{\"title\":\"Premium Feature Alert!\",\"body\":\"Check out our new premium features\"},\"data\":{\"screen\":\"/premium\",\"type\":\"premium_feature\"}}"
+  },
+
+  "testEvent_SendToAgeGroup": {
+    "httpMethod": "POST",
+    "body": "{\"filter\":{\"type\":\"age\",\"minAge\":18,\"maxAge\":30},\"notification\":{\"title\":\"Special Offer\",\"body\":\"Get 20% off for young adults!\"},\"data\":{\"screen\":\"/offers\",\"type\":\"promotion\"}}"
+  },
+
+  "testEvent_SendToAgeMin": {
+    "httpMethod": "POST",
+    "body": "{\"filter\":{\"type\":\"age\",\"minAge\":25},\"notification\":{\"title\":\"Health Tips\",\"body\":\"Nutrition tips for adults 25+\"},\"data\":{\"type\":\"health_tip\"}}"
+  },
+
+  "testEvent_SendToAgeMax": {
+    "httpMethod": "POST",
+    "body": "{\"filter\":{\"type\":\"age\",\"maxAge\":30},\"notification\":{\"title\":\"Youth Program\",\"body\":\"Special program for young users\"},\"data\":{\"type\":\"program\"}}"
+  },
+
+  "testEvent_SendToSpecificUsers": {
+    "httpMethod": "POST",
+    "body": "{\"filter\":{\"type\":\"userIds\",\"userIds\":[\"user123\",\"user456\"]},\"notification\":{\"title\":\"Personal Message\",\"body\":\"This is a targeted notification\"},\"data\":{\"type\":\"personal\"}}"
+  },
+
+  "testEvent_SendWithCustomFilter": {
+    "httpMethod": "POST",
+    "body": "{\"filter\":{\"type\":\"custom\",\"whereClause\":\"age > 21 AND is_premium = true\"},\"notification\":{\"title\":\"Exclusive Offer\",\"body\":\"For premium users over 21\"},\"data\":{\"type\":\"exclusive\"}}"
+  },
+
+  "testEvent_SendWithImage": {
+    "httpMethod": "POST",
+    "body": "{\"filter\":{\"type\":\"all\"},\"notification\":{\"title\":\"New Recipe!\",\"body\":\"Check out this healthy recipe\"},\"data\":{\"screen\":\"/recipe/123\",\"type\":\"recipe\"},\"options\":{\"imageUrl\":\"https://example.com/recipe-image.jpg\",\"badge\":1}}"
+  },
+
+  "testEvent_SendFromCampaign": {
+    "httpMethod": "POST",
+    "body": "{\"filter\":{\"type\":\"all\"},\"notification\":{\"title\":\"Campaign Notification\",\"body\":\"This is from a campaign\"},\"campaignId\":\"campaign-uuid-123\"}"
+  },
+
+  "testEvent_InvalidMissingTitle": {
+    "httpMethod": "POST",
+    "body": "{\"filter\":{\"type\":\"all\"},\"notification\":{\"body\":\"Missing title\"}}"
+  },
+
+  "testEvent_InvalidMissingFilter": {
+    "httpMethod": "POST",
+    "body": "{\"notification\":{\"title\":\"Test\",\"body\":\"Missing filter\"}}"
+  },
+
+  "testEvent_InvalidFilterType": {
+    "httpMethod": "POST",
+    "body": "{\"filter\":{\"type\":\"invalid\"},\"notification\":{\"title\":\"Test\",\"body\":\"Invalid filter type\"}}"
+  },
+
+  "testEvent_MethodNotAllowed": {
+    "httpMethod": "GET",
+    "body": "{}"
+  }
+}
