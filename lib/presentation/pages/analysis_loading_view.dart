@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../widgets/health_info_card.dart';
 import '../widgets/custom_app_bar.dart';
-import 'home_view.dart';
 import '../../../core/constants/app_colors.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/user_profile_viewmodel.dart';
