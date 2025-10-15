@@ -238,6 +238,49 @@ async function updateCampaign(campaignId, updateData) {
       status
     } = updateData;
 
+    // First, get the current campaign to check its status
+    const currentCampaign = await pool.query(
+      'SELECT status, sent_at FROM notification_campaigns WHERE id = $1',
+      [campaignId]
+    );
+
+    if (currentCampaign.rows.length === 0) {
+      return createResponse(404, {
+        success: false,
+        error: 'Campaign not found'
+      });
+    }
+
+    const currentStatus = currentCampaign.rows[0].status;
+    const sentAt = currentCampaign.rows[0].sent_at;
+
+    // Status validation: Prevent changes to sent campaigns
+    if (currentStatus === 'sent' || sentAt !== null) {
+      return createResponse(400, {
+        success: false,
+        error: 'Cannot update a campaign that has already been sent',
+        message: 'Sent campaigns are immutable and cannot be modified'
+      });
+    }
+
+    // Status transition validation
+    if (status !== undefined) {
+      const validTransitions = {
+        'draft': ['scheduled'],
+        'scheduled': ['draft', 'sent'],
+        'sent': [], // No transitions allowed from sent
+        'failed': ['draft', 'scheduled']
+      };
+
+      if (!validTransitions[currentStatus]?.includes(status)) {
+        return createResponse(400, {
+          success: false,
+          error: `Invalid status transition from '${currentStatus}' to '${status}'`,
+          message: `Valid transitions from '${currentStatus}': ${validTransitions[currentStatus]?.join(', ') || 'none'}`
+        });
+      }
+    }
+
     // Build dynamic update query
     const updates = [];
     const values = [];
