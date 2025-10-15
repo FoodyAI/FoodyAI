@@ -118,7 +118,7 @@ class MyApp extends StatelessWidget {
     } else {
       targetRoute = AppRoutes.home;
       arguments = {
-        AppRoutes.connectionBanner: ConnectionBanner(isConnected: true),
+        AppRoutes.connectionBanner: const ConnectionBanner(isConnected: true),
       };
     }
 

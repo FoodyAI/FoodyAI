@@ -197,7 +197,7 @@ class ImageHelper {
       },
       loadingBuilder: loadingBuilder,
       // Add headers to help with image decoding
-      headers: {
+      headers: const {
         'Accept': 'image/*',
         'User-Agent': 'FoodyApp/1.0',
       },

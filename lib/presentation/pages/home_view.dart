@@ -17,12 +17,9 @@ import '../widgets/connection_banner.dart';
 import '../../data/models/food_analysis.dart';
 import 'analyze_view.dart';
 import 'profile_view.dart';
-import 'barcode_scanner_view.dart';
-import 'welcome_view.dart';
 import '../../../core/constants/app_colors.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../config/routes/navigation_service.dart';
-import '../../config/routes/app_routes.dart';
 
 class HomeView extends StatefulWidget {
   final ConnectionBanner? connectionBanner;
