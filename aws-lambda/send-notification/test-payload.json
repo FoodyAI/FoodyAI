@@ -1,0 +1,1 @@
+{"httpMethod":"POST","body":"{\"filter\":{\"type\":\"all\"},\"notification\":{\"title\":\"Test Notification\",\"body\":\"Testing Lambda deployment!\"},\"data\":{\"screen\":\"/home\",\"type\":\"test\"}}"}
