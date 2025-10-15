@@ -1,0 +1,22 @@
+{
+  "name": "campaign-scheduler",
+  "version": "1.0.0",
+  "description": "AWS Lambda function to automatically send scheduled campaigns",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "pg": "^8.11.3",
+    "aws-sdk": "^2.1490.0"
+  },
+  "keywords": [
+    "aws",
+    "lambda",
+    "campaign",
+    "scheduler",
+    "notifications"
+  ],
+  "author": "Foody Team",
+  "license": "MIT"
+}
