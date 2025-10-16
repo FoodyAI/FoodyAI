@@ -1,0 +1,23 @@
+{
+  "name": "notification-campaigns",
+  "version": "1.0.0",
+  "description": "AWS Lambda function for managing notification campaigns",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test-local.js",
+    "deploy": "zip -r notification-campaigns.zip . && aws lambda update-function-code --function-name foody-notification-campaigns --zip-file fileb://notification-campaigns.zip"
+  },
+  "dependencies": {
+    "pg": "^8.11.0",
+    "uuid": "^9.0.0"
+  },
+  "keywords": [
+    "aws",
+    "lambda",
+    "notifications",
+    "campaigns",
+    "fcm"
+  ],
+  "author": "Foody Development Team",
+  "license": "MIT"
+}
