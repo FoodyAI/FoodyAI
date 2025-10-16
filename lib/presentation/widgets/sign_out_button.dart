@@ -3,6 +3,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../viewmodels/auth_viewmodel.dart';
+import 'auth_loading_overlay.dart';
 
 class SignOutButton extends StatelessWidget {
   final VoidCallback? onPressed;
@@ -22,25 +23,12 @@ class SignOutButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-
     Widget button = ElevatedButton.icon(
       onPressed: isLoading ? null : onPressed,
-      icon: isLoading
-          ? SizedBox(
-              width: isCompact ? 12 : 16,
-              height: isCompact ? 12 : 16,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  isDarkMode ? AppColors.white : AppColors.textPrimary,
-                ),
-              ),
-            )
-          : FaIcon(
-              FontAwesomeIcons.rightFromBracket,
-              size: isCompact ? 12 : 16,
-            ),
+      icon: FaIcon(
+        FontAwesomeIcons.rightFromBracket,
+        size: isCompact ? 12 : 16,
+      ),
       label: Text(
         label ?? 'Sign Out',
         style: TextStyle(
@@ -106,10 +94,29 @@ class SignOutButtonWithAuth extends StatelessWidget {
       if (!shouldSignOut) return;
     }
 
+    // Show loading overlay immediately after confirmation
+    if (context.mounted) {
+      AuthLoadingOverlay.showLoading(
+        context,
+        message: 'Signing out...',
+      );
+    }
+
     try {
       // ignore: use_build_context_synchronously
       await authVM.signOut(context);
+
+      // Hide loading overlay - navigation will handle this in most cases
+      // but we add it here as a safety net
+      if (context.mounted) {
+        AuthLoadingOverlay.hideLoading(context);
+      }
     } catch (e) {
+      // Hide loading overlay on error
+      if (context.mounted) {
+        AuthLoadingOverlay.hideLoading(context);
+      }
+
       if (!context.mounted) return;
       messenger.showSnackBar(
         SnackBar(
