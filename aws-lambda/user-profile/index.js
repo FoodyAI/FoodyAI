@@ -80,8 +80,8 @@ exports.handler = async (event) => {
           INSERT INTO users (
             user_id, email, display_name, photo_url, gender, age, weight, height,
             activity_level, goal, daily_calories, bmi, theme_preference, ai_provider,
-            measurement_unit, fcm_token, notifications_enabled, created_at, updated_at
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
+            measurement_unit, fcm_token, notifications_enabled, is_premium, created_at, updated_at
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
           RETURNING user_id
         `;
 
@@ -103,6 +103,7 @@ exports.handler = async (event) => {
           userData.measurementUnit || 'metric',
           userData.fcmToken || null,
           userData.notificationsEnabled !== undefined ? userData.notificationsEnabled : true,
+          userData.isPremium !== undefined ? userData.isPremium : false,
           new Date(),
           new Date()
         ];
@@ -189,6 +190,10 @@ exports.handler = async (event) => {
         if (userData.notificationsEnabled !== undefined) {
           updateFields.push(`notifications_enabled = $${paramIndex++}`);
           updateValues.push(userData.notificationsEnabled);
+        }
+        if (userData.isPremium !== undefined) {
+          updateFields.push(`is_premium = $${paramIndex++}`);
+          updateValues.push(userData.isPremium);
         }
 
         // Always update email and timestamp
