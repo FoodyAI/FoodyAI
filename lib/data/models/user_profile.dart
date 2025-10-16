@@ -46,6 +46,9 @@ class UserProfile {
   final double weightKg;
   final double heightCm;
   final ActivityLevel activityLevel;
+  final String? fcmToken;
+  final bool notificationsEnabled;
+  final bool isPremium;
 
   UserProfile({
     required this.gender,
@@ -53,6 +56,9 @@ class UserProfile {
     required this.weightKg,
     required this.heightCm,
     required this.activityLevel,
+    this.fcmToken,
+    this.notificationsEnabled = true,
+    this.isPremium = false,
   });
 
   double get heightM => heightCm / 100;

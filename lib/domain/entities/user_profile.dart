@@ -59,6 +59,9 @@ class UserProfile {
   final ActivityLevel activityLevel;
   final WeightGoal weightGoal;
   final AIProvider aiProvider;
+  final String? fcmToken;
+  final bool notificationsEnabled;
+  final bool isPremium;
 
   UserProfile({
     required this.gender,
@@ -68,6 +71,9 @@ class UserProfile {
     required this.activityLevel,
     this.weightGoal = WeightGoal.maintain,
     this.aiProvider = AIProvider.openai,
+    this.fcmToken,
+    this.notificationsEnabled = true,
+    this.isPremium = false,
   });
 
   double get bmi => weightKg / ((heightCm / 100) * (heightCm / 100));
