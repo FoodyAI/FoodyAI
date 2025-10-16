@@ -947,49 +947,7 @@ class _ProfileViewState extends State<ProfileView>
           const SizedBox(height: 16),
           // Danger Zone Section - Only show if user is signed in
           if (authVM.isSignedIn) ...[
-            Card(
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        FaIcon(
-                          FontAwesomeIcons.triangleExclamation,
-                          color: Colors.red.shade600,
-                          size: 24,
-                        ),
-                        const SizedBox(width: 12),
-                        Text(
-                          'Danger Zone',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.red.shade600,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Irreversible and destructive actions',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: colorScheme.onSurface.withOpacity(0.7),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    // Delete Account Button
-                    _buildDeleteAccountButton(context, authVM),
-                  ],
-                ),
-              ),
-            ),
+            _buildDangerZoneCard(context, authVM, colorScheme),
           ],
         ],
       ),
@@ -1037,7 +995,8 @@ class _ProfileViewState extends State<ProfileView>
           colorScheme: colorScheme,
           onToggle: (value) async {
             final notificationService = NotificationService();
-            final success = await notificationService.updateNotificationPreferences(
+            final success =
+                await notificationService.updateNotificationPreferences(
               userId: user.uid,
               notificationsEnabled: value,
             );
@@ -1643,7 +1602,71 @@ class _ProfileViewState extends State<ProfileView>
     }
   }
 
+  Widget _buildDangerZoneCard(
+      BuildContext context, AuthViewModel authVM, ColorScheme colorScheme) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isDark
+                ? Colors.red.shade400.withOpacity(0.3)
+                : Colors.red.shade200,
+            width: 1,
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  FaIcon(
+                    FontAwesomeIcons.triangleExclamation,
+                    color: isDark ? Colors.red.shade400 : Colors.red.shade600,
+                    size: 24,
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Danger Zone',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.red.shade400 : Colors.red.shade600,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Irreversible and destructive actions',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: isDark
+                      ? AppColors.darkTextSecondary
+                      : colorScheme.onSurface.withOpacity(0.7),
+                ),
+              ),
+              const SizedBox(height: 24),
+              // Delete Account Button
+              _buildDeleteAccountButton(context, authVM),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildDeleteAccountButton(BuildContext context, AuthViewModel authVM) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
@@ -1662,13 +1685,16 @@ class _ProfileViewState extends State<ProfileView>
           ),
         ),
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.red.shade600,
+          backgroundColor: isDark ? Colors.red.shade700 : Colors.red.shade600,
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          elevation: 2,
+          elevation: isDark ? 4 : 2,
+          shadowColor: isDark
+              ? Colors.red.shade400.withOpacity(0.3)
+              : Colors.red.shade600.withOpacity(0.3),
         ),
       ),
     );
@@ -1676,6 +1702,7 @@ class _ProfileViewState extends State<ProfileView>
 
   void _showDeleteAccountDialog(BuildContext context, AuthViewModel authVM) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     showDialog(
       context: context,
@@ -1685,7 +1712,7 @@ class _ProfileViewState extends State<ProfileView>
             children: [
               FaIcon(
                 FontAwesomeIcons.triangleExclamation,
-                color: Colors.red.shade600,
+                color: isDark ? Colors.red.shade400 : Colors.red.shade600,
                 size: 24,
               ),
               const SizedBox(width: 12),
@@ -1716,15 +1743,21 @@ class _ProfileViewState extends State<ProfileView>
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.red.shade50,
+                  color: isDark
+                      ? Colors.red.shade900.withOpacity(0.3)
+                      : Colors.red.shade50,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.red.shade200),
+                  border: Border.all(
+                    color: isDark
+                        ? Colors.red.shade400.withOpacity(0.3)
+                        : Colors.red.shade200,
+                  ),
                 ),
                 child: Row(
                   children: [
                     FaIcon(
                       FontAwesomeIcons.circleExclamation,
-                      color: Colors.red.shade600,
+                      color: isDark ? Colors.red.shade400 : Colors.red.shade600,
                       size: 16,
                     ),
                     const SizedBox(width: 8),
@@ -1760,10 +1793,15 @@ class _ProfileViewState extends State<ProfileView>
                 await _handleDeleteAccount(context, authVM);
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red.shade600,
+                backgroundColor:
+                    isDark ? Colors.red.shade700 : Colors.red.shade600,
                 foregroundColor: Colors.white,
                 padding:
                     const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                elevation: isDark ? 4 : 2,
+                shadowColor: isDark
+                    ? Colors.red.shade400.withOpacity(0.3)
+                    : Colors.red.shade600.withOpacity(0.3),
               ),
               child: const Text(
                 'Delete Account',
@@ -2024,8 +2062,9 @@ class _ProfileSettingOptionState<T> extends State<_ProfileSettingOption<T>> {
             else
               FaIcon(
                 widget.icon,
-                color:
-                    isSelected ? widget.colorScheme.primary : widget.colorScheme.onSurface,
+                color: isSelected
+                    ? widget.colorScheme.primary
+                    : widget.colorScheme.onSurface,
                 size: 32,
               ),
             const SizedBox(width: 16),
