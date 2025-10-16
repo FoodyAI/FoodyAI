@@ -90,11 +90,14 @@ class GoogleSignInButton extends StatelessWidget {
           SnackBar(
             content: Text(errorMessage),
             backgroundColor: AppColors.error,
-            duration: const Duration(seconds: 3),
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
           ),
         );
       }
-
     } catch (e) {
       print('❌ GoogleSignInButton: Unexpected error: $e');
 
@@ -108,7 +111,11 @@ class GoogleSignInButton extends StatelessWidget {
           SnackBar(
             content: Text('An unexpected error occurred: ${e.toString()}'),
             backgroundColor: AppColors.error,
-            duration: const Duration(seconds: 3),
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
           ),
         );
       }
@@ -239,11 +246,14 @@ class SignInDialog extends StatelessWidget {
           SnackBar(
             content: Text(errorMessage),
             backgroundColor: AppColors.error,
-            duration: const Duration(seconds: 3),
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
           ),
         );
       }
-
     } catch (e) {
       print('❌ GoogleSignInButton: Dialog sign-in error: $e');
 
@@ -257,7 +267,11 @@ class SignInDialog extends StatelessWidget {
           SnackBar(
             content: Text('Sign-in failed: ${e.toString()}'),
             backgroundColor: AppColors.error,
-            duration: const Duration(seconds: 3),
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
           ),
         );
       }
