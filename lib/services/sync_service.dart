@@ -195,8 +195,8 @@ class SyncService {
             ),
             aiProvider: AIProvider.values.firstWhere(
               (provider) =>
-                  provider.name == (userData['ai_provider'] ?? 'openai'),
-              orElse: () => AIProvider.openai,
+                  provider.name == (userData['ai_provider'] ?? 'gemini'),
+              orElse: () => AIProvider.gemini,
             ),
           );
 
