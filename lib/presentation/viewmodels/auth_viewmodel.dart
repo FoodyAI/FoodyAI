@@ -111,6 +111,16 @@ class AuthViewModel extends ChangeNotifier {
 
         print('✅ AuthViewModel: Google Sign-In successful for ${user.email}');
 
+        // Initialize notification service FIRST to request permission immediately
+        print('🔔 AuthViewModel: Initializing notification service...');
+        try {
+          await _notificationService.initialize(userId: user.uid);
+          print('✅ AuthViewModel: Notification service initialized');
+        } catch (e) {
+          print('⚠️ AuthViewModel: Failed to initialize notifications: $e');
+          // Continue anyway - notifications are not critical for sign-in
+        }
+
         // Load user data from AWS FIRST before navigation
         print('🔄 AuthViewModel: Loading user data before navigation...');
         try {
@@ -118,11 +128,6 @@ class AuthViewModel extends ChangeNotifier {
           await _syncService.loadUserDataFromAWS();
           print('✅ AuthViewModel: User data loaded successfully');
           ProfileUpdateEvent.notifyUpdate();
-
-          // Initialize notification service after successful sign-in
-          print('🔔 AuthViewModel: Initializing notification service...');
-          await _notificationService.initialize(userId: user.uid);
-          print('✅ AuthViewModel: Notification service initialized');
 
           // Reload food analyses in the UI after AWS sync
           if (context != null && context.mounted) {
