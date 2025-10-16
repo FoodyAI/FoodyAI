@@ -192,15 +192,6 @@ class _OnboardingViewState extends State<OnboardingView> {
     final ctx = context;
 
     try {
-      // Show loading indicator
-      showDialog(
-        context: ctx,
-        barrierDismissible: false,
-        builder: (context) => const Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
-
       print('📝 OnboardingView: Saving profile...');
 
       await vm.saveProfile(
@@ -220,27 +211,12 @@ class _OnboardingViewState extends State<OnboardingView> {
 
       print('✅ OnboardingView: Profile saved and onboarding completed');
 
-      // Hide loading dialog
-      if (ctx.mounted) Navigator.pop(ctx);
-
       if (!ctx.mounted) return;
 
-      // Show success message
-      ScaffoldMessenger.of(ctx).showSnackBar(
-        const SnackBar(
-          content: Text('Profile setup completed! Welcome to Foody!'),
-          backgroundColor: AppColors.success,
-          duration: Duration(seconds: 2),
-        ),
-      );
-
-      // Navigate to analysis loading
+      // Navigate to analysis loading (now with dynamic timing)
       NavigationService.navigateToAnalysisLoading();
     } catch (e) {
       print('❌ OnboardingView: Error saving profile: $e');
-
-      // Hide loading dialog
-      if (ctx.mounted) Navigator.pop(ctx);
 
       if (ctx.mounted) {
         ScaffoldMessenger.of(ctx).showSnackBar(
