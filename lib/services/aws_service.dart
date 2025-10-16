@@ -563,10 +563,18 @@ class AWSService {
         throw Exception('User not authenticated');
       }
 
+      // Get current user's email (required by backend)
+      final user = _auth.currentUser;
+      if (user == null || user.email == null) {
+        print('❌ AWS Service: No user email available');
+        throw Exception('User email not found');
+      }
+
       final response = await _dio.post(
         '/users',
         data: {
           'userId': userId,
+          'email': user.email,
           'notificationsEnabled': notificationsEnabled,
         },
         options: Options(
