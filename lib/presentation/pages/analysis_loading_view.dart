@@ -47,14 +47,36 @@ class _AnalysisLoadingViewState extends State<AnalysisLoadingView>
 
     _controller.forward();
 
-    // Show health chart after 5 seconds
-    Future.delayed(const Duration(seconds: 5), () {
-      if (mounted) {
-        setState(() {
-          _showHealthChart = true;
-        });
-      }
-    });
+    // Show health chart dynamically when profile data is ready
+    _checkProfileDataAndShowChart();
+  }
+
+  /// Dynamically check if profile data is ready and show chart
+  /// Ensures minimum display time so users see the analyzing animation
+  void _checkProfileDataAndShowChart() async {
+    final profileVM = Provider.of<UserProfileViewModel>(context, listen: false);
+    final startTime = DateTime.now();
+
+    // Wait for profile to be loaded
+    while (profileVM.profile == null && mounted) {
+      await Future.delayed(const Duration(milliseconds: 100));
+    }
+
+    // Calculate elapsed time
+    final elapsedTime = DateTime.now().difference(startTime);
+
+    // Ensure minimum display time of 2.5 seconds so users see the animation
+    const minDisplayTime = Duration(milliseconds: 4000);
+    if (elapsedTime < minDisplayTime) {
+      final remainingTime = minDisplayTime - elapsedTime;
+      await Future.delayed(remainingTime);
+    }
+
+    if (mounted) {
+      setState(() {
+        _showHealthChart = true;
+      });
+    }
   }
 
   @override
@@ -127,48 +149,62 @@ class _AnalysisLoadingViewState extends State<AnalysisLoadingView>
                   child: AnimatedBuilder(
                     animation: _controller,
                     builder: (context, child) {
+                      final screenWidth = MediaQuery.of(context).size.width;
+                      final screenHeight = MediaQuery.of(context).size.height;
+
+                      // Dynamic sizing based on screen dimensions
+                      final iconSize = screenWidth * 0.3; // 30% of screen width
+                      final titleFontSize = screenWidth * 0.055; // ~5.5% of width
+                      final subtitleFontSize = screenWidth * 0.04; // ~4% of width
+                      final horizontalPadding = screenWidth * 0.1; // 10% padding on sides
+
                       return Opacity(
                         opacity: _opacityAnimation.value,
                         child: Transform.scale(
                           scale: _scaleAnimation.value,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                width: 120,
-                                height: 120,
-                                decoration: BoxDecoration(
-                                  color: AppColors.primary.withOpacity(0.1),
-                                  shape: BoxShape.circle,
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  width: iconSize.clamp(100.0, 150.0),
+                                  height: iconSize.clamp(100.0, 150.0),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primary.withValues(alpha: 0.1),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Center(
+                                    child: FaIcon(
+                                      FontAwesomeIcons.chartLine,
+                                      size: (iconSize * 0.4).clamp(40.0, 60.0),
+                                      color: AppColors.primary,
+                                    ),
+                                  ),
                                 ),
-                                child: const Center(
-                                  child: FaIcon(
-                                    FontAwesomeIcons.chartLine,
-                                    size: 50,
+                                SizedBox(height: screenHeight * 0.03),
+                                Text(
+                                  'Setting up your profile...',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: titleFontSize.clamp(18.0, 24.0),
+                                    fontWeight: FontWeight.bold,
                                     color: AppColors.primary,
                                   ),
                                 ),
-                              ),
-                              const SizedBox(height: 24),
-                              const Text(
-                                'Analyzing your data...',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.primary,
+                                SizedBox(height: screenHeight * 0.02),
+                                Text(
+                                  'Saving your health information and analyzing your data',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: subtitleFontSize.clamp(14.0, 18.0),
+                                    color: isDark
+                                        ? AppColors.white.withValues(alpha: 0.7)
+                                        : AppColors.grey600,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                'We\'re processing your health information',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  color: isDark
-                                      ? AppColors.white.withOpacity(0.7)
-                                      : AppColors.grey600,
-                                ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       );
