@@ -70,7 +70,7 @@ class UserProfile {
     required this.heightCm,
     required this.activityLevel,
     this.weightGoal = WeightGoal.maintain,
-    this.aiProvider = AIProvider.openai,
+    this.aiProvider = AIProvider.gemini,
     this.fcmToken,
     this.notificationsEnabled = true,
     this.isPremium = false,
