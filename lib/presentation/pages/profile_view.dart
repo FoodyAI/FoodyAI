@@ -9,6 +9,7 @@ import '../widgets/custom_app_bar.dart';
 import '../widgets/profile_inputs.dart';
 import '../widgets/google_signin_button.dart';
 import '../widgets/sign_out_button.dart';
+import '../widgets/auth_loading_overlay.dart';
 import '../../core/constants/app_colors.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'welcome_view.dart';
@@ -1605,24 +1606,13 @@ class _ProfileViewState extends State<ProfileView>
         onPressed: authVM.isLoading
             ? null
             : () => _showDeleteAccountDialog(context, authVM),
-        icon: authVM.isLoading
-            ? SizedBox(
-                width: 16,
-                height: 16,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    Colors.red.shade300,
-                  ),
-                ),
-              )
-            : const FaIcon(
-                FontAwesomeIcons.trash,
-                size: 16,
-              ),
-        label: Text(
-          authVM.isLoading ? 'Deleting Account...' : 'Delete Account',
-          style: const TextStyle(
+        icon: const FaIcon(
+          FontAwesomeIcons.trash,
+          size: 16,
+        ),
+        label: const Text(
+          'Delete Account',
+          style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
@@ -1769,9 +1759,20 @@ class _ProfileViewState extends State<ProfileView>
 
   Future<void> _handleDeleteAccount(
       BuildContext context, AuthViewModel authVM) async {
+    // Show loading overlay immediately after confirmation
+    AuthLoadingOverlay.showLoading(
+      context,
+      message: 'Deleting your account...',
+    );
+
     try {
       // Use the new context-aware deleteUser method
       final success = await authVM.deleteUser(context);
+
+      // Hide loading overlay
+      if (context.mounted) {
+        AuthLoadingOverlay.hideLoading(context);
+      }
 
       if (!success && context.mounted) {
         // Deletion failed - show error message
@@ -1794,6 +1795,11 @@ class _ProfileViewState extends State<ProfileView>
       // Note: Success case (success == true) is handled automatically by AuthViewModel
       // which shows success message and navigates to welcome screen
     } catch (e) {
+      // Hide loading overlay on error
+      if (context.mounted) {
+        AuthLoadingOverlay.hideLoading(context);
+      }
+
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
