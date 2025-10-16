@@ -191,8 +191,13 @@ class _OnboardingViewState extends State<OnboardingView> {
     final vm = Provider.of<UserProfileViewModel>(context, listen: false);
     final ctx = context;
 
+    // OPTIMISTIC UI: Navigate immediately without waiting for save
+    print('🚀 OnboardingView: Optimistic navigation - moving to analysis screen');
+    NavigationService.navigateToAnalysisLoading();
+
+    // Save profile in the background
     try {
-      print('📝 OnboardingView: Saving profile...');
+      print('📝 OnboardingView: Saving profile in background...');
 
       await vm.saveProfile(
         gender: _gender,
@@ -210,23 +215,53 @@ class _OnboardingViewState extends State<OnboardingView> {
       await vm.completeOnboarding();
 
       print('✅ OnboardingView: Profile saved and onboarding completed');
-
-      if (!ctx.mounted) return;
-
-      // Navigate to analysis loading (now with dynamic timing)
-      NavigationService.navigateToAnalysisLoading();
     } catch (e) {
       print('❌ OnboardingView: Error saving profile: $e');
 
+      // If save fails, show error on the new screen
       if (ctx.mounted) {
         ScaffoldMessenger.of(ctx).showSnackBar(
           SnackBar(
-            content: Text('Failed to save profile: ${e.toString()}'),
+            content: Text('Profile save failed: ${e.toString()}'),
             backgroundColor: AppColors.error,
-            duration: const Duration(seconds: 3),
+            duration: const Duration(seconds: 4),
             action: SnackBarAction(
               label: 'Retry',
-              onPressed: () => _submitForm(),
+              onPressed: () async {
+                // Retry save in background
+                try {
+                  await vm.saveProfile(
+                    gender: _gender,
+                    age: _age,
+                    weight: _weight,
+                    weightUnit: _weightUnit,
+                    height: _height,
+                    heightUnit: _heightUnit,
+                    activityLevel: _activityLevel,
+                    isMetric: _isMetric,
+                    weightGoal: _weightGoal,
+                  );
+                  await vm.completeOnboarding();
+                  if (ctx.mounted) {
+                    ScaffoldMessenger.of(ctx).showSnackBar(
+                      const SnackBar(
+                        content: Text('Profile saved successfully!'),
+                        backgroundColor: AppColors.success,
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  }
+                } catch (retryError) {
+                  if (ctx.mounted) {
+                    ScaffoldMessenger.of(ctx).showSnackBar(
+                      SnackBar(
+                        content: Text('Retry failed: ${retryError.toString()}'),
+                        backgroundColor: AppColors.error,
+                      ),
+                    );
+                  }
+                }
+              },
             ),
           ),
         );
