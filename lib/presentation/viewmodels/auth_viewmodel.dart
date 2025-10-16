@@ -304,8 +304,8 @@ class AuthViewModel extends ChangeNotifier {
       await SQLiteService().clearAllData();
       ProfileUpdateEvent.notifyUpdate();
 
-      // Delete from Firebase
-      await _authService.deleteUser();
+      // Delete from Firebase (with automatic re-authentication if needed)
+      await _authService.deleteUserWithReauth();
       _user = null;
       _setAuthState(AuthState.unauthenticated);
 
@@ -320,7 +320,19 @@ class AuthViewModel extends ChangeNotifier {
 
       return true;
     } catch (e) {
-      _setError('Failed to delete account: ${e.toString()}');
+      print('❌ AuthViewModel: Delete account error: $e');
+
+      // Provide user-friendly error messages
+      String errorMessage;
+      if (e.toString().contains('Re-authentication failed')) {
+        errorMessage = 'Account deletion cancelled. Please try again and sign in when prompted.';
+      } else if (e.toString().contains('requires-recent-login')) {
+        errorMessage = 'For security, please sign in again to delete your account.';
+      } else {
+        errorMessage = 'Failed to delete account: ${e.toString()}';
+      }
+
+      _setError(errorMessage);
       return false;
     } finally {
       _setLoading(false);
