@@ -3,6 +3,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../viewmodels/auth_viewmodel.dart';
+import 'auth_loading_overlay.dart';
 
 class GoogleSignInButton extends StatelessWidget {
   final VoidCallback? onPressed;
@@ -26,21 +27,10 @@ class GoogleSignInButton extends StatelessWidget {
 
     final button = ElevatedButton.icon(
       onPressed: isLoading ? null : (onPressed ?? () => _handleSignIn(context)),
-      icon: isLoading
-          ? SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  isDarkMode ? AppColors.white : AppColors.textPrimary,
-                ),
-              ),
-            )
-          : Image.asset(
-              'assets/google_logo.png',
-              height: isCompact ? 16 : 20,
-            ),
+      icon: Image.asset(
+        'assets/google_logo.png',
+        height: isCompact ? 16 : 20,
+      ),
       label: Text(
         label ?? 'Sign in with Google',
         style: TextStyle(
@@ -75,13 +65,24 @@ class GoogleSignInButton extends StatelessWidget {
   }
 
   Future<void> _handleSignIn(BuildContext context) async {
+    // Show loading overlay immediately
+    AuthLoadingOverlay.showLoading(
+      context,
+      message: 'Signing in...',
+    );
+
     try {
       print('🔐 GoogleSignInButton: Starting Google Sign-In...');
       final authVM = Provider.of<AuthViewModel>(context, listen: false);
-      
+
       // Use the enhanced sign-in method that handles the full flow
       final success = await authVM.signInWithGoogle(context);
-      
+
+      // Hide loading overlay
+      if (context.mounted) {
+        AuthLoadingOverlay.hideLoading(context);
+      }
+
       if (!success && context.mounted) {
         // Show error if sign-in failed
         final errorMessage = authVM.errorMessage ?? 'Sign-in failed';
@@ -93,9 +94,15 @@ class GoogleSignInButton extends StatelessWidget {
           ),
         );
       }
-      
+
     } catch (e) {
       print('❌ GoogleSignInButton: Unexpected error: $e');
+
+      // Hide loading overlay
+      if (context.mounted) {
+        AuthLoadingOverlay.hideLoading(context);
+      }
+
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -207,13 +214,24 @@ class SignInDialog extends StatelessWidget {
   }
 
   Future<void> _handleSignInFromDialog(BuildContext context) async {
+    // Show loading overlay immediately
+    AuthLoadingOverlay.showLoading(
+      context,
+      message: 'Signing in...',
+    );
+
     try {
       print('🔐 GoogleSignInButton: Starting Google Sign-In from dialog...');
       final authVM = Provider.of<AuthViewModel>(context, listen: false);
-      
+
       // Use the enhanced sign-in method that handles the full flow
       final success = await authVM.signInWithGoogle(context);
-      
+
+      // Hide loading overlay
+      if (context.mounted) {
+        AuthLoadingOverlay.hideLoading(context);
+      }
+
       if (!success && context.mounted) {
         // Show error if sign-in failed
         final errorMessage = authVM.errorMessage ?? 'Sign-in failed';
@@ -225,9 +243,15 @@ class SignInDialog extends StatelessWidget {
           ),
         );
       }
-      
+
     } catch (e) {
       print('❌ GoogleSignInButton: Dialog sign-in error: $e');
+
+      // Hide loading overlay
+      if (context.mounted) {
+        AuthLoadingOverlay.hideLoading(context);
+      }
+
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
