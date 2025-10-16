@@ -159,20 +159,24 @@ class SignOutButtonWithAuth extends StatelessWidget {
                   child: Text(
                     'Cancel',
                     style: TextStyle(
-                      color: isDarkMode
-                          ? AppColors.grey600
-                          : AppColors.textSecondary,
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
                 ElevatedButton(
                   onPressed: () => Navigator.of(context).pop(true),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.error,
-                    foregroundColor: AppColors.white,
+                    backgroundColor: AppColors.error.withValues(alpha: 0.1),
+                    foregroundColor: AppColors.error,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(
+                        color: AppColors.error.withValues(alpha: 0.3),
+                        width: 1,
+                      ),
                     ),
+                    elevation: 0,
                   ),
                   child: const Text('Sign Out'),
                 ),
