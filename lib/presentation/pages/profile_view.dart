@@ -13,6 +13,7 @@ import '../../core/constants/app_colors.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'welcome_view.dart';
 import '../../services/notification_service.dart';
+import '../../services/aws_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class ProfileView extends StatefulWidget {
@@ -1015,39 +1016,58 @@ class _ProfileViewState extends State<ProfileView>
 
   Widget _buildNotificationSettings(
       BuildContext context, AuthViewModel authVM) {
+    return _buildNotificationToggle(context, authVM);
+  }
+
+  Widget _buildNotificationToggle(BuildContext context, AuthViewModel authVM) {
     final colorScheme = Theme.of(context).colorScheme;
-    final notificationService = NotificationService();
+    final user = FirebaseAuth.instance.currentUser;
+    
+    if (user == null) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: colorScheme.outline.withOpacity(0.5),
+          ),
+        ),
+        child: Text(
+          'Please sign in to manage notifications',
+          style: TextStyle(
+            fontSize: 14,
+            color: colorScheme.onSurface.withOpacity(0.7),
+          ),
+        ),
+      );
+    }
 
-    return FutureBuilder<bool>(
-      future: notificationService.areNotificationsEnabled(),
+    return FutureBuilder<Map<String, dynamic>?>(
+      future: _getUserNotificationStatus(user.uid),
       builder: (context, snapshot) {
-        final deviceNotificationsEnabled = snapshot.data ?? false;
+        bool notificationsEnabled = true; // Default to true
+        
+        if (snapshot.hasData && snapshot.data != null) {
+          notificationsEnabled = snapshot.data!['notifications_enabled'] ?? true;
+        }
 
-        return Column(
-          children: [
-            // Device Permission Status
-            Container(
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: deviceNotificationsEnabled
-                    ? AppColors.success.withOpacity(0.1)
-                    : AppColors.error.withOpacity(0.1),
+                color: colorScheme.surface,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: deviceNotificationsEnabled
-                      ? AppColors.success.withOpacity(0.3)
-                      : AppColors.error.withOpacity(0.3),
+                  color: colorScheme.outline.withOpacity(0.5),
                 ),
               ),
               child: Row(
                 children: [
                   FaIcon(
-                    deviceNotificationsEnabled
-                        ? FontAwesomeIcons.circleCheck
-                        : FontAwesomeIcons.circleExclamation,
-                    color: deviceNotificationsEnabled
-                        ? AppColors.success
-                        : AppColors.error,
+                    FontAwesomeIcons.bell,
+                    color: colorScheme.primary,
                     size: 20,
                   ),
                   const SizedBox(width: 12),
@@ -1056,19 +1076,15 @@ class _ProfileViewState extends State<ProfileView>
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          deviceNotificationsEnabled
-                              ? 'Device notifications enabled'
-                              : 'Device notifications disabled',
+                          'App Notifications',
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: 16,
                             fontWeight: FontWeight.w600,
                             color: colorScheme.onSurface,
                           ),
                         ),
                         Text(
-                          deviceNotificationsEnabled
-                              ? 'You can receive push notifications'
-                              : 'Enable in device settings to receive notifications',
+                          'Receive notifications from Foody',
                           style: TextStyle(
                             fontSize: 12,
                             color: colorScheme.onSurface.withOpacity(0.7),
@@ -1077,77 +1093,29 @@ class _ProfileViewState extends State<ProfileView>
                       ],
                     ),
                   ),
+                  Switch(
+                    value: notificationsEnabled,
+                    onChanged: (value) => _handleNotificationToggle(
+                        context, authVM, value, setState),
+                    activeColor: colorScheme.primary,
+                  ),
                 ],
               ),
-            ),
-            const SizedBox(height: 16),
-            // App Notification Toggle
-            _buildNotificationToggle(
-                context, authVM, deviceNotificationsEnabled),
-          ],
+            );
+          },
         );
       },
     );
   }
 
-  Widget _buildNotificationToggle(BuildContext context, AuthViewModel authVM,
-      bool deviceNotificationsEnabled) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return StatefulBuilder(
-      builder: (context, setState) {
-        return Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: colorScheme.surface,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: colorScheme.outline.withOpacity(0.5),
-            ),
-          ),
-          child: Row(
-            children: [
-              FaIcon(
-                FontAwesomeIcons.bell,
-                color: colorScheme.primary,
-                size: 20,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'App Notifications',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: colorScheme.onSurface,
-                      ),
-                    ),
-                    Text(
-                      'Receive notifications from Foody',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: colorScheme.onSurface.withOpacity(0.7),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Switch(
-                value: deviceNotificationsEnabled,
-                onChanged: deviceNotificationsEnabled
-                    ? (value) => _handleNotificationToggle(
-                        context, authVM, value, setState)
-                    : null,
-                activeColor: colorScheme.primary,
-              ),
-            ],
-          ),
-        );
-      },
-    );
+  Future<Map<String, dynamic>?> _getUserNotificationStatus(String userId) async {
+    try {
+      final awsService = AWSService();
+      return await awsService.getUserProfile(userId);
+    } catch (e) {
+      print('Error getting user notification status: $e');
+      return null;
+    }
   }
 
   Future<void> _handleNotificationToggle(BuildContext context,
