@@ -170,7 +170,7 @@ class SignOutButtonWithAuth extends StatelessWidget {
                     backgroundColor: AppColors.error.withValues(alpha: 0.1),
                     foregroundColor: AppColors.error,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(20),
                       side: BorderSide(
                         color: AppColors.error.withValues(alpha: 0.3),
                         width: 1,
@@ -178,7 +178,13 @@ class SignOutButtonWithAuth extends StatelessWidget {
                     ),
                     elevation: 0,
                   ),
-                  child: const Text('Sign Out'),
+                  child: const Text(
+                    'Sign Out',
+                    style: TextStyle(
+                      color: AppColors.error,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
               ],
             );
