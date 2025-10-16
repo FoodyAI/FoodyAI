@@ -1,60 +1,52 @@
 #!/bin/bash
 
-# deploy-send-notification.sh
-# Deployment script for send-notification Lambda function
+# deploy-notification-campaigns.sh
+# Deployment script for notification campaigns Lambda function
 
-set -e  # Exit on error
+set -e
 
-echo "🚀 Deploying send-notification Lambda Function"
-echo "=============================================="
+echo "🚀 Deploying Notification Campaigns Lambda Function"
+echo "=================================================="
 
 # Configuration
-FUNCTION_NAME="foody-send-notification"
-REGION="us-east-1"
+FUNCTION_NAME="foody-notification-campaigns"
 RUNTIME="nodejs18.x"
 HANDLER="index.handler"
-ROLE_ARN="arn:aws:iam::YOUR_ACCOUNT_ID:role/lambda-execution-role"  # Replace with your role ARN
-
-# Navigate to Lambda root directory
-cd "$(dirname "$0")"
+REGION="us-east-1"
+ROLE_ARN="arn:aws:iam::010993883654:role/lambda-execution-role"
 
 echo ""
 echo "📦 Step 1: Installing dependencies..."
 echo "----------------------------------------"
 
-# Install all dependencies including firebase-admin
+cd notification-campaigns
+
 if [ ! -d "node_modules" ]; then
-  echo "Installing node modules in root directory..."
+  echo "Installing npm dependencies..."
   npm install
+else
+  echo "Dependencies already installed"
 fi
 
 echo ""
 echo "📦 Step 2: Creating deployment package..."
 echo "----------------------------------------"
 
-# Create temp directory
+# Create temp directory for packaging
 TEMP_DIR=$(mktemp -d)
 echo "Using temp directory: $TEMP_DIR"
 
-# Copy send-notification function
-echo "Copying send-notification function..."
-cp -r send-notification "$TEMP_DIR/"
-
-# Copy shared dependencies
-echo "Copying shared dependencies..."
-cp firebase-admin.js "$TEMP_DIR/send-notification/"
-cp notification-helpers.js "$TEMP_DIR/send-notification/"
-
-# Copy node_modules
-echo "Copying node_modules..."
-cp -r node_modules "$TEMP_DIR/send-notification/"
-
-# Navigate to temp directory
-cd "$TEMP_DIR/send-notification"
+# Copy function files
+cp index.js "$TEMP_DIR/"
+cp package.json "$TEMP_DIR/"
+cp -r node_modules "$TEMP_DIR/"
 
 # Create ZIP package
-echo "Creating ZIP package..."
-zip -r ../send-notification.zip . > /dev/null
+cd "$TEMP_DIR"
+zip -r ../notification-campaigns.zip . > /dev/null
+cd - > /dev/null
+
+echo "✓ Deployment package created"
 
 echo ""
 echo "📤 Step 3: Uploading to AWS Lambda..."
@@ -65,7 +57,7 @@ if aws lambda get-function --function-name "$FUNCTION_NAME" --region "$REGION" >
   echo "Function exists - updating code..."
   aws lambda update-function-code \
     --function-name "$FUNCTION_NAME" \
-    --zip-file fileb://../send-notification.zip \
+    --zip-file fileb://../notification-campaigns.zip \
     --region "$REGION"
 
   echo "Waiting for update to complete..."
@@ -87,7 +79,7 @@ else
     --runtime "$RUNTIME" \
     --role "$ROLE_ARN" \
     --handler "$HANDLER" \
-    --zip-file fileb://../send-notification.zip \
+    --zip-file fileb://../notification-campaigns.zip \
     --timeout 60 \
     --memory-size 512 \
     --region "$REGION"
@@ -120,8 +112,8 @@ echo "----------------------------------------"
 
 # Note: You'll need to manually create API Gateway endpoint or use AWS CDK/CloudFormation
 echo "Please ensure API Gateway is configured with:"
-echo "  - Resource: /send-notification"
-echo "  - Method: POST"
+echo "  - Resource: /campaigns"
+echo "  - Methods: GET, POST, PUT, DELETE"
 echo "  - Integration: Lambda Function ($FUNCTION_NAME)"
 echo "  - CORS enabled"
 
@@ -129,24 +121,24 @@ echo ""
 echo "🧹 Step 6: Cleanup..."
 echo "----------------------------------------"
 
-# Cleanup temp directory
-cd -
+# Clean up temp files
 rm -rf "$TEMP_DIR"
+rm -f ../notification-campaigns.zip
+
 echo "✓ Cleaned up temporary files"
 
 echo ""
 echo "✅ Deployment Complete!"
-echo "=============================================="
+echo "=================================================="
 echo ""
 echo "Function Name: $FUNCTION_NAME"
 echo "Region: $REGION"
 echo "Runtime: $RUNTIME"
 echo ""
 echo "Next steps:"
-echo "1. Configure API Gateway endpoint"
+echo "1. Configure API Gateway endpoints"
 echo "2. Test the function with test events"
 echo "3. Monitor CloudWatch logs for any issues"
 echo ""
 echo "Test command:"
 echo "aws lambda invoke --function-name $FUNCTION_NAME --payload file://test-event.json response.json --region $REGION"
-echo ""

@@ -1,0 +1,5 @@
+{
+  "httpMethod": "POST",
+  "path": "/campaigns",
+  "body": "{\"campaignName\":\"Test Campaign\",\"title\":\"Welcome to Foody!\",\"body\":\"Start tracking your nutrition today\",\"data\":{\"screen\":\"/home\",\"type\":\"welcome\"},\"filterCriteria\":{\"type\":\"all\"},\"createdBy\":\"test-user\"}"
+}

@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
 import 'user_state_service.dart';
-import '../presentation/pages/home_view.dart';
-import '../presentation/pages/onboarding_view.dart';
-import '../presentation/pages/welcome_view.dart';
-import '../presentation/widgets/connection_banner.dart';
 import '../core/constants/app_colors.dart';
 import '../config/routes/navigation_service.dart';
 

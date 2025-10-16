@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import '../viewmodels/user_profile_viewmodel.dart';
 import '../../domain/entities/user_profile.dart';
 import '../widgets/profile_inputs.dart';
-import 'analysis_loading_view.dart';
 import '../../../core/constants/app_colors.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../config/routes/navigation_service.dart';
