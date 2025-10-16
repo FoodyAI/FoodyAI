@@ -104,14 +104,14 @@ class _OnboardingViewState extends State<OnboardingView> {
 
   void _startFreshOnboarding() {
     _gender = 'Male';
-    _hasSelectedGender = false;
+    _hasSelectedGender = true;
     _age = 25;
     _weight = 70;
     _weightUnit = 'kg';
     _height = 170;
     _heightUnit = 'cm';
     _isMetric = true;
-    _activityLevel = ActivityLevel.sedentary;
+    _activityLevel = ActivityLevel.moderatelyActive;
     _weightGoal = WeightGoal.maintain;
     _currentPage = 0;
 
