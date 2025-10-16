@@ -12,6 +12,8 @@ import '../widgets/sign_out_button.dart';
 import '../../core/constants/app_colors.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'welcome_view.dart';
+import '../../services/notification_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
@@ -962,9 +964,260 @@ class _ProfileViewState extends State<ProfileView>
               ),
             ),
           ),
+          const SizedBox(height: 16),
+          // Notification Settings Section
+          Card(
+            elevation: 4,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      FaIcon(
+                        FontAwesomeIcons.bell,
+                        color: colorScheme.primary,
+                        size: 24,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Notifications',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.onSurface,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Manage your notification preferences',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: colorScheme.onSurface.withOpacity(0.7),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  _buildNotificationSettings(context, authVM),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
+  }
+
+  Widget _buildNotificationSettings(
+      BuildContext context, AuthViewModel authVM) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final notificationService = NotificationService();
+
+    return FutureBuilder<bool>(
+      future: notificationService.areNotificationsEnabled(),
+      builder: (context, snapshot) {
+        final deviceNotificationsEnabled = snapshot.data ?? false;
+
+        return Column(
+          children: [
+            // Device Permission Status
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: deviceNotificationsEnabled
+                    ? AppColors.success.withOpacity(0.1)
+                    : AppColors.error.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: deviceNotificationsEnabled
+                      ? AppColors.success.withOpacity(0.3)
+                      : AppColors.error.withOpacity(0.3),
+                ),
+              ),
+              child: Row(
+                children: [
+                  FaIcon(
+                    deviceNotificationsEnabled
+                        ? FontAwesomeIcons.circleCheck
+                        : FontAwesomeIcons.circleExclamation,
+                    color: deviceNotificationsEnabled
+                        ? AppColors.success
+                        : AppColors.error,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          deviceNotificationsEnabled
+                              ? 'Device notifications enabled'
+                              : 'Device notifications disabled',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: colorScheme.onSurface,
+                          ),
+                        ),
+                        Text(
+                          deviceNotificationsEnabled
+                              ? 'You can receive push notifications'
+                              : 'Enable in device settings to receive notifications',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: colorScheme.onSurface.withOpacity(0.7),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            // App Notification Toggle
+            _buildNotificationToggle(
+                context, authVM, deviceNotificationsEnabled),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildNotificationToggle(BuildContext context, AuthViewModel authVM,
+      bool deviceNotificationsEnabled) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return StatefulBuilder(
+      builder: (context, setState) {
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: colorScheme.surface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: colorScheme.outline.withOpacity(0.5),
+            ),
+          ),
+          child: Row(
+            children: [
+              FaIcon(
+                FontAwesomeIcons.bell,
+                color: colorScheme.primary,
+                size: 20,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'App Notifications',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                    Text(
+                      'Receive notifications from Foody',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: colorScheme.onSurface.withOpacity(0.7),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Switch(
+                value: deviceNotificationsEnabled,
+                onChanged: deviceNotificationsEnabled
+                    ? (value) => _handleNotificationToggle(
+                        context, authVM, value, setState)
+                    : null,
+                activeColor: colorScheme.primary,
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _handleNotificationToggle(BuildContext context,
+      AuthViewModel authVM, bool enabled, StateSetter setState) async {
+    final notificationService = NotificationService();
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) return;
+
+    try {
+      // Show loading state
+      setState(() {});
+
+      // Update notification preferences in backend
+      final success = await notificationService.updateNotificationPreferences(
+        userId: user.uid,
+        notificationsEnabled: enabled,
+      );
+
+      if (success) {
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              enabled
+                  ? 'Notifications enabled successfully'
+                  : 'Notifications disabled successfully',
+            ),
+            backgroundColor: AppColors.success,
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        );
+      } else {
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Failed to update notification preferences'),
+            backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 3),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            action: SnackBarAction(
+              label: 'Retry',
+              textColor: AppColors.white,
+              onPressed: () =>
+                  _handleNotificationToggle(context, authVM, enabled, setState),
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      // Show error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: ${e.toString()}'),
+          backgroundColor: AppColors.error,
+          duration: const Duration(seconds: 3),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+      );
+    }
   }
 
   Widget _buildMeasurementOption(
