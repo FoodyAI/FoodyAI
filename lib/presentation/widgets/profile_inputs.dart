@@ -173,11 +173,30 @@ class _WeightInputState extends State<WeightInput> {
     super.dispose();
   }
 
-  void updateWeight(double newWeight) {
-    setState(() {
-      currentWeight = newWeight;
-      controller.text = newWeight.toStringAsFixed(1);
-    });
+  void updateWeight(double newWeight,
+      {bool preserveCursor = false, bool updateController = true}) {
+    if (preserveCursor && updateController) {
+      final cursorPosition = controller.selection.baseOffset;
+      setState(() {
+        currentWeight = newWeight;
+        controller.text = newWeight.toStringAsFixed(1);
+        // Restore cursor position if it's still valid
+        if (cursorPosition <= controller.text.length) {
+          controller.selection =
+              TextSelection.collapsed(offset: cursorPosition);
+        }
+      });
+    } else if (updateController) {
+      setState(() {
+        currentWeight = newWeight;
+        controller.text = newWeight.toStringAsFixed(1);
+      });
+    } else {
+      // Only update the internal weight value, don't touch the controller text
+      setState(() {
+        currentWeight = newWeight;
+      });
+    }
     widget.onChanged(newWeight);
   }
 
@@ -236,9 +255,14 @@ class _WeightInputState extends State<WeightInput> {
                     isDense: true,
                   ),
                   onChanged: (value) {
-                    if (value.isNotEmpty) {
-                      final newWeight = double.tryParse(value) ?? currentWeight;
-                      updateWeight(newWeight);
+                    if (value.isEmpty) {
+                      // Allow empty value for editing, but don't update the weight yet
+                      return;
+                    }
+                    final newWeight = double.tryParse(value);
+                    if (newWeight != null && newWeight > 0) {
+                      // Don't update controller text when user is actively editing
+                      updateWeight(newWeight, updateController: false);
                     }
                   },
                 ),
@@ -339,11 +363,30 @@ class _HeightInputState extends State<HeightInput> {
     }
   }
 
-  void updateHeight(double newHeight) {
-    setState(() {
-      currentHeight = newHeight;
-      metricController.text = newHeight.toStringAsFixed(1);
-    });
+  void updateHeight(double newHeight,
+      {bool preserveCursor = false, bool updateController = true}) {
+    if (preserveCursor && updateController) {
+      final cursorPosition = metricController.selection.baseOffset;
+      setState(() {
+        currentHeight = newHeight;
+        metricController.text = newHeight.toStringAsFixed(1);
+        // Restore cursor position if it's still valid
+        if (cursorPosition <= metricController.text.length) {
+          metricController.selection =
+              TextSelection.collapsed(offset: cursorPosition);
+        }
+      });
+    } else if (updateController) {
+      setState(() {
+        currentHeight = newHeight;
+        metricController.text = newHeight.toStringAsFixed(1);
+      });
+    } else {
+      // Only update the internal height value, don't touch the controller text
+      setState(() {
+        currentHeight = newHeight;
+      });
+    }
     widget.onChanged(newHeight);
   }
 
@@ -403,10 +446,14 @@ class _HeightInputState extends State<HeightInput> {
                           isDense: true,
                         ),
                         onChanged: (value) {
-                          if (value.isNotEmpty) {
-                            final newHeight =
-                                double.tryParse(value) ?? currentHeight;
-                            updateHeight(newHeight);
+                          if (value.isEmpty) {
+                            // Allow empty value for editing, but don't update the height yet
+                            return;
+                          }
+                          final newHeight = double.tryParse(value);
+                          if (newHeight != null && newHeight > 0) {
+                            // Don't update controller text when user is actively editing
+                            updateHeight(newHeight, updateController: false);
                           }
                         },
                       ),
