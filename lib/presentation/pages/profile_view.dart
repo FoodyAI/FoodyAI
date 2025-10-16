@@ -591,9 +591,6 @@ class _ProfileViewState extends State<ProfileView>
                           const SignOutButtonWithAuth(
                             isFullWidth: true,
                           ),
-                          const SizedBox(height: 12),
-                          // Delete Account Button
-                          _buildDeleteAccountButton(context, authVM),
                         ],
                       ),
                     ),
@@ -947,6 +944,53 @@ class _ProfileViewState extends State<ProfileView>
               ),
             ),
           ),
+          const SizedBox(height: 16),
+          // Danger Zone Section - Only show if user is signed in
+          if (authVM.isSignedIn) ...[
+            Card(
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        FaIcon(
+                          FontAwesomeIcons.triangleExclamation,
+                          color: Colors.red.shade600,
+                          size: 24,
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          'Danger Zone',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.red.shade600,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Irreversible and destructive actions',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: colorScheme.onSurface.withOpacity(0.7),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    // Delete Account Button
+                    _buildDeleteAccountButton(context, authVM),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
