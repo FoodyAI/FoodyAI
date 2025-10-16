@@ -12,6 +12,9 @@ import '../widgets/sign_out_button.dart';
 import '../../core/constants/app_colors.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'welcome_view.dart';
+import '../../services/notification_service.dart';
+import '../../services/aws_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
@@ -345,84 +348,36 @@ class _ProfileViewState extends State<ProfileView>
                   ),
                   const SizedBox(height: 32),
                   ...ActivityLevel.values.map((level) {
-                    final isSelected = profile.activityLevel == level;
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 16),
-                      child: InkWell(
-                        onTap: () {
-                          profileVM.saveProfile(
-                            gender: profile.gender,
-                            age: profile.age,
-                            weight: profileVM.displayWeight,
-                            weightUnit: profileVM.weightUnit,
-                            height: profileVM.displayHeight,
-                            heightUnit: profileVM.heightUnit,
-                            activityLevel: level,
-                            isMetric: profileVM.isMetric,
-                            weightGoal: profile.weightGoal,
-                            aiProvider: profile.aiProvider,
-                          );
+                      child: _ProfileSettingOption<ActivityLevel>(
+                        value: level,
+                        selectedValue: profile.activityLevel,
+                        colorScheme: colorScheme,
+                        icon: _getActivityIcon(level),
+                        title: level.displayName,
+                        subtitle: _getActivityDescription(level),
+                        categoryName: 'Activity Level',
+                        onSelect: (selectedLevel) async {
+                          try {
+                            await profileVM.saveProfile(
+                              gender: profile.gender,
+                              age: profile.age,
+                              weight: profileVM.displayWeight,
+                              weightUnit: profileVM.weightUnit,
+                              height: profileVM.displayHeight,
+                              heightUnit: profileVM.heightUnit,
+                              activityLevel: selectedLevel,
+                              isMetric: profileVM.isMetric,
+                              weightGoal: profile.weightGoal,
+                              aiProvider: profile.aiProvider,
+                            );
+                            return true;
+                          } catch (e) {
+                            print('Error saving activity level: $e');
+                            return false;
+                          }
                         },
-                        borderRadius: BorderRadius.circular(12),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? colorScheme.primary.withOpacity(0.1)
-                                : colorScheme.surface,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: isSelected
-                                  ? colorScheme.primary
-                                  : colorScheme.outline.withOpacity(0.5),
-                              width: 2,
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              FaIcon(
-                                _getActivityIcon(level),
-                                color: isSelected
-                                    ? colorScheme.primary
-                                    : colorScheme.onSurface,
-                                size: 32,
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      level.displayName,
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        color: isSelected
-                                            ? colorScheme.primary
-                                            : colorScheme.onSurface,
-                                      ),
-                                    ),
-                                    Text(
-                                      _getActivityDescription(level),
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: colorScheme.onSurface
-                                            .withOpacity(0.7),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              if (isSelected)
-                                FaIcon(
-                                  FontAwesomeIcons.circleCheck,
-                                  color: colorScheme.primary,
-                                  size: 24,
-                                ),
-                            ],
-                          ),
-                        ),
                       ),
                     );
                   }).toList(),
@@ -471,86 +426,35 @@ class _ProfileViewState extends State<ProfileView>
                   ),
                   const SizedBox(height: 32),
                   ...WeightGoal.values.map((goal) {
-                    final isSelected = profile.weightGoal == goal;
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 16),
-                      child: InkWell(
-                        onTap: () {
-                          profileVM.saveProfile(
-                            gender: profile.gender,
-                            age: profile.age,
-                            weight: profileVM.displayWeight,
-                            weightUnit: profileVM.weightUnit,
-                            height: profileVM.displayHeight,
-                            heightUnit: profileVM.heightUnit,
-                            activityLevel: profile.activityLevel,
-                            isMetric: profileVM.isMetric,
-                            weightGoal: goal,
-                            aiProvider: profile.aiProvider,
-                          );
+                      child: _ProfileSettingOption<WeightGoal>(
+                        value: goal,
+                        selectedValue: profile.weightGoal,
+                        colorScheme: colorScheme,
+                        icon: _getWeightGoalIcon(goal),
+                        title: goal.displayName,
+                        subtitle: _getWeightGoalDescription(goal),
+                        categoryName: 'Weight Goal',
+                        onSelect: (selectedGoal) async {
+                          try {
+                            await profileVM.saveProfile(
+                              gender: profile.gender,
+                              age: profile.age,
+                              weight: profileVM.displayWeight,
+                              weightUnit: profileVM.weightUnit,
+                              height: profileVM.displayHeight,
+                              heightUnit: profileVM.heightUnit,
+                              activityLevel: profile.activityLevel,
+                              isMetric: profileVM.isMetric,
+                              weightGoal: selectedGoal,
+                              aiProvider: profile.aiProvider,
+                            );
+                            return true;
+                          } catch (e) {
+                            return false;
+                          }
                         },
-                        borderRadius: BorderRadius.circular(12),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? colorScheme.primary.withOpacity(0.1)
-                                : colorScheme.surface,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: isSelected
-                                  ? colorScheme.primary
-                                  : colorScheme.outline.withOpacity(0.5),
-                              width: 2,
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              FaIcon(
-                                _getWeightGoalIcon(goal),
-                                color: isSelected
-                                    ? colorScheme.primary
-                                    : colorScheme.onSurface,
-                                size: 32,
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      goal.displayName,
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        color: isSelected
-                                            ? colorScheme.primary
-                                            : colorScheme.onSurface,
-                                      ),
-                                    ),
-                                    Text(
-                                      _getWeightGoalDescription(goal),
-                                      style: TextStyle(
-                                        fontSize:
-                                            MediaQuery.of(context).size.width *
-                                                0.035,
-                                        color: colorScheme.onSurface
-                                            .withOpacity(0.7),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              if (isSelected)
-                                FaIcon(
-                                  FontAwesomeIcons.circleCheck,
-                                  color: colorScheme.primary,
-                                  size: 24,
-                                ),
-                            ],
-                          ),
-                        ),
                       ),
                     );
                   }).toList(),
@@ -777,11 +681,33 @@ class _ProfileViewState extends State<ProfileView>
                   ...AIProvider.values.map((provider) {
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 12),
-                      child: _buildAIProviderOption(
-                        context,
-                        profileVM,
-                        profile,
-                        provider,
+                      child: _ProfileSettingOption<AIProvider>(
+                        value: provider,
+                        selectedValue: profile.aiProvider,
+                        colorScheme: colorScheme,
+                        icon: _getAIProviderIcon(provider),
+                        title: provider.displayName,
+                        subtitle: provider.pricing,
+                        categoryName: 'AI Provider',
+                        onSelect: (selectedProvider) async {
+                          try {
+                            await profileVM.saveProfile(
+                              gender: profile.gender,
+                              age: profile.age,
+                              weight: profileVM.displayWeight,
+                              weightUnit: profileVM.weightUnit,
+                              height: profileVM.displayHeight,
+                              heightUnit: profileVM.heightUnit,
+                              activityLevel: profile.activityLevel,
+                              isMetric: profileVM.isMetric,
+                              weightGoal: profile.weightGoal,
+                              aiProvider: selectedProvider,
+                            );
+                            return true;
+                          } catch (e) {
+                            return false;
+                          }
+                        },
                       ),
                     );
                   }),
@@ -828,51 +754,65 @@ class _ProfileViewState extends State<ProfileView>
                     ),
                   ),
                   const SizedBox(height: 24),
-                  _buildMeasurementOption(
-                    context,
-                    FontAwesomeIcons.globe,
-                    'Metric (kg, cm)',
-                    'Use kilograms and centimeters',
-                    profileVM.isMetric,
-                    () {
-                      final newWeight = profileVM.displayWeight * 0.453592;
-                      final newHeight = profileVM.displayHeight * 2.54;
-                      profileVM.saveProfile(
-                        gender: profileVM.profile!.gender,
-                        age: profileVM.profile!.age,
-                        weight: newWeight,
-                        weightUnit: 'kg',
-                        height: newHeight,
-                        heightUnit: 'cm',
-                        activityLevel: profileVM.profile!.activityLevel,
-                        isMetric: true,
-                        weightGoal: profileVM.profile!.weightGoal,
-                        aiProvider: profileVM.profile!.aiProvider,
-                      );
+                  _ProfileSettingOption<bool>(
+                    value: true,
+                    selectedValue: profileVM.isMetric,
+                    colorScheme: colorScheme,
+                    icon: FontAwesomeIcons.globe,
+                    title: 'Metric (kg, cm)',
+                    subtitle: 'Use kilograms and centimeters',
+                    categoryName: 'Measurement Units',
+                    onSelect: (isMetric) async {
+                      try {
+                        final newWeight = profileVM.displayWeight * 0.453592;
+                        final newHeight = profileVM.displayHeight * 2.54;
+                        await profileVM.saveProfile(
+                          gender: profileVM.profile!.gender,
+                          age: profileVM.profile!.age,
+                          weight: newWeight,
+                          weightUnit: 'kg',
+                          height: newHeight,
+                          heightUnit: 'cm',
+                          activityLevel: profileVM.profile!.activityLevel,
+                          isMetric: true,
+                          weightGoal: profileVM.profile!.weightGoal,
+                          aiProvider: profileVM.profile!.aiProvider,
+                        );
+                        return true;
+                      } catch (e) {
+                        return false;
+                      }
                     },
                   ),
                   const SizedBox(height: 16),
-                  _buildMeasurementOption(
-                    context,
-                    FontAwesomeIcons.flag,
-                    'Imperial (lbs, ft)',
-                    'Use pounds and feet/inches',
-                    !profileVM.isMetric,
-                    () {
-                      final newWeight = profileVM.displayWeight * 2.20462;
-                      final newHeight = profileVM.displayHeight / 2.54;
-                      profileVM.saveProfile(
-                        gender: profileVM.profile!.gender,
-                        age: profileVM.profile!.age,
-                        weight: newWeight,
-                        weightUnit: 'lbs',
-                        height: newHeight,
-                        heightUnit: 'inch',
-                        activityLevel: profileVM.profile!.activityLevel,
-                        isMetric: false,
-                        weightGoal: profileVM.profile!.weightGoal,
-                        aiProvider: profileVM.profile!.aiProvider,
-                      );
+                  _ProfileSettingOption<bool>(
+                    value: false,
+                    selectedValue: profileVM.isMetric,
+                    colorScheme: colorScheme,
+                    icon: FontAwesomeIcons.flag,
+                    title: 'Imperial (lbs, ft)',
+                    subtitle: 'Use pounds and feet/inches',
+                    categoryName: 'Measurement Units',
+                    onSelect: (isMetric) async {
+                      try {
+                        final newWeight = profileVM.displayWeight * 2.20462;
+                        final newHeight = profileVM.displayHeight / 2.54;
+                        await profileVM.saveProfile(
+                          gender: profileVM.profile!.gender,
+                          age: profileVM.profile!.age,
+                          weight: newWeight,
+                          weightUnit: 'lbs',
+                          height: newHeight,
+                          heightUnit: 'inch',
+                          activityLevel: profileVM.profile!.activityLevel,
+                          isMetric: false,
+                          weightGoal: profileVM.profile!.weightGoal,
+                          aiProvider: profileVM.profile!.aiProvider,
+                        );
+                        return true;
+                      } catch (e) {
+                        return false;
+                      }
                     },
                   ),
                 ],
@@ -962,81 +902,116 @@ class _ProfileViewState extends State<ProfileView>
               ),
             ),
           ),
+          const SizedBox(height: 16),
+          // Notification Settings Section
+          Card(
+            elevation: 4,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      FaIcon(
+                        FontAwesomeIcons.bell,
+                        color: colorScheme.primary,
+                        size: 24,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Notifications',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.onSurface,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Manage your notification preferences',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: colorScheme.onSurface.withOpacity(0.7),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  _buildNotificationSettings(context, authVM),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildMeasurementOption(
-    BuildContext context,
-    IconData icon,
-    String title,
-    String subtitle,
-    bool isSelected,
-    VoidCallback onTap,
-  ) {
-    final colorScheme = Theme.of(context).colorScheme;
+  Widget _buildNotificationSettings(
+      BuildContext context, AuthViewModel authVM) {
+    return _buildNotificationToggle(context, authVM);
+  }
 
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+  Widget _buildNotificationToggle(BuildContext context, AuthViewModel authVM) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      return Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected
-              ? colorScheme.primary.withOpacity(0.1)
-              : colorScheme.surface,
+          color: colorScheme.surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected
-                ? colorScheme.primary
-                : colorScheme.outline.withOpacity(0.5),
-            width: 2,
+            color: colorScheme.outline.withOpacity(0.5),
           ),
         ),
-        child: Row(
-          children: [
-            FaIcon(
-              icon,
-              color: isSelected ? colorScheme.primary : colorScheme.onSurface,
-              size: 32,
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: isSelected
-                          ? colorScheme.primary
-                          : colorScheme.onSurface,
-                    ),
-                  ),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: colorScheme.onSurface.withOpacity(0.7),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (isSelected)
-              FaIcon(
-                FontAwesomeIcons.circleCheck,
-                color: colorScheme.primary,
-                size: 24,
-              ),
-          ],
+        child: Text(
+          'Please sign in to manage notifications',
+          style: TextStyle(
+            fontSize: 14,
+            color: colorScheme.onSurface.withOpacity(0.7),
+          ),
         ),
-      ),
+      );
+    }
+
+    return FutureBuilder<Map<String, dynamic>?>(
+      future: _getUserNotificationStatus(user.uid),
+      builder: (context, snapshot) {
+        final initialValue = snapshot.hasData && snapshot.data != null
+            ? snapshot.data!['notifications_enabled'] ?? true
+            : true;
+
+        return _NotificationToggleWidget(
+          initialValue: initialValue,
+          colorScheme: colorScheme,
+          onToggle: (value) async {
+            final notificationService = NotificationService();
+            final success = await notificationService.updateNotificationPreferences(
+              userId: user.uid,
+              notificationsEnabled: value,
+            );
+            return success;
+          },
+        );
+      },
     );
+  }
+
+  Future<Map<String, dynamic>?> _getUserNotificationStatus(
+      String userId) async {
+    try {
+      final awsService = AWSService();
+      return await awsService.getUserProfile(userId);
+    } catch (e) {
+      print('Error getting user notification status: $e');
+      return null;
+    }
   }
 
   Widget _buildThemeOption(
@@ -1189,20 +1164,47 @@ class _ProfileViewState extends State<ProfileView>
                     ? colorScheme.primary
                     : colorScheme.onSurface.withOpacity(0.5),
               ),
-              onTap: () {
-                vm.saveProfile(
-                  gender: 'Male',
-                  age: profile.age,
-                  weight: vm.displayWeight,
-                  weightUnit: vm.weightUnit,
-                  height: vm.displayHeight,
-                  heightUnit: vm.heightUnit,
-                  activityLevel: profile.activityLevel,
-                  isMetric: vm.isMetric,
-                  weightGoal: profile.weightGoal,
-                  aiProvider: profile.aiProvider,
-                );
-                Navigator.pop(context);
+              onTap: () async {
+                final navigator = Navigator.of(context);
+                final messenger = ScaffoldMessenger.of(context);
+                navigator.pop();
+                try {
+                  await vm.saveProfile(
+                    gender: 'Male',
+                    age: profile.age,
+                    weight: vm.displayWeight,
+                    weightUnit: vm.weightUnit,
+                    height: vm.displayHeight,
+                    heightUnit: vm.heightUnit,
+                    activityLevel: profile.activityLevel,
+                    isMetric: vm.isMetric,
+                    weightGoal: profile.weightGoal,
+                    aiProvider: profile.aiProvider,
+                  );
+                  messenger.showSnackBar(
+                    SnackBar(
+                      content: const Text('Gender updated successfully'),
+                      backgroundColor: AppColors.success,
+                      duration: const Duration(seconds: 1),
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  );
+                } catch (e) {
+                  messenger.showSnackBar(
+                    SnackBar(
+                      content: const Text('Failed to update gender'),
+                      backgroundColor: AppColors.error,
+                      duration: const Duration(seconds: 2),
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  );
+                }
               },
             ),
             ListTile(
@@ -1224,20 +1226,47 @@ class _ProfileViewState extends State<ProfileView>
                     ? colorScheme.primary
                     : colorScheme.onSurface.withOpacity(0.5),
               ),
-              onTap: () {
-                vm.saveProfile(
-                  gender: 'Female',
-                  age: profile.age,
-                  weight: vm.displayWeight,
-                  weightUnit: vm.weightUnit,
-                  height: vm.displayHeight,
-                  heightUnit: vm.heightUnit,
-                  activityLevel: profile.activityLevel,
-                  isMetric: vm.isMetric,
-                  weightGoal: profile.weightGoal,
-                  aiProvider: profile.aiProvider,
-                );
-                Navigator.pop(context);
+              onTap: () async {
+                final navigator = Navigator.of(context);
+                final messenger = ScaffoldMessenger.of(context);
+                navigator.pop();
+                try {
+                  await vm.saveProfile(
+                    gender: 'Female',
+                    age: profile.age,
+                    weight: vm.displayWeight,
+                    weightUnit: vm.weightUnit,
+                    height: vm.displayHeight,
+                    heightUnit: vm.heightUnit,
+                    activityLevel: profile.activityLevel,
+                    isMetric: vm.isMetric,
+                    weightGoal: profile.weightGoal,
+                    aiProvider: profile.aiProvider,
+                  );
+                  messenger.showSnackBar(
+                    SnackBar(
+                      content: const Text('Gender updated successfully'),
+                      backgroundColor: AppColors.success,
+                      duration: const Duration(seconds: 1),
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  );
+                } catch (e) {
+                  messenger.showSnackBar(
+                    SnackBar(
+                      content: const Text('Failed to update gender'),
+                      backgroundColor: AppColors.error,
+                      duration: const Duration(seconds: 2),
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  );
+                }
               },
             ),
           ],
@@ -1280,20 +1309,47 @@ class _ProfileViewState extends State<ProfileView>
             ),
           ),
           TextButton(
-            onPressed: () {
-              vm.saveProfile(
-                gender: profile.gender,
-                age: selectedAge,
-                weight: vm.displayWeight,
-                weightUnit: vm.weightUnit,
-                height: vm.displayHeight,
-                heightUnit: vm.heightUnit,
-                activityLevel: profile.activityLevel,
-                isMetric: vm.isMetric,
-                weightGoal: profile.weightGoal,
-                aiProvider: profile.aiProvider,
-              );
-              Navigator.pop(context);
+            onPressed: () async {
+              final navigator = Navigator.of(context);
+              final messenger = ScaffoldMessenger.of(context);
+              navigator.pop();
+              try {
+                await vm.saveProfile(
+                  gender: profile.gender,
+                  age: selectedAge,
+                  weight: vm.displayWeight,
+                  weightUnit: vm.weightUnit,
+                  height: vm.displayHeight,
+                  heightUnit: vm.heightUnit,
+                  activityLevel: profile.activityLevel,
+                  isMetric: vm.isMetric,
+                  weightGoal: profile.weightGoal,
+                  aiProvider: profile.aiProvider,
+                );
+                messenger.showSnackBar(
+                  SnackBar(
+                    content: const Text('Age updated successfully'),
+                    backgroundColor: AppColors.success,
+                    duration: const Duration(seconds: 1),
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                );
+              } catch (e) {
+                messenger.showSnackBar(
+                  SnackBar(
+                    content: const Text('Failed to update age'),
+                    backgroundColor: AppColors.error,
+                    duration: const Duration(seconds: 2),
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                );
+              }
             },
             child: Text(
               'Save',
@@ -1342,20 +1398,47 @@ class _ProfileViewState extends State<ProfileView>
             ),
           ),
           TextButton(
-            onPressed: () {
-              vm.saveProfile(
-                gender: profile.gender,
-                age: profile.age,
-                weight: selectedWeight,
-                weightUnit: vm.weightUnit,
-                height: vm.displayHeight,
-                heightUnit: vm.heightUnit,
-                activityLevel: profile.activityLevel,
-                isMetric: vm.isMetric,
-                weightGoal: profile.weightGoal,
-                aiProvider: profile.aiProvider,
-              );
-              Navigator.pop(context);
+            onPressed: () async {
+              final navigator = Navigator.of(context);
+              final messenger = ScaffoldMessenger.of(context);
+              navigator.pop();
+              try {
+                await vm.saveProfile(
+                  gender: profile.gender,
+                  age: profile.age,
+                  weight: selectedWeight,
+                  weightUnit: vm.weightUnit,
+                  height: vm.displayHeight,
+                  heightUnit: vm.heightUnit,
+                  activityLevel: profile.activityLevel,
+                  isMetric: vm.isMetric,
+                  weightGoal: profile.weightGoal,
+                  aiProvider: profile.aiProvider,
+                );
+                messenger.showSnackBar(
+                  SnackBar(
+                    content: const Text('Weight updated successfully'),
+                    backgroundColor: AppColors.success,
+                    duration: const Duration(seconds: 1),
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                );
+              } catch (e) {
+                messenger.showSnackBar(
+                  SnackBar(
+                    content: const Text('Failed to update weight'),
+                    backgroundColor: AppColors.error,
+                    duration: const Duration(seconds: 2),
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                );
+              }
             },
             child: Text(
               'Save',
@@ -1407,23 +1490,50 @@ class _ProfileViewState extends State<ProfileView>
             ),
           ),
           TextButton(
-            onPressed: () {
-              // Convert back to the correct unit for saving
-              double heightToSave =
-                  vm.isMetric ? selectedHeight : selectedHeight / 2.54;
-              vm.saveProfile(
-                gender: profile.gender,
-                age: profile.age,
-                weight: vm.displayWeight,
-                weightUnit: vm.weightUnit,
-                height: heightToSave,
-                heightUnit: vm.heightUnit,
-                activityLevel: profile.activityLevel,
-                isMetric: vm.isMetric,
-                weightGoal: profile.weightGoal,
-                aiProvider: profile.aiProvider,
-              );
-              Navigator.pop(context);
+            onPressed: () async {
+              final navigator = Navigator.of(context);
+              final messenger = ScaffoldMessenger.of(context);
+              navigator.pop();
+              try {
+                // Convert back to the correct unit for saving
+                double heightToSave =
+                    vm.isMetric ? selectedHeight : selectedHeight / 2.54;
+                await vm.saveProfile(
+                  gender: profile.gender,
+                  age: profile.age,
+                  weight: vm.displayWeight,
+                  weightUnit: vm.weightUnit,
+                  height: heightToSave,
+                  heightUnit: vm.heightUnit,
+                  activityLevel: profile.activityLevel,
+                  isMetric: vm.isMetric,
+                  weightGoal: profile.weightGoal,
+                  aiProvider: profile.aiProvider,
+                );
+                messenger.showSnackBar(
+                  SnackBar(
+                    content: const Text('Height updated successfully'),
+                    backgroundColor: AppColors.success,
+                    duration: const Duration(seconds: 1),
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                );
+              } catch (e) {
+                messenger.showSnackBar(
+                  SnackBar(
+                    content: const Text('Failed to update height'),
+                    backgroundColor: AppColors.error,
+                    duration: const Duration(seconds: 2),
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                );
+              }
             },
             child: Text(
               'Save',
@@ -1472,129 +1582,6 @@ class _ProfileViewState extends State<ProfileView>
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildAIProviderOption(
-    BuildContext context,
-    UserProfileViewModel profileVM,
-    UserProfile profile,
-    AIProvider provider,
-  ) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final isSelected = profile.aiProvider == provider;
-
-    return InkWell(
-      onTap: () {
-        profileVM.saveProfile(
-          gender: profile.gender,
-          age: profile.age,
-          weight: profileVM.displayWeight,
-          weightUnit: profileVM.weightUnit,
-          height: profileVM.displayHeight,
-          heightUnit: profileVM.heightUnit,
-          activityLevel: profile.activityLevel,
-          isMetric: profileVM.isMetric,
-          weightGoal: profile.weightGoal,
-          aiProvider: provider,
-        );
-      },
-      borderRadius: BorderRadius.circular(12),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? colorScheme.primary.withOpacity(0.1)
-              : colorScheme.surface,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isSelected
-                ? colorScheme.primary
-                : colorScheme.outline.withOpacity(0.5),
-            width: 2,
-          ),
-        ),
-        child: Row(
-          children: [
-            FaIcon(
-              _getAIProviderIcon(provider),
-              color: isSelected
-                  ? colorScheme.primary
-                  : (isDark
-                      ? AppColors.darkTextPrimary
-                      : colorScheme.onSurface),
-              size: 28,
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Flexible(
-                        child: Text(
-                          provider.displayName,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: isSelected
-                                ? colorScheme.primary
-                                : (isDark
-                                    ? AppColors.darkTextPrimary
-                                    : colorScheme.onSurface),
-                          ),
-                        ),
-                      ),
-                      if (provider.isRecommended) ...[
-                        const SizedBox(width: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 3,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: const Text(
-                            'RECOMMENDED',
-                            style: TextStyle(
-                              fontSize: 8,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.white,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    provider.pricing,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: provider.isFree
-                          ? AppColors.success
-                          : AppColors.orange,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (isSelected)
-              FaIcon(
-                FontAwesomeIcons.circleCheck,
-                color: colorScheme.primary,
-                size: 24,
-              ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -1822,5 +1809,378 @@ class _ProfileViewState extends State<ProfileView>
         );
       }
     }
+  }
+}
+
+/// Generic stateful widget for profile setting options with optimistic updates
+class _ProfileSettingOption<T> extends StatefulWidget {
+  final T value;
+  final T selectedValue;
+  final ColorScheme colorScheme;
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final String categoryName; // Main category name for success message
+  final Future<bool> Function(T value) onSelect;
+
+  const _ProfileSettingOption({
+    required this.value,
+    required this.selectedValue,
+    required this.colorScheme,
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.categoryName,
+    required this.onSelect,
+  });
+
+  @override
+  State<_ProfileSettingOption<T>> createState() =>
+      _ProfileSettingOptionState<T>();
+}
+
+class _ProfileSettingOptionState<T> extends State<_ProfileSettingOption<T>> {
+  bool _isLoading = false;
+  T? _currentValue;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentValue = widget.selectedValue;
+  }
+
+  @override
+  void didUpdateWidget(_ProfileSettingOption<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.selectedValue != oldWidget.selectedValue) {
+      _currentValue = widget.selectedValue;
+    }
+  }
+
+  Future<void> _handleSelection() async {
+    if (_isLoading) return;
+    if (_currentValue == widget.value) return; // Already selected
+
+    setState(() {
+      _isLoading = true;
+      _currentValue = widget.value; // Optimistic update
+    });
+
+    try {
+      final success = await widget.onSelect(widget.value);
+
+      if (success) {
+        setState(() {
+          _isLoading = false;
+        });
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('${widget.categoryName} updated successfully'),
+              backgroundColor: AppColors.success,
+              duration: const Duration(seconds: 1),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          );
+        }
+      } else {
+        // Revert on failure
+        setState(() {
+          _currentValue = widget.selectedValue;
+          _isLoading = false;
+        });
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to update ${widget.categoryName}'),
+              backgroundColor: AppColors.error,
+              duration: const Duration(seconds: 2),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              action: SnackBarAction(
+                label: 'Retry',
+                textColor: AppColors.white,
+                onPressed: _handleSelection,
+              ),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      // Revert on error
+      setState(() {
+        _currentValue = widget.selectedValue;
+        _isLoading = false;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isSelected = _currentValue == widget.value;
+
+    return InkWell(
+      onTap: _isLoading ? null : _handleSelection,
+      borderRadius: BorderRadius.circular(12),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? widget.colorScheme.primary.withOpacity(0.1)
+              : widget.colorScheme.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected
+                ? widget.colorScheme.primary
+                : widget.colorScheme.outline.withOpacity(0.5),
+            width: 2,
+          ),
+        ),
+        child: Row(
+          children: [
+            if (_isLoading && isSelected)
+              SizedBox(
+                width: 32,
+                height: 32,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    widget.colorScheme.primary,
+                  ),
+                ),
+              )
+            else
+              FaIcon(
+                widget.icon,
+                color:
+                    isSelected ? widget.colorScheme.primary : widget.colorScheme.onSurface,
+                size: 32,
+              ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.title,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: isSelected
+                          ? widget.colorScheme.primary
+                          : widget.colorScheme.onSurface,
+                    ),
+                  ),
+                  Text(
+                    widget.subtitle,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: widget.colorScheme.onSurface.withOpacity(0.7),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (isSelected && !_isLoading)
+              FaIcon(
+                FontAwesomeIcons.circleCheck,
+                color: widget.colorScheme.primary,
+                size: 24,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Stateful widget to manage notification toggle state
+class _NotificationToggleWidget extends StatefulWidget {
+  final bool initialValue;
+  final ColorScheme colorScheme;
+  final Future<bool> Function(bool value) onToggle;
+
+  const _NotificationToggleWidget({
+    required this.initialValue,
+    required this.colorScheme,
+    required this.onToggle,
+  });
+
+  @override
+  State<_NotificationToggleWidget> createState() =>
+      _NotificationToggleWidgetState();
+}
+
+class _NotificationToggleWidgetState extends State<_NotificationToggleWidget> {
+  late bool _notificationsEnabled;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _notificationsEnabled = widget.initialValue;
+  }
+
+  Future<void> _handleToggle(bool value) async {
+    if (_isLoading) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final success = await widget.onToggle(value);
+
+      if (success) {
+        setState(() {
+          _notificationsEnabled = value;
+          _isLoading = false;
+        });
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                value
+                    ? 'Notifications enabled successfully'
+                    : 'Notifications disabled successfully',
+              ),
+              backgroundColor: AppColors.success,
+              duration: const Duration(seconds: 2),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          );
+        }
+      } else {
+        setState(() {
+          _isLoading = false;
+        });
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Failed to update notification preferences'),
+              backgroundColor: AppColors.error,
+              duration: const Duration(seconds: 3),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              action: SnackBarAction(
+                label: 'Retry',
+                textColor: AppColors.white,
+                onPressed: () => _handleToggle(value),
+              ),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 3),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: widget.colorScheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: widget.colorScheme.outline.withOpacity(0.5),
+        ),
+      ),
+      child: Row(
+        children: [
+          FaIcon(
+            FontAwesomeIcons.bell,
+            color: widget.colorScheme.primary,
+            size: 20,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'App Notifications',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: widget.colorScheme.onSurface,
+                  ),
+                ),
+                Text(
+                  'Receive notifications from Foody',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: widget.colorScheme.onSurface.withOpacity(0.7),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (_isLoading)
+            SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  widget.colorScheme.primary,
+                ),
+              ),
+            )
+          else
+            Switch(
+              value: _notificationsEnabled,
+              onChanged: _handleToggle,
+              activeColor: widget.colorScheme.primary,
+            ),
+        ],
+      ),
+    );
   }
 }
