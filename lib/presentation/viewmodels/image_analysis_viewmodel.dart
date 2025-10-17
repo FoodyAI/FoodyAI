@@ -91,6 +91,8 @@ class ImageAnalysisViewModel extends ChangeNotifier {
 
   Future<void> _loadSavedAnalyses() async {
     _savedAnalyses = await _storage.loadAnalyses();
+    // Sort by createdAt in descending order (latest first)
+    _savedAnalyses.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     notifyListeners();
   }
 
@@ -293,7 +295,8 @@ class ImageAnalysisViewModel extends ChangeNotifier {
 
       print(
           '📝 ImageAnalysisViewModel: Created analysis: ${analysis.name} (${analysis.calories} cal) for date: $_selectedDate');
-      _savedAnalyses.add(analysis);
+      _savedAnalyses.insert(
+          0, analysis); // Insert at the beginning (top of list)
 
       print('💾 ImageAnalysisViewModel: Saving to storage...');
       await _storage.saveAnalyses(_savedAnalyses);
@@ -362,8 +365,8 @@ class ImageAnalysisViewModel extends ChangeNotifier {
       throw Exception('User must be authenticated to add analysis');
     }
 
-    // Simply add the analysis to the list
-    _savedAnalyses.add(analysis);
+    // Insert the analysis at the beginning of the list (top)
+    _savedAnalyses.insert(0, analysis);
 
     print('💾 ImageAnalysisViewModel: Saving analyses to storage...');
     await _storage.saveAnalyses(_savedAnalyses);

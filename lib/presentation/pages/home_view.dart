@@ -382,8 +382,109 @@ class _HomeContentState extends State<_HomeContent> {
                       if (vm.currentAnalysis != null)
                         FoodAnalysisCard(
                           analysis: vm.currentAnalysis!,
-                        )
-                      else if (vm.isLoading && vm.filteredAnalyses.isEmpty)
+                        ),
+                      if (vm.filteredAnalyses.isNotEmpty) ...[
+                        // Show shimmer as first card when loading
+                        if (vm.isLoading)
+                          FoodAnalysisCard(
+                            analysis: FoodAnalysis(
+                              name: 'Loading...',
+                              protein: 0,
+                              carbs: 0,
+                              fat: 0,
+                              calories: 0,
+                              healthScore: 0,
+                              date: DateTime(2024),
+                            ),
+                            isLoading: true,
+                          ),
+                        ...vm.filteredAnalyses.map((analysis) {
+                          return Dismissible(
+                            key: Key(
+                                'analysis_${analysis.id ?? analysis.name}_${analysis.date.millisecondsSinceEpoch}'),
+                            direction: DismissDirection.endToStart,
+                            background: Container(
+                              color: AppColors.error,
+                              alignment: Alignment.centerRight,
+                              padding: const EdgeInsets.only(right: 16),
+                              child: const FaIcon(
+                                FontAwesomeIcons.trash,
+                                color: AppColors.white,
+                              ),
+                            ),
+                            confirmDismiss: (_) async {
+                              return await showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return AlertDialog(
+                                    title: const Text('Confirm Delete'),
+                                    content: Text(
+                                        'Are you sure you want to delete ${analysis.name}?'),
+                                    actions: <Widget>[
+                                      TextButton(
+                                        onPressed: () =>
+                                            Navigator.of(context).pop(false),
+                                        child: const Text('Cancel'),
+                                      ),
+                                      TextButton(
+                                        onPressed: () =>
+                                            Navigator.of(context).pop(true),
+                                        child: const Text(
+                                          'Delete',
+                                          style:
+                                              TextStyle(color: AppColors.error),
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            },
+                            onDismissed: (direction) async {
+                              // Find the analysis in the full list using unique identifier
+                              final fullIndex = vm.savedAnalyses.indexWhere(
+                                  (item) =>
+                                      item.id == analysis.id ||
+                                      (item.id == null &&
+                                          item.name == analysis.name &&
+                                          item.date.millisecondsSinceEpoch ==
+                                              analysis.date
+                                                  .millisecondsSinceEpoch));
+
+                              if (fullIndex != -1) {
+                                final removedAnalysis =
+                                    await vm.removeAnalysis(fullIndex);
+                                if (removedAnalysis != null) {
+                                  _showUndoSnackbar(removedAnalysis, vm);
+                                }
+                              }
+                            },
+                            child: FoodAnalysisCard(
+                              analysis: analysis,
+                              onDelete: () async {
+                                // Find the analysis in the full list using unique identifier
+                                final fullIndex = vm.savedAnalyses.indexWhere(
+                                    (item) =>
+                                        item.id == analysis.id ||
+                                        (item.id == null &&
+                                            item.name == analysis.name &&
+                                            item.date.millisecondsSinceEpoch ==
+                                                analysis.date
+                                                    .millisecondsSinceEpoch));
+
+                                if (fullIndex != -1) {
+                                  final removedAnalysis =
+                                      await vm.removeAnalysis(fullIndex);
+                                  if (removedAnalysis != null) {
+                                    _showUndoSnackbar(removedAnalysis, vm);
+                                  }
+                                }
+                              },
+                            ),
+                          );
+                        }).toList(),
+                      ] else if (vm.isLoading) ...[
+                        // Show shimmer when loading and no analyses
                         FoodAnalysisCard(
                           analysis: FoodAnalysis(
                             name: 'Loading...',
@@ -396,116 +497,6 @@ class _HomeContentState extends State<_HomeContent> {
                           ),
                           isLoading: true,
                         ),
-                      if (vm.filteredAnalyses.isNotEmpty) ...[
-                        ...vm.filteredAnalyses.asMap().entries.map((entry) {
-                          final index = entry.key;
-                          final analysis = entry.value;
-                          final isLastItem =
-                              index == vm.filteredAnalyses.length - 1;
-                          return Column(
-                            children: [
-                              Dismissible(
-                                key: Key(
-                                    'analysis_${analysis.id ?? analysis.name}_${analysis.date.millisecondsSinceEpoch}'),
-                                direction: DismissDirection.endToStart,
-                                background: Container(
-                                  color: AppColors.error,
-                                  alignment: Alignment.centerRight,
-                                  padding: const EdgeInsets.only(right: 16),
-                                  child: const FaIcon(
-                                    FontAwesomeIcons.trash,
-                                    color: AppColors.white,
-                                  ),
-                                ),
-                                confirmDismiss: (_) async {
-                                  return await showDialog(
-                                    context: context,
-                                    builder: (BuildContext context) {
-                                      return AlertDialog(
-                                        title: const Text('Confirm Delete'),
-                                        content: Text(
-                                            'Are you sure you want to delete ${analysis.name}?'),
-                                        actions: <Widget>[
-                                          TextButton(
-                                            onPressed: () =>
-                                                Navigator.of(context)
-                                                    .pop(false),
-                                            child: const Text('Cancel'),
-                                          ),
-                                          TextButton(
-                                            onPressed: () =>
-                                                Navigator.of(context).pop(true),
-                                            child: const Text(
-                                              'Delete',
-                                              style: TextStyle(
-                                                  color: AppColors.error),
-                                            ),
-                                          ),
-                                        ],
-                                      );
-                                    },
-                                  );
-                                },
-                                onDismissed: (direction) async {
-                                  // Find the analysis in the full list using unique identifier
-                                  final fullIndex = vm.savedAnalyses.indexWhere(
-                                      (item) =>
-                                          item.id == analysis.id ||
-                                          (item.id == null &&
-                                              item.name == analysis.name &&
-                                              item.date
-                                                      .millisecondsSinceEpoch ==
-                                                  analysis.date
-                                                      .millisecondsSinceEpoch));
-
-                                  if (fullIndex != -1) {
-                                    final removedAnalysis =
-                                        await vm.removeAnalysis(fullIndex);
-                                    if (removedAnalysis != null) {
-                                      _showUndoSnackbar(removedAnalysis, vm);
-                                    }
-                                  }
-                                },
-                                child: FoodAnalysisCard(
-                                  analysis: analysis,
-                                  onDelete: () async {
-                                    // Find the analysis in the full list using unique identifier
-                                    final fullIndex = vm.savedAnalyses
-                                        .indexWhere((item) =>
-                                            item.id == analysis.id ||
-                                            (item.id == null &&
-                                                item.name == analysis.name &&
-                                                item.date
-                                                        .millisecondsSinceEpoch ==
-                                                    analysis.date
-                                                        .millisecondsSinceEpoch));
-
-                                    if (fullIndex != -1) {
-                                      final removedAnalysis =
-                                          await vm.removeAnalysis(fullIndex);
-                                      if (removedAnalysis != null) {
-                                        _showUndoSnackbar(removedAnalysis, vm);
-                                      }
-                                    }
-                                  },
-                                ),
-                              ),
-                              if (isLastItem && vm.isLoading)
-                                FoodAnalysisCard(
-                                  analysis: FoodAnalysis(
-                                    name: 'Loading...',
-                                    protein: 0,
-                                    carbs: 0,
-                                    fat: 0,
-                                    calories: 0,
-                                    healthScore: 0,
-                                    date: DateTime(2024),
-                                  ),
-                                  isLoading: true,
-                                ),
-                            ],
-                          );
-                        }).toList(),
                       ] else if (!vm.isLoading) ...[
                         const SizedBox(height: 32),
                         const Center(

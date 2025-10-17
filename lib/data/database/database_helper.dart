@@ -265,7 +265,7 @@ class DatabaseHelper {
       'foods',
       where: 'user_id = ? AND analysis_date = ?',
       whereArgs: [userId, date],
-      orderBy: 'created_at ASC',
+      orderBy: 'created_at DESC',
     );
   }
 

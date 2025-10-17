@@ -279,6 +279,10 @@ class SyncService {
             imagePath: foodData['image_url'] as String?,
             date: DateTime.parse(foodData['analysis_date'] as String),
             syncedToAws: true, // Already in AWS
+            createdAt: foodData['created_at'] != null
+                ? DateTime.fromMillisecondsSinceEpoch(
+                    foodData['created_at'] as int)
+                : DateTime.now(),
           );
         }).toList();
 
