@@ -123,6 +123,14 @@ class NavigationService {
     return pushNamedAndRemoveUntil(AppRoutes.analysisLoading);
   }
 
+  /// Navigate to subscription page
+  static Future<void> navigateToSubscription({String? returnRoute}) {
+    return pushNamed(
+      AppRoutes.subscription,
+      arguments: returnRoute != null ? {'returnRoute': returnRoute} : null,
+    );
+  }
+
   /// Navigate with route guard check
   static Future<T?> pushNamedWithGuard<T extends Object?>(
     String routeName, {
