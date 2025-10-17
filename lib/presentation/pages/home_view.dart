@@ -281,9 +281,7 @@ class _HomeContentState extends State<_HomeContent> {
                           final vm = Provider.of<ImageAnalysisViewModel>(
                               context,
                               listen: false);
-                          vm.pickImage(ImageSource.camera).then((_) {
-                            if (vm.selectedImage != null) vm.analyzeImage();
-                          });
+                          vm.pickImage(ImageSource.camera, context);
                         },
                       ),
                       ListTile(
@@ -311,9 +309,7 @@ class _HomeContentState extends State<_HomeContent> {
                           final vm = Provider.of<ImageAnalysisViewModel>(
                               context,
                               listen: false);
-                          vm.pickImage(ImageSource.gallery).then((_) {
-                            if (vm.selectedImage != null) vm.analyzeImage();
-                          });
+                          vm.pickImage(ImageSource.gallery, context);
                         },
                       ),
                       ListTile(
@@ -383,16 +379,7 @@ class _HomeContentState extends State<_HomeContent> {
                   builder: (ctx, vm, _) => Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      if (vm.error != null)
-                        Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Text(
-                            vm.error!,
-                            style: const TextStyle(color: AppColors.error),
-                            textAlign: TextAlign.center,
-                          ),
-                        )
-                      else if (vm.currentAnalysis != null)
+                      if (vm.currentAnalysis != null)
                         FoodAnalysisCard(
                           analysis: vm.currentAnalysis!,
                         )
@@ -418,7 +405,8 @@ class _HomeContentState extends State<_HomeContent> {
                           return Column(
                             children: [
                               Dismissible(
-                                key: Key('analysis_${analysis.name}_$index'),
+                                key: Key(
+                                    'analysis_${analysis.id ?? analysis.name}_${analysis.date.millisecondsSinceEpoch}'),
                                 direction: DismissDirection.endToStart,
                                 background: Container(
                                   color: AppColors.error,
@@ -459,19 +447,47 @@ class _HomeContentState extends State<_HomeContent> {
                                   );
                                 },
                                 onDismissed: (direction) async {
-                                  final analysisToRemove =
-                                      vm.filteredAnalyses[index];
-                                  final fullIndex = vm.savedAnalyses
-                                      .indexOf(analysisToRemove);
-                                  final removedAnalysis =
-                                      await vm.removeAnalysis(fullIndex);
-                                  if (removedAnalysis != null) {
-                                    _showUndoSnackbar(removedAnalysis, vm);
+                                  // Find the analysis in the full list using unique identifier
+                                  final fullIndex = vm.savedAnalyses.indexWhere(
+                                      (item) =>
+                                          item.id == analysis.id ||
+                                          (item.id == null &&
+                                              item.name == analysis.name &&
+                                              item.date
+                                                      .millisecondsSinceEpoch ==
+                                                  analysis.date
+                                                      .millisecondsSinceEpoch));
+
+                                  if (fullIndex != -1) {
+                                    final removedAnalysis =
+                                        await vm.removeAnalysis(fullIndex);
+                                    if (removedAnalysis != null) {
+                                      _showUndoSnackbar(removedAnalysis, vm);
+                                    }
                                   }
                                 },
                                 child: FoodAnalysisCard(
                                   analysis: analysis,
-                                  onDelete: () => vm.removeAnalysis(index),
+                                  onDelete: () async {
+                                    // Find the analysis in the full list using unique identifier
+                                    final fullIndex = vm.savedAnalyses
+                                        .indexWhere((item) =>
+                                            item.id == analysis.id ||
+                                            (item.id == null &&
+                                                item.name == analysis.name &&
+                                                item.date
+                                                        .millisecondsSinceEpoch ==
+                                                    analysis.date
+                                                        .millisecondsSinceEpoch));
+
+                                    if (fullIndex != -1) {
+                                      final removedAnalysis =
+                                          await vm.removeAnalysis(fullIndex);
+                                      if (removedAnalysis != null) {
+                                        _showUndoSnackbar(removedAnalysis, vm);
+                                      }
+                                    }
+                                  },
                                 ),
                               ),
                               if (isLastItem && vm.isLoading)
