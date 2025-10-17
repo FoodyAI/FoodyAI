@@ -26,10 +26,28 @@ class UserProfileViewModel extends ChangeNotifier {
   bool get hasCompletedOnboarding => _hasCompletedOnboarding;
 
   UserProfileViewModel(this._useCase) {
-    _loadProfile();
+    // Initialize: Load onboarding status first (critical for routing)
+    // Then load full profile
+    _initializeUserData();
     _profileUpdateSubscription = ProfileUpdateEvent.stream.listen((_) {
       _loadProfile();
     });
+  }
+
+  /// Initialize user data - loads onboarding status immediately
+  Future<void> _initializeUserData() async {
+    try {
+      // Load onboarding status FIRST (critical for routing decisions)
+      final hasCompleted = await _useCase.getHasCompletedOnboarding();
+      _hasCompletedOnboarding = hasCompleted;
+      print('✅ UserProfileViewModel: Onboarding status: $hasCompleted');
+      notifyListeners();
+
+      // Then load full profile
+      await _loadProfile();
+    } catch (e) {
+      print('⚠️ UserProfileViewModel: Error initializing user data: $e');
+    }
   }
 
   Future<void> _loadProfile() async {
