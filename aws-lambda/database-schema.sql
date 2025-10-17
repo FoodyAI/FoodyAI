@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS users (
     daily_calories INTEGER,
     bmi DECIMAL(4,2),
     theme_preference VARCHAR(20) DEFAULT 'system',
-    ai_provider VARCHAR(50) DEFAULT 'openai',
+    ai_provider VARCHAR(50) DEFAULT 'gemini',
     measurement_unit VARCHAR(20) DEFAULT 'metric',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
