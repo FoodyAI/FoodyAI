@@ -17,6 +17,7 @@ class FoodAnalysis {
   final DateTime date;
   final int dateOrderNumber;
   final bool syncedToAws;
+  final DateTime createdAt; // Add created_at field for consistent ordering
 
   FoodAnalysis({
     this.id,
@@ -33,7 +34,9 @@ class FoodAnalysis {
     DateTime? date,
     this.dateOrderNumber = 0,
     this.syncedToAws = false,
-  }) : date = date ?? DateTime.now();
+    DateTime? createdAt,
+  })  : date = date ?? DateTime.now(),
+        createdAt = createdAt ?? DateTime.now();
 
   factory FoodAnalysis.withCurrentDate({
     required String name,
@@ -46,6 +49,7 @@ class FoodAnalysis {
     int orderNumber = 0,
     bool syncedToAws = false,
   }) {
+    final now = DateTime.now();
     return FoodAnalysis(
       name: name,
       protein: protein,
@@ -55,9 +59,10 @@ class FoodAnalysis {
       healthScore: healthScore,
       imagePath: imagePath,
       orderNumber: orderNumber,
-      date: DateTime.now(),
+      date: now,
       dateOrderNumber: 0,
       syncedToAws: syncedToAws,
+      createdAt: now,
     );
   }
 
@@ -76,6 +81,9 @@ class FoodAnalysis {
           : DateTime.now(),
       dateOrderNumber: json['dateOrderNumber'] as int? ?? 0,
       syncedToAws: json['syncedToAws'] as bool? ?? false,
+      createdAt: json['createdAt'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(json['createdAt'] as int)
+          : DateTime.now(),
     );
   }
 
@@ -92,6 +100,7 @@ class FoodAnalysis {
       'date': date.millisecondsSinceEpoch,
       'dateOrderNumber': dateOrderNumber,
       'syncedToAws': syncedToAws,
+      'createdAt': createdAt.millisecondsSinceEpoch,
     };
   }
 
@@ -112,7 +121,7 @@ class FoodAnalysis {
       'fat': fat,
       'health_score': healthScore.round(),
       'analysis_date': date.toIso8601String().split('T')[0],
-      'created_at': DateTime.now().millisecondsSinceEpoch,
+      'created_at': createdAt.millisecondsSinceEpoch,
       'synced_to_aws': syncedToAws ? 1 : 0,
     };
   }
@@ -133,6 +142,9 @@ class FoodAnalysis {
       date: DateTime.parse(map['analysis_date'] as String),
       dateOrderNumber: 0, // Not stored in database anymore
       syncedToAws: (map['synced_to_aws'] as int? ?? 0) == 1,
+      createdAt: map['created_at'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(map['created_at'] as int)
+          : DateTime.now(),
     );
   }
 
@@ -167,6 +179,7 @@ class FoodAnalysis {
     DateTime? date,
     int? dateOrderNumber,
     bool? syncedToAws,
+    DateTime? createdAt,
   }) {
     return FoodAnalysis(
       name: name ?? this.name,
@@ -180,6 +193,7 @@ class FoodAnalysis {
       date: date ?? this.date,
       dateOrderNumber: dateOrderNumber ?? this.dateOrderNumber,
       syncedToAws: syncedToAws ?? this.syncedToAws,
+      createdAt: createdAt ?? this.createdAt,
     );
   }
 }
