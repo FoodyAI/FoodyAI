@@ -84,19 +84,46 @@ class FoodAnalysisCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  child: SingleChildScrollView(
-                    controller: scrollController,
-                    child: Column(
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+                    child: Stack(
                       children: [
-                        _buildContent(context),
-                      ],
-                    ),
+                        // Scrollable content - starts from top edge
+                        SingleChildScrollView(
+                          controller: scrollController,
+                          child: _buildContent(context, showToggle: false),
+                        ),
+                      // Fixed Swipe Indicator - positioned on top of content
+                      Positioned(
+                        top: 12,
+                        left: 0,
+                        right: 0,
+                        child: Center(
+                          child: Container(
+                            width: 48,
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.8),
+                              borderRadius: BorderRadius.circular(2),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.3),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-            );
-          },
-          child: Padding(
+            ),
+          );
+        },
+        child: Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
@@ -294,7 +321,7 @@ class FoodAnalysisCard extends StatelessWidget {
     );
   }
 
-  Widget _buildContent(BuildContext context) {
+  Widget _buildContent(BuildContext context, {bool showToggle = true}) {
     return Stack(
       children: [
         SingleChildScrollView(
@@ -344,35 +371,6 @@ class FoodAnalysisCard extends StatelessWidget {
                     )
                   else
                     _buildModalImagePlaceholder(context),
-                  // Swipe Indicator
-                  Positioned(
-                    top: 12,
-                    left: 0,
-                    right: 0,
-                    child: Center(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.4),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              width: 48,
-                              height: 4,
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.8),
-                                borderRadius: BorderRadius.circular(2),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
                   // Gradient Overlay
                   Container(
                     height: 300,
