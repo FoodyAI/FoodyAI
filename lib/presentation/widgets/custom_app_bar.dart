@@ -36,6 +36,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       elevation: 0,
       scrolledUnderElevation: 0,
       surfaceTintColor: Colors.transparent,
+      automaticallyImplyLeading: false,
       systemOverlayStyle: SystemUiOverlayStyle(
         statusBarColor: backgroundColor,
         statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
