@@ -162,7 +162,7 @@ class FoodAnalysisCard extends StatelessWidget {
                                     ),
                                     const SizedBox(width: 4),
                                     Text(
-                                      '${analysis.calories.toStringAsFixed(1)} cal',
+                                      '${analysis.calories.toStringAsFixed(0)} cal',
                                       style: const TextStyle(
                                         color: AppColors.orange,
                                         fontWeight: FontWeight.w600,
