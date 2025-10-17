@@ -4,7 +4,6 @@ import '../viewmodels/user_profile_viewmodel.dart';
 import '../viewmodels/theme_viewmodel.dart';
 import '../viewmodels/auth_viewmodel.dart';
 import '../../domain/entities/user_profile.dart';
-import '../../domain/entities/ai_provider.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/profile_inputs.dart';
 import '../widgets/google_signin_button.dart';
@@ -634,82 +633,6 @@ class _ProfileViewState extends State<ProfileView>
                       isFullWidth: true,
                     ),
                   ],
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          // AI Provider Section
-          Card(
-            elevation: 4,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      FaIcon(
-                        FontAwesomeIcons.brain,
-                        color: colorScheme.primary,
-                        size: 24,
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        'AI Provider',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.onSurface,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Choose the AI model for food analysis',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: colorScheme.onSurface.withOpacity(0.7),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  ...AIProvider.values.map((provider) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: _ProfileSettingOption<AIProvider>(
-                        value: provider,
-                        selectedValue: profile.aiProvider,
-                        colorScheme: colorScheme,
-                        icon: _getAIProviderIcon(provider),
-                        title: provider.displayName,
-                        subtitle: provider.pricing,
-                        categoryName: 'AI Provider',
-                        onSelect: (selectedProvider) async {
-                          try {
-                            await profileVM.saveProfile(
-                              gender: profile.gender,
-                              age: profile.age,
-                              weight: profileVM.displayWeight,
-                              weightUnit: profileVM.weightUnit,
-                              height: profileVM.displayHeight,
-                              heightUnit: profileVM.heightUnit,
-                              activityLevel: profile.activityLevel,
-                              isMetric: profileVM.isMetric,
-                              weightGoal: profile.weightGoal,
-                              aiProvider: selectedProvider,
-                            );
-                            return true;
-                          } catch (e) {
-                            return false;
-                          }
-                        },
-                      ),
-                    );
-                  }),
                 ],
               ),
             ),
@@ -1590,18 +1513,6 @@ class _ProfileViewState extends State<ProfileView>
     );
   }
 
-  IconData _getAIProviderIcon(AIProvider provider) {
-    switch (provider) {
-      case AIProvider.openai:
-        return FontAwesomeIcons.brain;
-      case AIProvider.gemini:
-        return FontAwesomeIcons.gem;
-      case AIProvider.claude:
-        return FontAwesomeIcons.robot;
-      case AIProvider.huggingface:
-        return FontAwesomeIcons.code;
-    }
-  }
 
   Widget _buildDangerZoneCard(
       BuildContext context, AuthViewModel authVM, ColorScheme colorScheme) {
