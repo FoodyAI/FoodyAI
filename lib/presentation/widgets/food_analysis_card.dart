@@ -643,6 +643,18 @@ class FoodAnalysisCard extends StatelessWidget {
     Color color,
     IconData icon,
   ) {
+    // Smart number formatting based on value size
+    String formattedValue;
+    if (value >= 100) {
+      // For numbers >= 100, show no decimals
+      formattedValue = value.toStringAsFixed(0);
+    } else {
+      // For numbers < 100, show 1 decimal only if needed
+      formattedValue = value % 1 == 0
+          ? value.toStringAsFixed(0)
+          : value.toStringAsFixed(1);
+    }
+
     return Container(
       height: 120,
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
@@ -672,10 +684,10 @@ class FoodAnalysisCard extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            '${value.toStringAsFixed(1)}$unit',
+            '$formattedValue$unit',
             style: TextStyle(
               color: color,
-              fontSize: 16,
+              fontSize: 14,
               fontWeight: FontWeight.bold,
             ),
             textAlign: TextAlign.center,
