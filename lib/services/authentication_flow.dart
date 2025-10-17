@@ -125,17 +125,26 @@ class AuthenticationFlow {
               ? 'Account deleted successfully'
               : 'Signed out successfully');
 
-      _showSnackBar(
-        context,
-        logoutMessage,
-        isAccountDeletion ? AppColors.success : AppColors.primary,
-      );
-
-      // Clear navigation stack and go to welcome screen
-      NavigationService.navigateToWelcome();
+      // Clear navigation stack and go to welcome screen FIRST
+      await NavigationService.navigateToWelcome();
 
       print(
           '✅ AuthenticationFlow: Navigated to welcome screen after ${isAccountDeletion ? 'account deletion' : 'sign out'}');
+
+      // Show snackbar AFTER navigation completes on the new screen
+      // Add a delay to ensure:
+      // 1. Welcome screen is fully rendered
+      // 2. Any loading overlays are dismissed
+      await Future.delayed(const Duration(milliseconds: 800));
+
+      final newContext = NavigationService.currentContext;
+      if (newContext != null && newContext.mounted) {
+        _showSnackBar(
+          newContext,
+          logoutMessage,
+          isAccountDeletion ? AppColors.success : AppColors.primary,
+        );
+      }
     } catch (e) {
       print('❌ AuthenticationFlow: Error in post-logout navigation: $e');
 
