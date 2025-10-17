@@ -13,7 +13,9 @@ import '../../domain/repositories/user_profile_repository.dart';
 import '../../di/service_locator.dart';
 import '../../services/sync_service.dart';
 import '../../services/aws_service.dart';
+import '../../services/permission_service.dart';
 import '../../core/events/food_data_update_event.dart';
+import '../../core/constants/app_colors.dart';
 import '../widgets/rating_dialog.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -144,8 +146,37 @@ class ImageAnalysisViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> pickImage(ImageSource source) async {
+  /// Show snackbar with message (same style as sign out success)
+  void _showSnackBar(
+      BuildContext context, String message, Color backgroundColor) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: backgroundColor,
+        duration: const Duration(seconds: 3),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+    );
+  }
+
+  Future<void> pickImage(ImageSource source, BuildContext context) async {
     try {
+      // Check camera permission if using camera
+      if (source == ImageSource.camera) {
+        // Always try to request permission - this handles all cases:
+        // 1. First time request
+        // 2. Permission already granted
+        // 3. User changed from "Don't Allow" to "Ask Every Time"
+        final permissionGranted =
+            await PermissionService.requestCameraPermission(context);
+        if (!permissionGranted) {
+          return; // Permission denied, error message already shown
+        }
+      }
+
       final XFile? img = await _picker.pickImage(source: source);
       if (img != null) {
         _selectedImage = File(img.path);
@@ -153,9 +184,29 @@ class ImageAnalysisViewModel extends ChangeNotifier {
         _error = null;
         notifyListeners();
         await analyzeImage();
+      } else {
+        // User cancelled image picker
+        _showSnackBar(
+            context, 'Image selection cancelled', AppColors.textSecondary);
       }
     } catch (e) {
-      _error = 'Failed to pick image';
+      // Handle different types of errors
+      String errorMessage;
+      if (e.toString().contains('camera_access_denied') ||
+          e.toString().contains('permission')) {
+        errorMessage =
+            'Camera access denied. Please check permissions in settings.';
+      } else if (e.toString().contains('camera_access_denied_without_prompt')) {
+        errorMessage =
+            'Camera permission is permanently denied. Please enable it in settings.';
+      } else if (e.toString().contains('camera_access_restricted')) {
+        errorMessage = 'Camera access is restricted on this device.';
+      } else {
+        errorMessage = 'Failed to pick image. Please try again.';
+      }
+
+      _showSnackBar(context, errorMessage, AppColors.error);
+      _error = null; // Clear error state since we're showing snackbar
       notifyListeners();
     }
   }
