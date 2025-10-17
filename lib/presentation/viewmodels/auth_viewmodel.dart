@@ -238,7 +238,7 @@ class AuthViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> signOut([BuildContext? context]) async {
+  Future<bool> signOut([BuildContext? context]) async {
     try {
       _setLoading(true);
       _clearError();
@@ -265,8 +265,12 @@ class AuthViewModel extends ChangeNotifier {
           isAccountDeletion: false,
         );
       }
+
+      return true;
     } catch (e) {
+      print('❌ AuthViewModel: Sign-out error: $e');
       _setError('Sign-out failed: ${e.toString()}');
+      return false;
     } finally {
       _setLoading(false);
     }
