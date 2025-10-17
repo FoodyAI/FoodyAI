@@ -77,12 +77,16 @@ class FoodAnalysis {
       imagePath: json['imagePath'] as String?,
       orderNumber: json['orderNumber'] as int? ?? 0,
       date: json['date'] != null
-          ? DateTime.fromMillisecondsSinceEpoch(json['date'] as int)
+          ? (json['date'] is String
+              ? DateTime.parse(json['date'])
+              : DateTime.fromMillisecondsSinceEpoch(json['date'] as int))
           : DateTime.now(),
       dateOrderNumber: json['dateOrderNumber'] as int? ?? 0,
       syncedToAws: json['syncedToAws'] as bool? ?? false,
       createdAt: json['createdAt'] != null
-          ? DateTime.fromMillisecondsSinceEpoch(json['createdAt'] as int)
+          ? (json['createdAt'] is String
+              ? DateTime.parse(json['createdAt'])
+              : DateTime.fromMillisecondsSinceEpoch(json['createdAt'] as int))
           : DateTime.now(),
     );
   }
@@ -143,7 +147,9 @@ class FoodAnalysis {
       dateOrderNumber: 0, // Not stored in database anymore
       syncedToAws: (map['synced_to_aws'] as int? ?? 0) == 1,
       createdAt: map['created_at'] != null
-          ? DateTime.fromMillisecondsSinceEpoch(map['created_at'] as int)
+          ? (map['created_at'] is String
+              ? DateTime.parse(map['created_at'])
+              : DateTime.fromMillisecondsSinceEpoch(map['created_at'] as int))
           : DateTime.now(),
     );
   }
