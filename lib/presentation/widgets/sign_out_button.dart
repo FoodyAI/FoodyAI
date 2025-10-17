@@ -87,44 +87,55 @@ class SignOutButtonWithAuth extends StatelessWidget {
 
   Future<void> _handleSignOut(
       BuildContext context, AuthViewModel authVM) async {
-    final messenger = ScaffoldMessenger.of(context);
-
     if (showConfirmation) {
       final shouldSignOut = await _showSignOutConfirmation(context);
       if (!shouldSignOut) return;
     }
 
     // Show loading overlay immediately after confirmation
-    if (context.mounted) {
-      AuthLoadingOverlay.showLoading(
-        context,
-        message: 'Signing out...',
-      );
-    }
+    AuthLoadingOverlay.showLoading(
+      context,
+      message: 'Signing out...',
+    );
 
     try {
-      // ignore: use_build_context_synchronously
-      await authVM.signOut(context);
+      // Use the context-aware signOut method
+      final success = await authVM.signOut(context);
 
-      // Hide loading overlay - navigation will handle this in most cases
-      // but we add it here as a safety net
-      if (context.mounted) {
+      // DON'T hide loading overlay on success - let navigation dismiss it
+      // Only hide on failure to allow snackbar to show properly on new screen
+      if (!success && context.mounted) {
+        // Hide loading overlay only on failure
         AuthLoadingOverlay.hideLoading(context);
+
+        // Sign out failed - show error message
+        final errorMessage = authVM.errorMessage ?? 'Sign out failed. Please try again.';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 3),
+          ),
+        );
       }
+      // Note: Success case (success == true) is handled automatically by AuthViewModel
+      // which shows success message and navigates to welcome screen
+      // The loading overlay will be dismissed naturally by the navigation
     } catch (e) {
       // Hide loading overlay on error
       if (context.mounted) {
         AuthLoadingOverlay.hideLoading(context);
       }
 
-      if (!context.mounted) return;
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text('Sign out failed: ${e.toString()}'),
-          backgroundColor: AppColors.error,
-          duration: const Duration(seconds: 3),
-        ),
-      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error signing out: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
     }
   }
 
@@ -133,8 +144,6 @@ class SignOutButtonWithAuth extends StatelessWidget {
           context: context,
           barrierDismissible: false,
           builder: (BuildContext context) {
-            final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-
             return AlertDialog(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
