@@ -45,7 +45,7 @@ class DatabaseHelper {
         daily_calories INTEGER,
         bmi REAL,
         theme_preference TEXT DEFAULT 'system',
-        ai_provider TEXT DEFAULT 'openai',
+        ai_provider TEXT DEFAULT 'gemini',
         measurement_unit TEXT DEFAULT 'metric',
         is_guest BOOLEAN DEFAULT 1,
         has_completed_onboarding BOOLEAN DEFAULT 0,

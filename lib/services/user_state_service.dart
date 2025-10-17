@@ -425,7 +425,7 @@ class UserStateService {
       case 'gemini':
         return AIProvider.gemini;
       default:
-        return AIProvider.openai;
+        return AIProvider.gemini;
     }
   }
 

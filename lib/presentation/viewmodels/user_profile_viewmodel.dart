@@ -90,7 +90,7 @@ class UserProfileViewModel extends ChangeNotifier {
       heightCm: heightCm,
       activityLevel: activityLevel,
       weightGoal: weightGoal ?? _profile?.weightGoal ?? WeightGoal.maintain,
-      aiProvider: aiProvider ?? _profile?.aiProvider ?? AIProvider.openai,
+      aiProvider: aiProvider ?? _profile?.aiProvider ?? AIProvider.gemini,
     );
 
     await _useCase.saveProfile(_profile!, isMetric, userId: userId);
