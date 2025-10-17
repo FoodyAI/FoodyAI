@@ -15,7 +15,6 @@ import '../../services/sync_service.dart';
 import '../../services/aws_service.dart';
 import '../../services/permission_service.dart';
 import '../../core/events/food_data_update_event.dart';
-import '../../core/constants/app_colors.dart';
 import '../widgets/rating_dialog.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -66,6 +65,7 @@ class ImageAnalysisViewModel extends ChangeNotifier {
     });
 
     // Listen to food data update events to refresh the UI
+    // Note: Only reload when data comes from AWS (sign-in), not when adding new foods locally
     FoodDataUpdateEvent.stream.listen((_) {
       print(
           '📢 ImageAnalysisViewModel: Food data update event received, reloading...');
@@ -148,22 +148,6 @@ class ImageAnalysisViewModel extends ChangeNotifier {
     }
   }
 
-  /// Show snackbar with message (same style as sign out success)
-  void _showSnackBar(
-      BuildContext context, String message, Color backgroundColor) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: backgroundColor,
-        duration: const Duration(seconds: 3),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-      ),
-    );
-  }
-
   Future<void> pickImage(ImageSource source, BuildContext context) async {
     try {
       // Check camera permission if using camera
@@ -186,29 +170,11 @@ class ImageAnalysisViewModel extends ChangeNotifier {
         _error = null;
         notifyListeners();
         await analyzeImage();
-      } else {
-        // User cancelled image picker
-        _showSnackBar(
-            context, 'Image selection cancelled', AppColors.textSecondary);
       }
+      // User cancelled - no need to show message
     } catch (e) {
-      // Handle different types of errors
-      String errorMessage;
-      if (e.toString().contains('camera_access_denied') ||
-          e.toString().contains('permission')) {
-        errorMessage =
-            'Camera access denied. Please check permissions in settings.';
-      } else if (e.toString().contains('camera_access_denied_without_prompt')) {
-        errorMessage =
-            'Camera permission is permanently denied. Please enable it in settings.';
-      } else if (e.toString().contains('camera_access_restricted')) {
-        errorMessage = 'Camera access is restricted on this device.';
-      } else {
-        errorMessage = 'Failed to pick image. Please try again.';
-      }
-
-      _showSnackBar(context, errorMessage, AppColors.error);
-      _error = null; // Clear error state since we're showing snackbar
+      // Handle unexpected errors (permission errors are already handled by PermissionService)
+      _error = 'Failed to access camera. Please try again.';
       notifyListeners();
     }
   }
@@ -242,10 +208,10 @@ class ImageAnalysisViewModel extends ChangeNotifier {
         imagePath: _selectedImage!.path,
         date: _selectedDate,
       );
+      _isLoading = false;
       await _saveCurrentAnalysis();
     } catch (e) {
       _error = e.toString();
-    } finally {
       _isLoading = false;
       notifyListeners();
     }
@@ -298,12 +264,12 @@ class ImageAnalysisViewModel extends ChangeNotifier {
       _savedAnalyses.insert(
           0, analysis); // Insert at the beginning (top of list)
 
-      // Clear current analysis and image immediately to prevent UI blinking
-      _currentAnalysis = null;
-      _selectedImage = null;
-
       print('💾 ImageAnalysisViewModel: Saving to storage...');
       await _storage.saveAnalyses(_savedAnalyses);
+
+      // Clear current analysis and image after saving to prevent double notify
+      _currentAnalysis = null;
+      _selectedImage = null;
 
       // Debug: Check what's in SQLite after saving
       await _sqliteService.debugPrintFoodAnalyses(userId: userId);

@@ -793,6 +793,18 @@ class _ProfileViewState extends State<ProfileView>
                             () async {
                               // Optimistic UI: Show immediate feedback
                               await themeVM.setThemeMode(ThemeMode.light);
+
+                              // Show success message
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Theme updated successfully'),
+                                    backgroundColor: AppColors.success,
+                                    duration: Duration(seconds: 1),
+                                    behavior: SnackBarBehavior.floating,
+                                  ),
+                                );
+                              }
                             },
                           ),
                           const SizedBox(height: 16),
@@ -805,6 +817,18 @@ class _ProfileViewState extends State<ProfileView>
                             () async {
                               // Optimistic UI: Show immediate feedback
                               await themeVM.setThemeMode(ThemeMode.dark);
+
+                              // Show success message
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Theme updated successfully'),
+                                    backgroundColor: AppColors.success,
+                                    duration: Duration(seconds: 1),
+                                    behavior: SnackBarBehavior.floating,
+                                  ),
+                                );
+                              }
                             },
                           ),
                           const SizedBox(height: 16),
@@ -817,6 +841,18 @@ class _ProfileViewState extends State<ProfileView>
                             () async {
                               // Optimistic UI: Show immediate feedback
                               await themeVM.setThemeMode(ThemeMode.system);
+
+                              // Show success message
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Theme updated successfully'),
+                                    backgroundColor: AppColors.success,
+                                    duration: Duration(seconds: 1),
+                                    behavior: SnackBarBehavior.floating,
+                                  ),
+                                );
+                              }
                             },
                           ),
                         ],
