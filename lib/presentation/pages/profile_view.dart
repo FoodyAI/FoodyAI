@@ -790,8 +790,9 @@ class _ProfileViewState extends State<ProfileView>
                             'Light Theme',
                             'Use light colors',
                             themeVM.themeMode == ThemeMode.light,
-                            () {
-                              themeVM.setThemeMode(ThemeMode.light);
+                            () async {
+                              // Optimistic UI: Show immediate feedback
+                              await themeVM.setThemeMode(ThemeMode.light);
                             },
                           ),
                           const SizedBox(height: 16),
@@ -801,8 +802,9 @@ class _ProfileViewState extends State<ProfileView>
                             'Dark Theme',
                             'Use dark colors',
                             themeVM.themeMode == ThemeMode.dark,
-                            () {
-                              themeVM.setThemeMode(ThemeMode.dark);
+                            () async {
+                              // Optimistic UI: Show immediate feedback
+                              await themeVM.setThemeMode(ThemeMode.dark);
                             },
                           ),
                           const SizedBox(height: 16),
@@ -812,8 +814,9 @@ class _ProfileViewState extends State<ProfileView>
                             'System Theme',
                             'Follow system settings',
                             themeVM.themeMode == ThemeMode.system,
-                            () {
-                              themeVM.setThemeMode(ThemeMode.system);
+                            () async {
+                              // Optimistic UI: Show immediate feedback
+                              await themeVM.setThemeMode(ThemeMode.system);
                             },
                           ),
                         ],
@@ -956,7 +959,8 @@ class _ProfileViewState extends State<ProfileView>
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+        duration: const Duration(milliseconds: 150), // Faster animation
+        curve: Curves.easeInOut,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: isSelected
@@ -969,6 +973,13 @@ class _ProfileViewState extends State<ProfileView>
                 : colorScheme.outline.withOpacity(0.5),
             width: 2,
           ),
+          boxShadow: isSelected ? [
+            BoxShadow(
+              color: colorScheme.primary.withOpacity(0.2),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ] : null,
         ),
         child: Row(
           children: [

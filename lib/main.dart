@@ -51,16 +51,23 @@ class MyApp extends StatelessWidget {
       ],
       child: Consumer<ThemeViewModel>(
         builder: (context, themeVM, _) {
-          return MaterialApp(
-            title: 'foody',
-            debugShowCheckedModeBanner: false,
-            navigatorKey: NavigationService.navigatorKey,
-            theme: AppTheme.lightTheme,
-            darkTheme: AppTheme.darkTheme,
-            themeMode: themeVM.themeMode,
-            initialRoute: AppRoutes.splash,
-            onGenerateRoute: _generateRoute,
-            onUnknownRoute: _unknownRoute,
+          return AnimatedTheme(
+            data: themeVM.themeMode == ThemeMode.dark 
+                ? AppTheme.darkTheme 
+                : AppTheme.lightTheme,
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeInOut,
+            child: MaterialApp(
+              title: 'foody',
+              debugShowCheckedModeBanner: false,
+              navigatorKey: NavigationService.navigatorKey,
+              theme: AppTheme.lightTheme,
+              darkTheme: AppTheme.darkTheme,
+              themeMode: themeVM.themeMode,
+              initialRoute: AppRoutes.splash,
+              onGenerateRoute: _generateRoute,
+              onUnknownRoute: _unknownRoute,
+            ),
           );
         },
       ),
