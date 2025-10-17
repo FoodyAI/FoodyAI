@@ -17,8 +17,7 @@ class PermissionService {
         // Request permission
         final result = await Permission.camera.request();
         if (result.isGranted) {
-          _showSnackBar(
-              context, 'Camera permission granted', AppColors.success);
+          // Don't show success message - camera will open immediately
           return true;
         } else if (result.isPermanentlyDenied) {
           _showSnackBarWithSettings(
@@ -37,8 +36,7 @@ class PermissionService {
         // This handles the case where user changed setting from "Don't Allow" to "Ask Every Time"
         final result = await Permission.camera.request();
         if (result.isGranted) {
-          _showSnackBar(
-              context, 'Camera permission granted', AppColors.success);
+          // Don't show success message - camera will open immediately
           return true;
         } else if (result.isPermanentlyDenied) {
           _showSnackBarWithSettings(

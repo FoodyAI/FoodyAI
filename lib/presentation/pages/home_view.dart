@@ -281,9 +281,7 @@ class _HomeContentState extends State<_HomeContent> {
                           final vm = Provider.of<ImageAnalysisViewModel>(
                               context,
                               listen: false);
-                          vm.pickImage(ImageSource.camera, context).then((_) {
-                            if (vm.selectedImage != null) vm.analyzeImage();
-                          });
+                          vm.pickImage(ImageSource.camera, context);
                         },
                       ),
                       ListTile(
@@ -311,9 +309,7 @@ class _HomeContentState extends State<_HomeContent> {
                           final vm = Provider.of<ImageAnalysisViewModel>(
                               context,
                               listen: false);
-                          vm.pickImage(ImageSource.gallery, context).then((_) {
-                            if (vm.selectedImage != null) vm.analyzeImage();
-                          });
+                          vm.pickImage(ImageSource.gallery, context);
                         },
                       ),
                       ListTile(
