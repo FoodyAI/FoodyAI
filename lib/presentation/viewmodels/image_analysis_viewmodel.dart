@@ -327,17 +327,27 @@ class ImageAnalysisViewModel extends ChangeNotifier {
         throw Exception('User must be authenticated to remove analysis');
       }
 
+      // Remove from list immediately to update UI
       _savedAnalyses.removeAt(index);
+      notifyListeners(); // Notify immediately to update UI
 
-      print('💾 ImageAnalysisViewModel: Saving updated analyses to storage...');
-      await _storage.saveAnalyses(_savedAnalyses);
+      try {
+        print(
+            '💾 ImageAnalysisViewModel: Saving updated analyses to storage...');
+        await _storage.saveAnalyses(_savedAnalyses);
 
-      // Sync deletion with AWS (user is authenticated)
-      print('🔄 ImageAnalysisViewModel: Syncing deletion to AWS...');
-      await _syncService.deleteFoodAnalysisFromAWS(removedAnalysis);
-      print('✅ ImageAnalysisViewModel: AWS deletion sync completed');
+        // Sync deletion with AWS (user is authenticated)
+        print('🔄 ImageAnalysisViewModel: Syncing deletion to AWS...');
+        await _syncService.deleteFoodAnalysisFromAWS(removedAnalysis);
+        print('✅ ImageAnalysisViewModel: AWS deletion sync completed');
+      } catch (e) {
+        print('❌ ImageAnalysisViewModel: Error during deletion: $e');
+        // Re-add the analysis if deletion failed
+        _savedAnalyses.insert(index, removedAnalysis);
+        notifyListeners();
+        rethrow;
+      }
 
-      notifyListeners();
       return removedAnalysis;
     }
     return null;
