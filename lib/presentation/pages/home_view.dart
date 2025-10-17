@@ -281,7 +281,7 @@ class _HomeContentState extends State<_HomeContent> {
                           final vm = Provider.of<ImageAnalysisViewModel>(
                               context,
                               listen: false);
-                          vm.pickImage(ImageSource.camera).then((_) {
+                          vm.pickImage(ImageSource.camera, context).then((_) {
                             if (vm.selectedImage != null) vm.analyzeImage();
                           });
                         },
@@ -311,7 +311,7 @@ class _HomeContentState extends State<_HomeContent> {
                           final vm = Provider.of<ImageAnalysisViewModel>(
                               context,
                               listen: false);
-                          vm.pickImage(ImageSource.gallery).then((_) {
+                          vm.pickImage(ImageSource.gallery, context).then((_) {
                             if (vm.selectedImage != null) vm.analyzeImage();
                           });
                         },
@@ -383,16 +383,7 @@ class _HomeContentState extends State<_HomeContent> {
                   builder: (ctx, vm, _) => Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      if (vm.error != null)
-                        Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Text(
-                            vm.error!,
-                            style: const TextStyle(color: AppColors.error),
-                            textAlign: TextAlign.center,
-                          ),
-                        )
-                      else if (vm.currentAnalysis != null)
+                      if (vm.currentAnalysis != null)
                         FoodAnalysisCard(
                           analysis: vm.currentAnalysis!,
                         )
