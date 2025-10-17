@@ -3,6 +3,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 import '../../data/models/food_analysis.dart';
 import '../../../core/constants/app_colors.dart';
+import 'glassmorphism_calendar.dart';
 
 class CalorieTrackingCard extends StatefulWidget {
   final double totalCaloriesConsumed;
@@ -121,11 +122,9 @@ class _CalorieTrackingCardState extends State<CalorieTrackingCard>
                 flex: 2,
                 child: GestureDetector(
                   onTap: () async {
-                    final DateTime? picked = await showDatePicker(
+                    final DateTime? picked = await GlassmorphismCalendar.showCalendarDialog(
                       context: context,
-                      initialDate: widget.selectedDate,
-                      firstDate: DateTime(2020),
-                      lastDate: DateTime.now(),
+                      selectedDate: widget.selectedDate,
                     );
                     if (picked != null) {
                       widget.onDateSelected(picked);
