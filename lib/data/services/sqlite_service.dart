@@ -41,7 +41,7 @@ class SQLiteService {
       ),
       aiProvider: AIProvider.values.firstWhere(
         (provider) => provider.name == profileData['ai_provider'],
-        orElse: () => AIProvider.openai,
+        orElse: () => AIProvider.gemini,
       ),
     );
   }

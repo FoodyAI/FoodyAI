@@ -47,7 +47,7 @@ extension AIProviderExtension on AIProvider {
   }
 
   bool get isRecommended {
-    return this == AIProvider.openai;
+    return this == AIProvider.gemini;
   }
 
   bool get isFree {

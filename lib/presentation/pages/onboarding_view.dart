@@ -104,14 +104,14 @@ class _OnboardingViewState extends State<OnboardingView> {
 
   void _startFreshOnboarding() {
     _gender = 'Male';
-    _hasSelectedGender = false;
+    _hasSelectedGender = true;
     _age = 25;
     _weight = 70;
     _weightUnit = 'kg';
     _height = 170;
     _heightUnit = 'cm';
     _isMetric = true;
-    _activityLevel = ActivityLevel.sedentary;
+    _activityLevel = ActivityLevel.moderatelyActive;
     _weightGoal = WeightGoal.maintain;
     _currentPage = 0;
 
@@ -191,17 +191,13 @@ class _OnboardingViewState extends State<OnboardingView> {
     final vm = Provider.of<UserProfileViewModel>(context, listen: false);
     final ctx = context;
 
-    try {
-      // Show loading indicator
-      showDialog(
-        context: ctx,
-        barrierDismissible: false,
-        builder: (context) => const Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
+    // OPTIMISTIC UI: Navigate immediately without waiting for save
+    print('🚀 OnboardingView: Optimistic navigation - moving to analysis screen');
+    NavigationService.navigateToAnalysisLoading();
 
-      print('📝 OnboardingView: Saving profile...');
+    // Save profile in the background
+    try {
+      print('📝 OnboardingView: Saving profile in background...');
 
       await vm.saveProfile(
         gender: _gender,
@@ -219,38 +215,53 @@ class _OnboardingViewState extends State<OnboardingView> {
       await vm.completeOnboarding();
 
       print('✅ OnboardingView: Profile saved and onboarding completed');
-
-      // Hide loading dialog
-      if (ctx.mounted) Navigator.pop(ctx);
-
-      if (!ctx.mounted) return;
-
-      // Show success message
-      ScaffoldMessenger.of(ctx).showSnackBar(
-        const SnackBar(
-          content: Text('Profile setup completed! Welcome to Foody!'),
-          backgroundColor: AppColors.success,
-          duration: Duration(seconds: 2),
-        ),
-      );
-
-      // Navigate to analysis loading
-      NavigationService.navigateToAnalysisLoading();
     } catch (e) {
       print('❌ OnboardingView: Error saving profile: $e');
 
-      // Hide loading dialog
-      if (ctx.mounted) Navigator.pop(ctx);
-
+      // If save fails, show error on the new screen
       if (ctx.mounted) {
         ScaffoldMessenger.of(ctx).showSnackBar(
           SnackBar(
-            content: Text('Failed to save profile: ${e.toString()}'),
+            content: Text('Profile save failed: ${e.toString()}'),
             backgroundColor: AppColors.error,
-            duration: const Duration(seconds: 3),
+            duration: const Duration(seconds: 4),
             action: SnackBarAction(
               label: 'Retry',
-              onPressed: () => _submitForm(),
+              onPressed: () async {
+                // Retry save in background
+                try {
+                  await vm.saveProfile(
+                    gender: _gender,
+                    age: _age,
+                    weight: _weight,
+                    weightUnit: _weightUnit,
+                    height: _height,
+                    heightUnit: _heightUnit,
+                    activityLevel: _activityLevel,
+                    isMetric: _isMetric,
+                    weightGoal: _weightGoal,
+                  );
+                  await vm.completeOnboarding();
+                  if (ctx.mounted) {
+                    ScaffoldMessenger.of(ctx).showSnackBar(
+                      const SnackBar(
+                        content: Text('Profile saved successfully!'),
+                        backgroundColor: AppColors.success,
+                        duration: Duration(seconds: 2),
+                      ),
+                    );
+                  }
+                } catch (retryError) {
+                  if (ctx.mounted) {
+                    ScaffoldMessenger.of(ctx).showSnackBar(
+                      SnackBar(
+                        content: Text('Retry failed: ${retryError.toString()}'),
+                        backgroundColor: AppColors.error,
+                      ),
+                    );
+                  }
+                }
+              },
             ),
           ),
         );

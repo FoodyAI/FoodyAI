@@ -7,32 +7,21 @@ class AuthenticationFlow {
   final UserStateService _userStateService = UserStateService();
 
   /// Handle post-authentication navigation based on user state
+  /// Note: Loading overlay is now handled by the sign-in button, not here
   Future<void> handlePostAuthNavigation(
     BuildContext context, {
     required String userDisplayName,
     required String userEmail,
-    bool showLoadingDialog = true,
+    bool showLoadingDialog = false, // Deprecated - loading is handled by caller
     bool useLocalCache = false,
   }) async {
     if (!context.mounted) return;
 
-    OverlayEntry? loadingOverlay;
-
     try {
-      // Show loading dialog
-      if (showLoadingDialog) {
-        loadingOverlay =
-            _showLoadingOverlay(context, 'Checking your profile...');
-      }
-
       // Determine user state
       final userStateResult = await _userStateService.determineUserState(
         useLocalCache: useLocalCache,
       );
-
-      // Hide loading dialog
-      loadingOverlay?.remove();
-      loadingOverlay = null;
 
       if (!context.mounted) return;
 
@@ -47,7 +36,6 @@ class AuthenticationFlow {
             userDisplayName: userDisplayName, userEmail: userEmail);
       }
     } catch (e) {
-      loadingOverlay?.remove();
       if (context.mounted) {
         await _handleUnexpectedError(context, e);
       }
@@ -90,39 +78,6 @@ class AuthenticationFlow {
         context, 'An error occurred. Please try again.', AppColors.error);
   }
 
-  /// Show loading overlay
-  OverlayEntry _showLoadingOverlay(BuildContext context, String message) {
-    final overlay = OverlayEntry(
-      builder: (context) => Material(
-        color: Colors.black54,
-        child: Center(
-          child: Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const CircularProgressIndicator(),
-                const SizedBox(height: 16),
-                Text(
-                  message,
-                  style: Theme.of(context).textTheme.titleMedium,
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-
-    Overlay.of(context).insert(overlay);
-    return overlay;
-  }
-
   /// Show snackbar with message
   void _showSnackBar(
       BuildContext context, String message, Color backgroundColor) {
@@ -136,30 +91,6 @@ class AuthenticationFlow {
           borderRadius: BorderRadius.circular(8),
         ),
       ),
-    );
-  }
-
-  /// Create smooth slide transition
-  PageRouteBuilder<T> _createSlideTransition<T extends Widget>(T page) {
-    return PageRouteBuilder<T>(
-      pageBuilder: (context, animation, secondaryAnimation) => page,
-      transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        const begin = Offset(1.0, 0.0);
-        const end = Offset.zero;
-        const curve = Curves.easeInOutCubic;
-        var tween =
-            Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-        var offsetAnimation = animation.drive(tween);
-
-        return SlideTransition(
-          position: offsetAnimation,
-          child: FadeTransition(
-            opacity: animation,
-            child: child,
-          ),
-        );
-      },
-      transitionDuration: const Duration(milliseconds: 800),
     );
   }
 
@@ -194,17 +125,26 @@ class AuthenticationFlow {
               ? 'Account deleted successfully'
               : 'Signed out successfully');
 
-      _showSnackBar(
-        context,
-        logoutMessage,
-        isAccountDeletion ? AppColors.success : AppColors.primary,
-      );
-
-      // Clear navigation stack and go to welcome screen
-      NavigationService.navigateToWelcome();
+      // Clear navigation stack and go to welcome screen FIRST
+      await NavigationService.navigateToWelcome();
 
       print(
           '✅ AuthenticationFlow: Navigated to welcome screen after ${isAccountDeletion ? 'account deletion' : 'sign out'}');
+
+      // Show snackbar AFTER navigation completes on the new screen
+      // Add a delay to ensure:
+      // 1. Welcome screen is fully rendered
+      // 2. Any loading overlays are dismissed
+      await Future.delayed(const Duration(milliseconds: 800));
+
+      final newContext = NavigationService.currentContext;
+      if (newContext != null && newContext.mounted) {
+        _showSnackBar(
+          newContext,
+          logoutMessage,
+          isAccountDeletion ? AppColors.success : AppColors.primary,
+        );
+      }
     } catch (e) {
       print('❌ AuthenticationFlow: Error in post-logout navigation: $e');
 

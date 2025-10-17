@@ -3,6 +3,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../viewmodels/auth_viewmodel.dart';
+import 'auth_loading_overlay.dart';
 
 class SignOutButton extends StatelessWidget {
   final VoidCallback? onPressed;
@@ -22,25 +23,12 @@ class SignOutButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-
     Widget button = ElevatedButton.icon(
       onPressed: isLoading ? null : onPressed,
-      icon: isLoading
-          ? SizedBox(
-              width: isCompact ? 12 : 16,
-              height: isCompact ? 12 : 16,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  isDarkMode ? AppColors.white : AppColors.textPrimary,
-                ),
-              ),
-            )
-          : FaIcon(
-              FontAwesomeIcons.rightFromBracket,
-              size: isCompact ? 12 : 16,
-            ),
+      icon: FaIcon(
+        FontAwesomeIcons.rightFromBracket,
+        size: isCompact ? 12 : 16,
+      ),
       label: Text(
         label ?? 'Sign Out',
         style: TextStyle(
@@ -99,25 +87,55 @@ class SignOutButtonWithAuth extends StatelessWidget {
 
   Future<void> _handleSignOut(
       BuildContext context, AuthViewModel authVM) async {
-    final messenger = ScaffoldMessenger.of(context);
-
     if (showConfirmation) {
       final shouldSignOut = await _showSignOutConfirmation(context);
       if (!shouldSignOut) return;
     }
 
+    // Show loading overlay immediately after confirmation
+    AuthLoadingOverlay.showLoading(
+      context,
+      message: 'Signing out...',
+    );
+
     try {
-      // ignore: use_build_context_synchronously
-      await authVM.signOut(context);
+      // Use the context-aware signOut method
+      final success = await authVM.signOut(context);
+
+      // DON'T hide loading overlay on success - let navigation dismiss it
+      // Only hide on failure to allow snackbar to show properly on new screen
+      if (!success && context.mounted) {
+        // Hide loading overlay only on failure
+        AuthLoadingOverlay.hideLoading(context);
+
+        // Sign out failed - show error message
+        final errorMessage = authVM.errorMessage ?? 'Sign out failed. Please try again.';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+      // Note: Success case (success == true) is handled automatically by AuthViewModel
+      // which shows success message and navigates to welcome screen
+      // The loading overlay will be dismissed naturally by the navigation
     } catch (e) {
-      if (!context.mounted) return;
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text('Sign out failed: ${e.toString()}'),
-          backgroundColor: AppColors.error,
-          duration: const Duration(seconds: 3),
-        ),
-      );
+      // Hide loading overlay on error
+      if (context.mounted) {
+        AuthLoadingOverlay.hideLoading(context);
+      }
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error signing out: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
     }
   }
 
@@ -126,8 +144,6 @@ class SignOutButtonWithAuth extends StatelessWidget {
           context: context,
           barrierDismissible: false,
           builder: (BuildContext context) {
-            final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-
             return AlertDialog(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
@@ -152,22 +168,32 @@ class SignOutButtonWithAuth extends StatelessWidget {
                   child: Text(
                     'Cancel',
                     style: TextStyle(
-                      color: isDarkMode
-                          ? AppColors.grey600
-                          : AppColors.textSecondary,
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
                 ElevatedButton(
                   onPressed: () => Navigator.of(context).pop(true),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.error,
-                    foregroundColor: AppColors.white,
+                    backgroundColor: AppColors.error.withValues(alpha: 0.1),
+                    foregroundColor: AppColors.error,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(20),
+                      side: BorderSide(
+                        color: AppColors.error.withValues(alpha: 0.3),
+                        width: 1,
+                      ),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: const Text(
+                    'Sign Out',
+                    style: TextStyle(
+                      color: AppColors.error,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                  child: const Text('Sign Out'),
                 ),
               ],
             );

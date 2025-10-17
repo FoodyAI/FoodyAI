@@ -9,6 +9,8 @@ import '../widgets/custom_app_bar.dart';
 import '../widgets/profile_inputs.dart';
 import '../widgets/google_signin_button.dart';
 import '../widgets/sign_out_button.dart';
+import '../widgets/auth_loading_overlay.dart';
+import '../widgets/reauth_dialog.dart';
 import '../../core/constants/app_colors.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'welcome_view.dart';
@@ -590,9 +592,6 @@ class _ProfileViewState extends State<ProfileView>
                           const SignOutButtonWithAuth(
                             isFullWidth: true,
                           ),
-                          const SizedBox(height: 12),
-                          // Delete Account Button
-                          _buildDeleteAccountButton(context, authVM),
                         ],
                       ),
                     ),
@@ -946,6 +945,11 @@ class _ProfileViewState extends State<ProfileView>
               ),
             ),
           ),
+          const SizedBox(height: 16),
+          // Danger Zone Section - Only show if user is signed in
+          if (authVM.isSignedIn) ...[
+            _buildDangerZoneCard(context, authVM, colorScheme),
+          ],
         ],
       ),
     );
@@ -992,7 +996,8 @@ class _ProfileViewState extends State<ProfileView>
           colorScheme: colorScheme,
           onToggle: (value) async {
             final notificationService = NotificationService();
-            final success = await notificationService.updateNotificationPreferences(
+            final success =
+                await notificationService.updateNotificationPreferences(
               userId: user.uid,
               notificationsEnabled: value,
             );
@@ -1598,43 +1603,99 @@ class _ProfileViewState extends State<ProfileView>
     }
   }
 
+  Widget _buildDangerZoneCard(
+      BuildContext context, AuthViewModel authVM, ColorScheme colorScheme) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isDark
+                ? Colors.red.shade400.withOpacity(0.3)
+                : Colors.red.shade200,
+            width: 1,
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  FaIcon(
+                    FontAwesomeIcons.triangleExclamation,
+                    color: isDark ? Colors.red.shade400 : Colors.red.shade600,
+                    size: 24,
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Danger Zone',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.red.shade400 : Colors.red.shade600,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Irreversible and destructive actions',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: isDark
+                      ? AppColors.darkTextSecondary
+                      : colorScheme.onSurface.withOpacity(0.7),
+                ),
+              ),
+              const SizedBox(height: 24),
+              // Delete Account Button
+              _buildDeleteAccountButton(context, authVM),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildDeleteAccountButton(BuildContext context, AuthViewModel authVM) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
         onPressed: authVM.isLoading
             ? null
             : () => _showDeleteAccountDialog(context, authVM),
-        icon: authVM.isLoading
-            ? SizedBox(
-                width: 16,
-                height: 16,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    Colors.red.shade300,
-                  ),
-                ),
-              )
-            : const FaIcon(
-                FontAwesomeIcons.trash,
-                size: 16,
-              ),
-        label: Text(
-          authVM.isLoading ? 'Deleting Account...' : 'Delete Account',
-          style: const TextStyle(
+        icon: const FaIcon(
+          FontAwesomeIcons.trash,
+          size: 16,
+        ),
+        label: const Text(
+          'Delete Account',
+          style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
         ),
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.red.shade600,
+          backgroundColor: isDark ? Colors.red.shade700 : Colors.red.shade600,
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          elevation: 2,
+          elevation: isDark ? 4 : 2,
+          shadowColor: isDark
+              ? Colors.red.shade400.withOpacity(0.3)
+              : Colors.red.shade600.withOpacity(0.3),
         ),
       ),
     );
@@ -1642,6 +1703,7 @@ class _ProfileViewState extends State<ProfileView>
 
   void _showDeleteAccountDialog(BuildContext context, AuthViewModel authVM) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     showDialog(
       context: context,
@@ -1651,7 +1713,7 @@ class _ProfileViewState extends State<ProfileView>
             children: [
               FaIcon(
                 FontAwesomeIcons.triangleExclamation,
-                color: Colors.red.shade600,
+                color: isDark ? Colors.red.shade400 : Colors.red.shade600,
                 size: 24,
               ),
               const SizedBox(width: 12),
@@ -1682,15 +1744,21 @@ class _ProfileViewState extends State<ProfileView>
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.red.shade50,
+                  color: isDark
+                      ? Colors.red.shade900.withOpacity(0.3)
+                      : Colors.red.shade50,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.red.shade200),
+                  border: Border.all(
+                    color: isDark
+                        ? Colors.red.shade400.withOpacity(0.3)
+                        : Colors.red.shade200,
+                  ),
                 ),
                 child: Row(
                   children: [
                     FaIcon(
                       FontAwesomeIcons.circleExclamation,
-                      color: Colors.red.shade600,
+                      color: isDark ? Colors.red.shade400 : Colors.red.shade600,
                       size: 16,
                     ),
                     const SizedBox(width: 8),
@@ -1726,10 +1794,15 @@ class _ProfileViewState extends State<ProfileView>
                 await _handleDeleteAccount(context, authVM);
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red.shade600,
+                backgroundColor:
+                    isDark ? Colors.red.shade700 : Colors.red.shade600,
                 foregroundColor: Colors.white,
                 padding:
                     const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                elevation: isDark ? 4 : 2,
+                shadowColor: isDark
+                    ? Colors.red.shade400.withOpacity(0.3)
+                    : Colors.red.shade600.withOpacity(0.3),
               ),
               child: const Text(
                 'Delete Account',
@@ -1769,31 +1842,66 @@ class _ProfileViewState extends State<ProfileView>
 
   Future<void> _handleDeleteAccount(
       BuildContext context, AuthViewModel authVM) async {
+    // Show loading overlay immediately after confirmation
+    AuthLoadingOverlay.showLoading(
+      context,
+      message: 'Deleting your account...',
+    );
+
     try {
       // Use the new context-aware deleteUser method
       final success = await authVM.deleteUser(context);
 
+      // Hide loading overlay
+      if (context.mounted) {
+        AuthLoadingOverlay.hideLoading(context);
+      }
+
       if (!success && context.mounted) {
-        // Deletion failed - show error message
-        // (Success case is now handled by AuthViewModel + AuthenticationFlow)
-        final errorMessage = authVM.errorMessage ??
-            'Failed to delete account. Please try again.';
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(errorMessage),
-            backgroundColor: AppColors.error,
-            duration: const Duration(seconds: 4),
-            action: SnackBarAction(
-              label: 'Retry',
-              textColor: AppColors.white,
-              onPressed: () => _handleDeleteAccount(context, authVM),
+        // Check if re-authentication is needed
+        final errorMessage = authVM.errorMessage ?? '';
+
+        if (errorMessage.contains('sign in again') ||
+            errorMessage.contains('cancelled')) {
+          // Show re-authentication dialog with better UX
+          final shouldReauth = await ReauthDialog.showForAccountDeletion(
+            context,
+            () {
+              // Re-attempt deletion after user confirms
+              _handleDeleteAccount(context, authVM);
+            },
+          );
+
+          if (shouldReauth != true) {
+            // User cancelled re-authentication
+            return;
+          }
+        } else {
+          // Show generic error message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(errorMessage.isNotEmpty
+                  ? errorMessage
+                  : 'Failed to delete account. Please try again.'),
+              backgroundColor: AppColors.error,
+              duration: const Duration(seconds: 4),
+              action: SnackBarAction(
+                label: 'Retry',
+                textColor: AppColors.white,
+                onPressed: () => _handleDeleteAccount(context, authVM),
+              ),
             ),
-          ),
-        );
+          );
+        }
       }
       // Note: Success case (success == true) is handled automatically by AuthViewModel
       // which shows success message and navigates to welcome screen
     } catch (e) {
+      // Hide loading overlay on error
+      if (context.mounted) {
+        AuthLoadingOverlay.hideLoading(context);
+      }
+
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -1974,8 +2082,9 @@ class _ProfileSettingOptionState<T> extends State<_ProfileSettingOption<T>> {
             else
               FaIcon(
                 widget.icon,
-                color:
-                    isSelected ? widget.colorScheme.primary : widget.colorScheme.onSurface,
+                color: isSelected
+                    ? widget.colorScheme.primary
+                    : widget.colorScheme.onSurface,
                 size: 32,
               ),
             const SizedBox(width: 16),
