@@ -49,7 +49,21 @@ class AuthViewModel extends ChangeNotifier {
   }
 
   void _initializeAuth() {
-    // Listen to Firebase Auth state changes
+    // IMPORTANT: Check current user IMMEDIATELY (synchronously)
+    // Firebase Auth persists the session, so currentUser will be non-null
+    // if the user was previously signed in
+    _user = _authService.currentUser;
+    if (_user != null) {
+      print('✅ AuthViewModel: Found persisted user: ${_user!.email}');
+      _setAuthState(AuthState.authenticated);
+      // Background sync - don't block UI
+      _performBackgroundSync();
+    } else {
+      print('ℹ️ AuthViewModel: No persisted user found');
+      _setAuthState(AuthState.unauthenticated);
+    }
+
+    // Listen to Firebase Auth state changes for future updates
     _authService.authStateChanges.listen((User? user) {
       _user = user;
       if (user != null) {

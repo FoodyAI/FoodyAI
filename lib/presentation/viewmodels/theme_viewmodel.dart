@@ -5,11 +5,13 @@ import '../../data/services/sqlite_service.dart';
 
 class ThemeViewModel extends ChangeNotifier {
   ThemeMode _themeMode = ThemeMode.system;
+  bool _isChanging = false;
   final SyncService _syncService = SyncService();
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final SQLiteService _sqliteService = SQLiteService();
 
   ThemeMode get themeMode => _themeMode;
+  bool get isChanging => _isChanging;
 
   ThemeViewModel() {
     _loadThemeMode();
@@ -44,21 +46,46 @@ class ThemeViewModel extends ChangeNotifier {
   }
 
   Future<void> setThemeMode(ThemeMode mode) async {
-    if (_themeMode == mode) return;
+    if (_themeMode == mode || _isChanging) return;
+    
+    _isChanging = true;
+    notifyListeners();
+    
+    // Optimistic UI: Update immediately for instant feedback
+    final previousMode = _themeMode;
     _themeMode = mode;
+    _isChanging = false;
+    notifyListeners(); // Notify immediately for instant UI update
+    
     final themeString = _themeModeToString(mode);
     
-    // Save to SQLite
-    await _sqliteService.setThemePreference(themeString);
-    
-    // Sync theme preference to AWS if user is signed in
-    if (_auth.currentUser != null) {
-      await _syncService.updateUserProfileInAWS(
-        themePreference: themeString,
-      );
+    try {
+      // Save to SQLite in background
+      await _sqliteService.setThemePreference(themeString);
+      
+      // Sync theme preference to AWS if user is signed in (in background)
+      if (_auth.currentUser != null) {
+        _syncService.updateUserProfileInAWS(
+          themePreference: themeString,
+        ).catchError((error) {
+          print('❌ ThemeViewModel: Failed to sync theme to AWS: $error');
+          // Could show a subtle error message here if needed
+        });
+      }
+    } catch (e) {
+      print('❌ ThemeViewModel: Failed to save theme preference: $e');
+      // Rollback on error
+      _themeMode = previousMode;
+      notifyListeners();
+      
+      // Show error message to user
+      _showThemeError();
     }
-    
-    notifyListeners();
+  }
+  
+  void _showThemeError() {
+    // This could be improved with a proper error handling system
+    print('⚠️ ThemeViewModel: Theme change failed, rolled back to previous theme');
   }
   
   String _themeModeToString(ThemeMode mode) {

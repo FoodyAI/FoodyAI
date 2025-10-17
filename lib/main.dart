@@ -9,10 +9,8 @@ import 'presentation/viewmodels/user_profile_viewmodel.dart';
 import 'presentation/viewmodels/image_analysis_viewmodel.dart';
 import 'presentation/viewmodels/theme_viewmodel.dart';
 import 'presentation/viewmodels/auth_viewmodel.dart';
-import 'presentation/pages/welcome_view.dart';
 import 'presentation/pages/error_page.dart';
 import 'core/utils/theme.dart';
-import 'presentation/widgets/connection_banner.dart';
 import 'config/routes/app_routes.dart';
 import 'config/routes/route_transitions.dart';
 import 'config/routes/navigation_service.dart';
@@ -53,30 +51,32 @@ class MyApp extends StatelessWidget {
       ],
       child: Consumer<ThemeViewModel>(
         builder: (context, themeVM, _) {
-          return MaterialApp(
-            title: 'foody',
-            debugShowCheckedModeBanner: false,
-            navigatorKey: NavigationService.navigatorKey,
-            theme: AppTheme.lightTheme,
-            darkTheme: AppTheme.darkTheme,
-            themeMode: themeVM.themeMode,
-            initialRoute: AppRoutes.welcome,
-            onGenerateRoute: _generateRoute,
-            onUnknownRoute: _unknownRoute,
+          return AnimatedTheme(
+            data: themeVM.themeMode == ThemeMode.dark 
+                ? AppTheme.darkTheme 
+                : AppTheme.lightTheme,
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeInOut,
+            child: MaterialApp(
+              title: 'foody',
+              debugShowCheckedModeBanner: false,
+              navigatorKey: NavigationService.navigatorKey,
+              theme: AppTheme.lightTheme,
+              darkTheme: AppTheme.darkTheme,
+              themeMode: themeVM.themeMode,
+              initialRoute: AppRoutes.splash,
+              onGenerateRoute: _generateRoute,
+              onUnknownRoute: _unknownRoute,
+            ),
           );
         },
       ),
     );
   }
 
-  /// Generate routes dynamically with authentication and onboarding checks
+  /// Generate routes dynamically
   static Route<dynamic>? _generateRoute(RouteSettings settings) {
-    final routeName = settings.name ?? AppRoutes.welcome;
-
-    // Handle initial route - determine where to go based on user state
-    if (routeName == AppRoutes.welcome) {
-      return _handleInitialRoute(settings);
-    }
+    final routeName = settings.name ?? AppRoutes.splash;
 
     // Get the route builder
     final routes = AppRoutes.getRoutes();
@@ -96,44 +96,6 @@ class MyApp extends StatelessWidget {
 
     // Return route with custom transition
     return RouteTransitions.getTransitionForRoute(routeName, page);
-  }
-
-  /// Handle initial route determination
-  static Route<dynamic> _handleInitialRoute(RouteSettings settings) {
-    final context = NavigationService.navigatorKey.currentContext!;
-
-    // Get ViewModels
-    final userProfileVM = context.read<UserProfileViewModel>();
-    final authVM = context.read<AuthViewModel>();
-
-    // Determine the correct initial route
-    String targetRoute;
-    Map<String, dynamic>? arguments;
-
-    if (!authVM.isSignedIn) {
-      targetRoute = AppRoutes.welcome;
-    } else if (!userProfileVM.hasCompletedOnboarding) {
-      targetRoute = AppRoutes.onboarding;
-      arguments = {AppRoutes.isFirstTimeUser: true};
-    } else {
-      targetRoute = AppRoutes.home;
-      arguments = {
-        AppRoutes.connectionBanner: const ConnectionBanner(isConnected: true),
-      };
-    }
-
-    // If we need to redirect, do it after the current route is built
-    if (targetRoute != AppRoutes.welcome) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        NavigationService.pushNamedAndRemoveUntil(
-          targetRoute,
-          arguments: arguments,
-        );
-      });
-    }
-
-    // Return the welcome screen as the initial route
-    return RouteTransitions.slideFromRight(const WelcomeScreen());
   }
 
   /// Handle unknown routes
