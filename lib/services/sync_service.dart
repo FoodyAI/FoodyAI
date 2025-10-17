@@ -280,8 +280,10 @@ class SyncService {
             date: DateTime.parse(foodData['analysis_date'] as String),
             syncedToAws: true, // Already in AWS
             createdAt: foodData['created_at'] != null
-                ? DateTime.fromMillisecondsSinceEpoch(
-                    foodData['created_at'] as int)
+                ? (foodData['created_at'] is String
+                    ? DateTime.parse(foodData['created_at'])
+                    : DateTime.fromMillisecondsSinceEpoch(
+                        foodData['created_at'] as int))
                 : DateTime.now(),
           );
         }).toList();

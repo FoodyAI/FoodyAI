@@ -298,6 +298,10 @@ class ImageAnalysisViewModel extends ChangeNotifier {
       _savedAnalyses.insert(
           0, analysis); // Insert at the beginning (top of list)
 
+      // Clear current analysis and image immediately to prevent UI blinking
+      _currentAnalysis = null;
+      _selectedImage = null;
+
       print('💾 ImageAnalysisViewModel: Saving to storage...');
       await _storage.saveAnalyses(_savedAnalyses);
 
@@ -309,8 +313,7 @@ class ImageAnalysisViewModel extends ChangeNotifier {
       await _syncService.saveFoodAnalysisToAWS(analysis);
       print('✅ ImageAnalysisViewModel: AWS sync completed');
 
-      _currentAnalysis = null;
-      _selectedImage = null;
+      // Single UI update after all operations are complete
       notifyListeners();
 
       // Check if it's a good time to show the rating dialog
