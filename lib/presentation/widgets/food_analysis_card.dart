@@ -46,7 +46,7 @@ class FoodAnalysisCard extends StatelessWidget {
               border: Border.all(
                 color: isDark
                     ? Colors.white.withValues(alpha: 0.15)
-                    : Colors.white.withValues(alpha: 0.6),
+                    : AppColors.primary.withValues(alpha: 0.3),
                 width: 1.5,
               ),
             ),
