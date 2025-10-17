@@ -10,6 +10,7 @@ import '../widgets/profile_inputs.dart';
 import '../widgets/google_signin_button.dart';
 import '../widgets/sign_out_button.dart';
 import '../widgets/auth_loading_overlay.dart';
+import '../widgets/reauth_dialog.dart';
 import '../../core/constants/app_colors.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'welcome_view.dart';
@@ -1857,22 +1858,41 @@ class _ProfileViewState extends State<ProfileView>
       }
 
       if (!success && context.mounted) {
-        // Deletion failed - show error message
-        // (Success case is now handled by AuthViewModel + AuthenticationFlow)
-        final errorMessage = authVM.errorMessage ??
-            'Failed to delete account. Please try again.';
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(errorMessage),
-            backgroundColor: AppColors.error,
-            duration: const Duration(seconds: 4),
-            action: SnackBarAction(
-              label: 'Retry',
-              textColor: AppColors.white,
-              onPressed: () => _handleDeleteAccount(context, authVM),
+        // Check if re-authentication is needed
+        final errorMessage = authVM.errorMessage ?? '';
+
+        if (errorMessage.contains('sign in again') ||
+            errorMessage.contains('cancelled')) {
+          // Show re-authentication dialog with better UX
+          final shouldReauth = await ReauthDialog.showForAccountDeletion(
+            context,
+            () {
+              // Re-attempt deletion after user confirms
+              _handleDeleteAccount(context, authVM);
+            },
+          );
+
+          if (shouldReauth != true) {
+            // User cancelled re-authentication
+            return;
+          }
+        } else {
+          // Show generic error message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(errorMessage.isNotEmpty
+                  ? errorMessage
+                  : 'Failed to delete account. Please try again.'),
+              backgroundColor: AppColors.error,
+              duration: const Duration(seconds: 4),
+              action: SnackBarAction(
+                label: 'Retry',
+                textColor: AppColors.white,
+                onPressed: () => _handleDeleteAccount(context, authVM),
+              ),
             ),
-          ),
-        );
+          );
+        }
       }
       // Note: Success case (success == true) is handled automatically by AuthViewModel
       // which shows success message and navigates to welcome screen
