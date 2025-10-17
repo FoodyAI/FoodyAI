@@ -420,56 +420,48 @@ class FoodAnalysisCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    LayoutBuilder(
-                      builder: (context, constraints) {
-                        final cardWidth = (constraints.maxWidth - 48) /
-                            4; // 48 = 3 * 16 (spacing between cards)
-                        return Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            SizedBox(
-                              width: cardWidth,
-                              child: _buildNutritionCard(
-                                'Calories',
-                                analysis.calories,
-                                'cal',
-                                AppColors.orange,
-                                FontAwesomeIcons.fire,
-                              ),
-                            ),
-                            SizedBox(
-                              width: cardWidth,
-                              child: _buildNutritionCard(
-                                'Protein',
-                                analysis.protein,
-                                'g',
-                                AppColors.blue,
-                                FontAwesomeIcons.dumbbell,
-                              ),
-                            ),
-                            SizedBox(
-                              width: cardWidth,
-                              child: _buildNutritionCard(
-                                'Carbs',
-                                analysis.carbs,
-                                'g',
-                                AppColors.green,
-                                FontAwesomeIcons.carrot,
-                              ),
-                            ),
-                            SizedBox(
-                              width: cardWidth,
-                              child: _buildNutritionCard(
-                                'Fat',
-                                analysis.fat,
-                                'g',
-                                AppColors.orange,
-                                FontAwesomeIcons.water,
-                              ),
-                            ),
-                          ],
-                        );
-                      },
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildNutritionCard(
+                            'Calories',
+                            analysis.calories,
+                            'cal',
+                            AppColors.orange,
+                            FontAwesomeIcons.fire,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _buildNutritionCard(
+                            'Protein',
+                            analysis.protein,
+                            'g',
+                            AppColors.blue,
+                            FontAwesomeIcons.dumbbell,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _buildNutritionCard(
+                            'Carbs',
+                            analysis.carbs,
+                            'g',
+                            AppColors.green,
+                            FontAwesomeIcons.carrot,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _buildNutritionCard(
+                            'Fat',
+                            analysis.fat,
+                            'g',
+                            AppColors.orange,
+                            FontAwesomeIcons.water,
+                          ),
+                        ),
+                      ],
                     ),
 
                     const SizedBox(height: 32),
@@ -652,13 +644,14 @@ class FoodAnalysisCard extends StatelessWidget {
     IconData icon,
   ) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+      height: 120,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
       decoration: BoxDecoration(
         color: AppColors.withOpacity(color, 0.1),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           FaIcon(
             icon,
@@ -666,30 +659,28 @@ class FoodAnalysisCard extends StatelessWidget {
             size: 24,
           ),
           const SizedBox(height: 8),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              label,
-              style: TextStyle(
-                color: color,
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
-              textAlign: TextAlign.center,
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
             ),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 4),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              '${value.toStringAsFixed(1)}$unit',
-              style: TextStyle(
-                color: color,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
+          Text(
+            '${value.toStringAsFixed(1)}$unit',
+            style: TextStyle(
+              color: color,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
             ),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
