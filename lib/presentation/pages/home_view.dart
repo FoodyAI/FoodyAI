@@ -10,7 +10,6 @@ import '../viewmodels/auth_viewmodel.dart';
 import '../widgets/food_analysis_card.dart';
 import '../widgets/calorie_tracking_card.dart';
 import '../widgets/bottom_navigation.dart';
-import '../widgets/undo_delete_snackbar.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/guest_signin_banner.dart';
 import '../widgets/connection_banner.dart';
