@@ -83,7 +83,15 @@ class OpenAIService implements AIService {
 
           final jsonResponse = jsonDecode(jsonString!);
           print('✅ [OpenAI] Parsed JSON: $jsonResponse');
-          
+
+          // Check if the image is food-related
+          final isFoodRelated = jsonResponse['isFoodRelated'];
+          print('🔍 [OpenAI] isFoodRelated: $isFoodRelated');
+          if (isFoodRelated == false || isFoodRelated == 'false') {
+            print('❌ [OpenAI] Not a food item detected!');
+            throw Exception('This image is not related to food');
+          }
+
           return FoodAnalysis(
             name: jsonResponse['name'],
             protein: jsonResponse['protein'].toDouble(),
