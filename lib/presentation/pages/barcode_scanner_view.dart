@@ -5,7 +5,6 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 import '../../data/services/open_food_facts_service.dart';
 import '../../data/models/product.dart';
-import '../../data/models/food_analysis.dart';
 import '../viewmodels/image_analysis_viewmodel.dart';
 import '../widgets/food_analysis_shimmer.dart';
 import '../../../core/constants/app_colors.dart';
@@ -73,24 +72,6 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
     if (_scannedProduct == null) return;
 
     final analysisVM = Provider.of<ImageAnalysisViewModel>(context, listen: false);
-
-    // Debug: Print the image URL
-    print('🖼️ BarcodeScanner: Product imageUrl = ${_scannedProduct!.imageUrl}');
-
-    // Create FoodAnalysis from Product
-    final foodAnalysis = FoodAnalysis(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      name: _scannedProduct!.name,
-      calories: _scannedProduct!.calories ?? 0,
-      protein: _scannedProduct!.protein ?? 0,
-      carbs: _scannedProduct!.carbs ?? 0,
-      fat: _scannedProduct!.fat ?? 0,
-      healthScore: _calculateHealthScore(_scannedProduct!),
-      localImagePath: null,
-      s3ImageUrl: _scannedProduct!.imageUrl,
-    );
-
-    print('🖼️ BarcodeScanner: FoodAnalysis s3ImageUrl = ${foodAnalysis.s3ImageUrl}');
 
     if (context.mounted) {
       // Show success message
