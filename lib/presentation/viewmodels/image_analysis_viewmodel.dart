@@ -139,7 +139,7 @@ class ImageAnalysisViewModel extends ChangeNotifier {
     }
 
     // Show rating dialog
-    final context = navigatorKey.currentContext;
+    final context = NavigationService.currentContext;
     if (context != null) {
       showDialog(
         context: context,
@@ -170,14 +170,98 @@ class ImageAnalysisViewModel extends ChangeNotifier {
         _currentAnalysis = null;
         _error = null;
         notifyListeners();
+
+        print('📸 [ViewModel] Image picked, starting analysis...');
         await analyzeImage();
+        print('✅ [ViewModel] Analysis complete, error: $_error');
+
+        // Show error snackbar if analysis failed
+        if (_error != null) {
+          print('⚠️ [ViewModel] Error detected, showing snackbar...');
+          // Use NavigationService to get a valid context instead of the passed context
+          final validContext = NavigationService.currentContext;
+          if (validContext != null && validContext.mounted) {
+            _showErrorSnackBar(validContext, _error!);
+          } else {
+            print('❌ [ViewModel] No valid context available!');
+          }
+        } else {
+          print('✅ [ViewModel] No error, analysis successful');
+        }
       }
       // User cancelled - no need to show message
     } catch (e) {
       // Handle unexpected errors (permission errors are already handled by PermissionService)
       _error = 'Failed to access camera. Please try again.';
       notifyListeners();
+      final validContext = NavigationService.currentContext;
+      if (validContext != null && validContext.mounted) {
+        _showErrorSnackBar(validContext, _error!);
+      }
     }
+  }
+
+  void _showErrorSnackBar(BuildContext context, String errorMessage) {
+    print('🚨 [ViewModel] Showing error snackbar: $errorMessage');
+
+    // Extract user-friendly message from error
+    String displayMessage = 'This image is not related to food';
+
+    // Check if it contains our specific error message
+    if (errorMessage.contains('This image is not related to food')) {
+      displayMessage = 'This image is not related to food';
+    } else {
+      // For other errors, clean up and show
+      displayMessage = errorMessage
+          .replaceAll('Exception: ', '')
+          .replaceAll('Error analyzing image with Gemini: ', '')
+          .replaceAll('Error analyzing image with OpenAI: ', '')
+          .replaceAll('Error analyzing image with Claude: ', '')
+          .replaceAll('Error analyzing image with Hugging Face: ', '')
+          .replaceAll('Error analyzing image: ', '');
+
+      // If the message is too long, just show the core message
+      if (displayMessage.length > 100) {
+        displayMessage = 'This image is not related to food';
+      }
+    }
+
+    print('📝 [ViewModel] Display message: $displayMessage');
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(
+              Icons.error_outline,
+              color: Colors.white,
+              size: 20,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                displayMessage,
+                style: const TextStyle(
+                  fontSize: 15,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: Colors.red[700],
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        margin: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        duration: const Duration(seconds: 4),
+      ),
+    );
+
+    print('✅ [ViewModel] Snackbar displayed');
   }
 
   Future<void> analyzeImage() async {
@@ -214,6 +298,7 @@ class ImageAnalysisViewModel extends ChangeNotifier {
     } catch (e) {
       _error = e.toString();
       _isLoading = false;
+      _selectedImage = null; // Clear selected image on error
       notifyListeners();
     }
   }
