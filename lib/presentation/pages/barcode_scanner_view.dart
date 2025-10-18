@@ -201,10 +201,13 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
             controller: controller,
             scanWindow: scanArea,
             onDetect: (capture) {
-              final List<Barcode> barcodes = capture.barcodes;
-              for (final barcode in barcodes) {
-                if (barcode.rawValue != null) {
-                  _fetchProductDetails(barcode.rawValue!);
+              // Only scan if no product detail is currently shown
+              if (_scannedProduct == null && !_isLoading) {
+                final List<Barcode> barcodes = capture.barcodes;
+                for (final barcode in barcodes) {
+                  if (barcode.rawValue != null) {
+                    _fetchProductDetails(barcode.rawValue!);
+                  }
                 }
               }
             },
