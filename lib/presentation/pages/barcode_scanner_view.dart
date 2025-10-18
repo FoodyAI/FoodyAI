@@ -200,122 +200,136 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
           ),
         ],
       ),
-      body: Column(
+      body: Stack(
         children: [
-          Expanded(
-            child: Stack(
-              children: [
-                MobileScanner(
-                  controller: controller,
-                  scanWindow: scanArea,
-                  onDetect: (capture) {
-                    final List<Barcode> barcodes = capture.barcodes;
-                    for (final barcode in barcodes) {
-                      if (barcode.rawValue != null) {
-                        _fetchProductDetails(barcode.rawValue!);
-                      }
-                    }
-                  },
-                ),
-                // Scanning Guide Overlay
-                if (!_isLoading && _scannedProduct == null)
-                  Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+          // Camera Scanner
+          MobileScanner(
+            controller: controller,
+            scanWindow: scanArea,
+            onDetect: (capture) {
+              final List<Barcode> barcodes = capture.barcodes;
+              for (final barcode in barcodes) {
+                if (barcode.rawValue != null) {
+                  _fetchProductDetails(barcode.rawValue!);
+                }
+              }
+            },
+          ),
+
+          // Scanning Guide Overlay
+          if (!_isLoading && _scannedProduct == null && _error == null)
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: _scanFrameSize,
+                    height: _scanFrameSize,
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: Colors.white,
+                        width: 2,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Stack(
                       children: [
-                        Container(
-                          width: _scanFrameSize,
-                          height: _scanFrameSize,
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: Colors.white,
-                              width: 2,
-                            ),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Stack(
-                            children: [
-                              // Corner markers
-                              Positioned(
-                                top: 0,
-                                left: 0,
-                                child: _buildCornerMarker(true, true),
-                              ),
-                              Positioned(
-                                top: 0,
-                                right: 0,
-                                child: _buildCornerMarker(true, false),
-                              ),
-                              Positioned(
-                                bottom: 0,
-                                left: 0,
-                                child: _buildCornerMarker(false, true),
-                              ),
-                              Positioned(
-                                bottom: 0,
-                                right: 0,
-                                child: _buildCornerMarker(false, false),
-                              ),
-                            ],
-                          ),
+                        // Corner markers
+                        Positioned(
+                          top: 0,
+                          left: 0,
+                          child: _buildCornerMarker(true, true),
                         ),
-                        const SizedBox(height: 24),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 12,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.black54,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Text(
-                            'Position the barcode within the frame',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
+                        Positioned(
+                          top: 0,
+                          right: 0,
+                          child: _buildCornerMarker(true, false),
+                        ),
+                        Positioned(
+                          bottom: 0,
+                          left: 0,
+                          child: _buildCornerMarker(false, true),
+                        ),
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: _buildCornerMarker(false, false),
                         ),
                       ],
                     ),
                   ),
-                if (_isLoading)
-                  const Center(
-                    child: FoodAnalysisShimmer(),
-                  ),
-              ],
-            ),
-          ),
-          if (_error != null)
-            Container(
-              padding: const EdgeInsets.all(16),
-              color: Colors.red.shade100,
-              child: Text(
-                _error!,
-                style: const TextStyle(color: Colors.red),
-              ),
-            ),
-          if (_scannedProduct != null)
-            ClipRRect(
-              borderRadius: BorderRadius.circular(32),
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.black.withValues(alpha: 0.3)
-                        : Colors.white.withValues(alpha: 0.4),
-                    borderRadius: BorderRadius.circular(32),
-                    border: Border.all(
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.white.withValues(alpha: 0.15)
-                          : Colors.white.withValues(alpha: 0.6),
-                      width: 1.5,
+                  const SizedBox(height: 24),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.black54,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Text(
+                      'Position the barcode within the frame',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
-                  padding: const EdgeInsets.all(20),
+                ],
+              ),
+            ),
+
+          // Loading Indicator
+          if (_isLoading)
+            const Center(
+              child: FoodAnalysisShimmer(),
+            ),
+
+          // Error Message
+          if (_error != null)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                color: Colors.red.shade100,
+                child: Text(
+                  _error!,
+                  style: const TextStyle(color: Colors.red),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+
+          // Product Result Card - Modal style overlay
+          if (_scannedProduct != null)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: Container(
+                margin: const EdgeInsets.all(16),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(32),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.black.withValues(alpha: 0.3)
+                            : Colors.white.withValues(alpha: 0.4),
+                        borderRadius: BorderRadius.circular(32),
+                        border: Border.all(
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.white.withValues(alpha: 0.15)
+                              : Colors.white.withValues(alpha: 0.6),
+                          width: 1.5,
+                        ),
+                      ),
+                      padding: const EdgeInsets.all(20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
@@ -512,6 +526,8 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
                         ],
                       ),
                     ],
+                  ),
+                    ),
                   ),
                 ),
               ),
