@@ -350,6 +350,53 @@ class ImageAnalysisViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Add analysis with loading state (for barcode scanner)
+  /// Shows shimmer effect on home page while processing
+  Future<void> addAnalysisWithLoading(FoodAnalysis analysis) async {
+    print('🔄 ImageAnalysisViewModel: Adding analysis with loading: ${analysis.name}');
+
+    // Set loading state to show shimmer on home page
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      // Add a small delay to ensure shimmer is visible
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      final userId = _auth.currentUser?.uid;
+      if (userId == null) {
+        print('❌ ImageAnalysisViewModel: No authenticated user');
+        throw Exception('User must be authenticated to add analysis');
+      }
+
+      // Insert the analysis at the beginning of the list (top)
+      _savedAnalyses.insert(0, analysis);
+
+      print('💾 ImageAnalysisViewModel: Saving analyses to storage...');
+      await _storage.saveAnalyses(_savedAnalyses);
+
+      // Debug: Check what's in SQLite after saving
+      await _sqliteService.debugPrintFoodAnalyses(userId: userId);
+
+      // Sync with AWS (user is authenticated)
+      print('🔄 ImageAnalysisViewModel: Syncing to AWS...');
+      await _syncService.saveFoodAnalysisToAWS(analysis);
+
+      print('✅ ImageAnalysisViewModel: Analysis added successfully');
+
+      // Check if it's a good time to show the rating dialog
+      await _checkAndShowRating();
+    } catch (e) {
+      print('❌ ImageAnalysisViewModel: Error adding analysis: $e');
+      _error = e.toString();
+    } finally {
+      // Clear loading state
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   void clearImage() {
     _selectedImage = null;
     _currentAnalysis = null;

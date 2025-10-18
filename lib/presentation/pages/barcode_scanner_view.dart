@@ -87,9 +87,6 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
       s3ImageUrl: _scannedProduct!.imageUrl,
     );
 
-    // Add to analysis
-    await analysisVM.addAnalysis(foodAnalysis);
-
     if (context.mounted) {
       // Show success message
       ScaffoldMessenger.of(context).showSnackBar(
@@ -119,8 +116,12 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
         ),
       );
 
-      // Navigate back to home - the Consumer in HomeView will automatically rebuild
+      // Navigate back to home FIRST - so the shimmer effect is visible
       Navigator.pop(context);
+
+      // Add analysis with loading state - this will show shimmer on home page
+      // The Consumer in HomeView will automatically show the shimmer while loading
+      await analysisVM.addAnalysisWithLoading(foodAnalysis);
     }
   }
 
