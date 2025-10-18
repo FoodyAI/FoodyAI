@@ -91,34 +91,43 @@ class ImageAnalysisViewModel extends ChangeNotifier {
   }
 
   Future<void> _loadSavedAnalyses() async {
-    _savedAnalyses = await _storage.loadAnalyses();
-    // Sort by createdAt in descending order (latest first)
-    _savedAnalyses.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-    notifyListeners();
+    // 🔧 FIX #1: Add retry logic with exponential backoff
+    int maxRetries = 3;
+    int retryCount = 0;
+
+    while (retryCount < maxRetries) {
+      try {
+        print('📥 ImageAnalysisViewModel: Loading analyses from SQLite (attempt ${retryCount + 1}/$maxRetries)...');
+        _savedAnalyses = await _storage.loadAnalyses();
+        // Sort by createdAt in descending order (latest first)
+        _savedAnalyses.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        print('✅ ImageAnalysisViewModel: Loaded ${_savedAnalyses.length} analyses successfully');
+        notifyListeners();
+        return; // Success - exit retry loop
+      } catch (e) {
+        retryCount++;
+        print('⚠️ ImageAnalysisViewModel: Failed to load analyses (attempt $retryCount/$maxRetries): $e');
+
+        if (retryCount >= maxRetries) {
+          // Final failure - set empty list to avoid null issues
+          print('❌ ImageAnalysisViewModel: All retry attempts failed, setting empty list');
+          _savedAnalyses = [];
+          notifyListeners();
+          return;
+        }
+
+        // Exponential backoff: 100ms, 500ms, 1000ms
+        final delayMs = retryCount == 1 ? 100 : (retryCount == 2 ? 500 : 1000);
+        await Future.delayed(Duration(milliseconds: delayMs));
+      }
+    }
   }
 
   // Public method to reload analyses (called after AWS sync)
   Future<void> reloadAnalyses() async {
-    print(
-        '🔄 ImageAnalysisViewModel: Manually reloading analyses after AWS sync...');
-
-    try {
-      await _loadSavedAnalyses();
-      print(
-          '✅ ImageAnalysisViewModel: Analyses reloaded, count: ${_savedAnalyses.length}');
-    } catch (e) {
-      print('❌ ImageAnalysisViewModel: Failed to reload analyses: $e');
-      // If reload fails, try again after a short delay
-      Future.delayed(const Duration(milliseconds: 1000), () async {
-        try {
-          await _loadSavedAnalyses();
-          print(
-              '✅ ImageAnalysisViewModel: Retry successful, count: ${_savedAnalyses.length}');
-        } catch (retryError) {
-          print('❌ ImageAnalysisViewModel: Retry also failed: $retryError');
-        }
-      });
-    }
+    print('🔄 ImageAnalysisViewModel: Manually reloading analyses after AWS sync...');
+    // Retry logic is now handled inside _loadSavedAnalyses()
+    await _loadSavedAnalyses();
   }
 
   Future<void> _checkAndShowRating() async {
