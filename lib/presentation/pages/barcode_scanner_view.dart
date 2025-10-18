@@ -105,9 +105,16 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
       // Navigate back to home FIRST - so the shimmer effect is visible
       Navigator.pop(context);
 
-      // Add analysis with loading state - this will show shimmer on home page
-      // The Consumer in HomeView will automatically show the shimmer while loading
-      await analysisVM.addAnalysisWithLoading(foodAnalysis);
+      // Add barcode analysis with automatic download + upload
+      await analysisVM.addBarcodeAnalysis(
+        productName: _scannedProduct!.name,
+        calories: _scannedProduct!.calories ?? 0,
+        protein: _scannedProduct!.protein ?? 0,
+        carbs: _scannedProduct!.carbs ?? 0,
+        fat: _scannedProduct!.fat ?? 0,
+        healthScore: _calculateHealthScore(_scannedProduct!),
+        imageUrl: _scannedProduct!.imageUrl ?? '',
+      );
     }
   }
 
