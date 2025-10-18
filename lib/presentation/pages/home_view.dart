@@ -532,16 +532,4 @@ class _HomeContentState extends State<_HomeContent> {
     );
   }
 
-  void _showUndoSnackbar(
-      FoodAnalysis removedAnalysis, ImageAnalysisViewModel vm) {
-    if (mounted) {
-      UndoDeleteSnackbar.show(
-        context: context,
-        removedAnalysis: removedAnalysis,
-        onUndo: () {
-          vm.addAnalysis(removedAnalysis);
-        },
-      );
-    }
-  }
 }
