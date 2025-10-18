@@ -18,8 +18,7 @@ import '../../services/aws_service.dart';
 import '../../services/permission_service.dart';
 import '../../core/events/food_data_update_event.dart';
 import '../widgets/rating_dialog.dart';
-
-final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+import '../../config/routes/navigation_service.dart';
 
 class ImageAnalysisViewModel extends ChangeNotifier {
   final ImagePicker _picker = ImagePicker();
