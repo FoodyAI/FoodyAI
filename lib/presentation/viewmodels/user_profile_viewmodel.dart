@@ -51,32 +51,62 @@ class UserProfileViewModel extends ChangeNotifier {
   }
 
   Future<void> _loadProfile() async {
-    // Skip if already loading to prevent duplicate calls
+    // 🔧 FIX #3: Add timeout to prevent deadlock with retry logic
     if (_isLoadingProfile) {
-      print('⏭️ UserProfileViewModel: Skipping profile load - already loading');
-      return;
+      print('⏭️ UserProfileViewModel: Already loading, waiting for completion...');
+      // Wait max 5 seconds for current load to complete, then force retry
+      await Future.delayed(const Duration(seconds: 5));
+      if (_isLoadingProfile) {
+        print('⚠️ UserProfileViewModel: Load timeout detected, forcing reset');
+        _isLoadingProfile = false; // Reset stuck flag
+      }
     }
-    
+
     _isLoadingProfile = true;
     _isLoading = true;
     notifyListeners();
 
-    try {
-      final userId = _auth.currentUser?.uid;
-      final profile = await _useCase.getProfile(userId: userId);
-      final isMetric = await _useCase.getIsMetric();
-      final hasCompletedOnboarding = await _useCase.getHasCompletedOnboarding();
-      _profile = profile;
-      _isMetric = isMetric;
-      _hasCompletedOnboarding = hasCompletedOnboarding;
-    } catch (e) {
-      print('⚠️ UserProfileViewModel: Error loading profile: $e');
-      // Handle error silently
-    } finally {
-      _isLoading = false;
-      _isLoadingProfile = false;
-      notifyListeners();
+    int maxRetries = 3;
+    int retryCount = 0;
+
+    while (retryCount < maxRetries) {
+      try {
+        print('📥 UserProfileViewModel: Loading profile (attempt ${retryCount + 1}/$maxRetries)...');
+        final userId = _auth.currentUser?.uid;
+        final profile = await _useCase.getProfile(userId: userId);
+        final isMetric = await _useCase.getIsMetric();
+        final hasCompletedOnboarding = await _useCase.getHasCompletedOnboarding();
+
+        _profile = profile;
+        _isMetric = isMetric;
+        _hasCompletedOnboarding = hasCompletedOnboarding;
+
+        print('✅ UserProfileViewModel: Profile loaded successfully');
+        print('   - Has profile: ${profile != null}');
+        print('   - Onboarding complete: $hasCompletedOnboarding');
+
+        // Success - exit retry loop
+        break;
+      } catch (e) {
+        retryCount++;
+        print('⚠️ UserProfileViewModel: Error loading profile (attempt $retryCount/$maxRetries): $e');
+
+        if (retryCount >= maxRetries) {
+          print('❌ UserProfileViewModel: All retry attempts failed');
+          // Don't throw - let app continue with empty profile
+          break;
+        }
+
+        // Exponential backoff: 100ms, 500ms, 1000ms
+        final delayMs = retryCount == 1 ? 100 : (retryCount == 2 ? 500 : 1000);
+        await Future.delayed(Duration(milliseconds: delayMs));
+      }
     }
+
+    // Always reset flags in finally block
+    _isLoading = false;
+    _isLoadingProfile = false;
+    notifyListeners();
   }
 
   Future<void> saveProfile({
