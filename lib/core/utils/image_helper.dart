@@ -1,17 +1,27 @@
 import 'dart:io';
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
+import 'package:crypto/crypto.dart';
 
 /// Utility class for handling image display in the Foody app
 /// Supports both local file paths and S3 URLs with proper caching
 class ImageHelper {
   // In-memory cache to store fetched image bytes
   static final Map<String, Uint8List> _imageCache = {};
-  
+
   // Track which local paths have been verified to exist
   static final Map<String, bool> _localFileExistsCache = {};
+
+  // Track in-flight network requests to prevent duplicate fetches
+  static final Map<String, Future<Uint8List>> _inFlightRequests = {};
+
+  // Semaphore to limit concurrent network requests (max 3 at a time)
+  static int _activeRequests = 0;
+  static const int _maxConcurrentRequests = 3;
 
   /// Determines if the imagePath is an S3 URL or local file path
   static bool isS3Url(String? imagePath) {
