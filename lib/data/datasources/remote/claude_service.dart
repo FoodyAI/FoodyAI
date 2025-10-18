@@ -93,7 +93,15 @@ class ClaudeService implements AIService {
 
         final jsonResponse = jsonDecode(jsonString) as Map<String, dynamic>;
         print('✅ [Claude] Parsed JSON: $jsonResponse');
-        
+
+        // Check if the image is food-related
+        final isFoodRelated = jsonResponse['isFoodRelated'];
+        print('🔍 [Claude] isFoodRelated: $isFoodRelated');
+        if (isFoodRelated == false || isFoodRelated == 'false') {
+          print('❌ [Claude] Not a food item detected!');
+          throw Exception('This image is not related to food');
+        }
+
         return FoodAnalysis(
           name: jsonResponse['name'] as String,
           protein: (jsonResponse['protein'] as num).toDouble(),
