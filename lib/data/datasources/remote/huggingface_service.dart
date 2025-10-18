@@ -94,6 +94,14 @@ class HuggingFaceService implements AIService {
 
         print('✅ [HuggingFace] Parsed JSON: $jsonResponse');
 
+        // Check if the image is food-related
+        final isFoodRelated = jsonResponse['isFoodRelated'];
+        print('🔍 [HuggingFace] isFoodRelated: $isFoodRelated');
+        if (isFoodRelated == false || isFoodRelated == 'false') {
+          print('❌ [HuggingFace] Not a food item detected!');
+          throw Exception('This image is not related to food');
+        }
+
         return FoodAnalysis(
           name: (jsonResponse['name'] ?? '').toString(),
           protein: (jsonResponse['protein'] as num).toDouble(),
