@@ -73,19 +73,27 @@ class _HomeContentState extends State<_HomeContent> {
     super.initState();
     _loadBannerState();
 
-    // Listen for auth state changes to refresh data when user signs in
+    // 🔧 FIX #4: Trigger background sync AFTER routing to home screen
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authVM = Provider.of<AuthViewModel>(context, listen: false);
       final analysisVM =
           Provider.of<ImageAnalysisViewModel>(context, listen: false);
 
-      // If user is authenticated and we have no data, try to reload
-      if (authVM.isSignedIn && analysisVM.savedAnalyses.isEmpty) {
-        Future.delayed(const Duration(milliseconds: 1000), () {
-          if (mounted) {
-            analysisVM.forceRefresh();
-          }
-        });
+      if (authVM.isSignedIn) {
+        // Trigger background AWS sync now that we're on the home screen
+        // This syncs data without blocking initial routing
+        print('🏠 HomeView: Triggering background sync after routing...');
+        authVM.syncAfterRouting();
+
+        // If we have no data loaded yet, force refresh from SQLite
+        if (analysisVM.savedAnalyses.isEmpty) {
+          Future.delayed(const Duration(milliseconds: 500), () {
+            if (mounted) {
+              print('🏠 HomeView: No data found, forcing refresh from SQLite...');
+              analysisVM.forceRefresh();
+            }
+          });
+        }
       }
     });
   }
