@@ -277,9 +277,7 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
 
           // Loading Indicator
           if (_isLoading)
-            const Center(
-              child: FoodAnalysisShimmer(),
-            ),
+            const BarcodeScannerShimmer(),
 
           // Error Message
           if (_error != null)
