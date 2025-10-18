@@ -119,8 +119,8 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
         ),
       );
 
-      // Navigate back to home
-      Navigator.pop(context, foodAnalysis);
+      // Navigate back to home - the Consumer in HomeView will automatically rebuild
+      Navigator.pop(context);
     }
   }
 
@@ -299,7 +299,7 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
             ),
           if (_scannedProduct != null)
             ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+              borderRadius: BorderRadius.circular(32),
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                 child: Container(
@@ -307,7 +307,7 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
                     color: Theme.of(context).brightness == Brightness.dark
                         ? Colors.black.withValues(alpha: 0.3)
                         : Colors.white.withValues(alpha: 0.4),
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+                    borderRadius: BorderRadius.circular(32),
                     border: Border.all(
                       color: Theme.of(context).brightness == Brightness.dark
                           ? Colors.white.withValues(alpha: 0.15)
@@ -558,71 +558,77 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
   ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
-      decoration: BoxDecoration(
-        color: isDark
-            ? Colors.black.withValues(alpha: 0.2)
-            : Colors.white.withValues(alpha: 0.3),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isDark
-              ? Colors.white.withValues(alpha: 0.1)
-              : Colors.white.withValues(alpha: 0.4),
-          width: 1,
-        ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          FaIcon(
-            icon,
-            size: 16,
-            color: accentColor,
-          ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 10,
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
+          decoration: BoxDecoration(
+            color: isDark
+                ? Colors.black.withValues(alpha: 0.3)
+                : Colors.white.withValues(alpha: 0.4),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
               color: isDark
-                  ? AppColors.darkTextSecondary
-                  : AppColors.textSecondary,
-              fontWeight: FontWeight.w500,
+                  ? Colors.white.withValues(alpha: 0.15)
+                  : Colors.white.withValues(alpha: 0.6),
+              width: 1,
             ),
           ),
-          const SizedBox(height: 2),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Flexible(
-                child: Text(
-                  value,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: isDark
-                        ? AppColors.darkTextPrimary
-                        : AppColors.textPrimary,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
+              FaIcon(
+                icon,
+                size: 16,
+                color: accentColor,
               ),
-              const SizedBox(width: 2),
+              const SizedBox(height: 4),
               Text(
-                unit,
+                label,
                 style: TextStyle(
                   fontSize: 10,
                   color: isDark
                       ? AppColors.darkTextSecondary
                       : AppColors.textSecondary,
+                  fontWeight: FontWeight.w500,
                 ),
+              ),
+              const SizedBox(height: 2),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
+                  Flexible(
+                    child: Text(
+                      value,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: isDark
+                            ? AppColors.darkTextPrimary
+                            : AppColors.textPrimary,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: 2),
+                  Text(
+                    unit,
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: isDark
+                          ? AppColors.darkTextSecondary
+                          : AppColors.textSecondary,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -636,58 +642,100 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
-          decoration: BoxDecoration(
-            color: isPrimary
-                ? AppColors.primary
-                : (isDark
-                    ? Colors.black.withValues(alpha: 0.2)
-                    : Colors.white.withValues(alpha: 0.3)),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: isPrimary
-                  ? AppColors.primary
-                  : (isDark
-                      ? Colors.white.withValues(alpha: 0.1)
-                      : Colors.white.withValues(alpha: 0.4)),
-              width: 1.5,
-            ),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              FaIcon(
-                icon,
-                size: 14,
-                color: isPrimary
-                    ? Colors.white
-                    : (isDark ? AppColors.darkTextPrimary : AppColors.textPrimary),
-              ),
-              const SizedBox(width: 6),
-              Flexible(
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: isPrimary
-                        ? Colors.white
-                        : (isDark ? AppColors.darkTextPrimary : AppColors.textPrimary),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: isPrimary
+          ? Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: onPressed,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: AppColors.primary,
+                      width: 1.5,
+                    ),
                   ),
-                  overflow: TextOverflow.ellipsis,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      FaIcon(
+                        icon,
+                        size: 14,
+                        color: Colors.white,
+                      ),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          label,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ],
-          ),
-        ),
-      ),
+            )
+          : BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: onPressed,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? Colors.black.withValues(alpha: 0.3)
+                          : Colors.white.withValues(alpha: 0.4),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.15)
+                            : Colors.white.withValues(alpha: 0.6),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        FaIcon(
+                          icon,
+                          size: 14,
+                          color: isDark
+                              ? AppColors.darkTextPrimary
+                              : AppColors.textPrimary,
+                        ),
+                        const SizedBox(width: 6),
+                        Flexible(
+                          child: Text(
+                            label,
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: isDark
+                                  ? AppColors.darkTextPrimary
+                                  : AppColors.textPrimary,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
     );
   }
 }
