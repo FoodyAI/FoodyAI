@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:uuid/uuid.dart';
+import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
 import '../../data/models/food_analysis.dart';
 import '../../data/datasources/remote/ai_service.dart';
 import '../../data/datasources/remote/ai_service_factory.dart';
@@ -416,5 +418,101 @@ class ImageAnalysisViewModel extends ChangeNotifier {
     await _loadSavedAnalyses();
     print(
         '✅ ImageAnalysisViewModel: Force refresh completed, count: ${_savedAnalyses.length}');
+  }
+
+  /// Add barcode analysis with automatic image download and S3 upload
+  /// Downloads image from HTTP URL, saves locally, uploads to S3, then saves analysis
+  Future<void> addBarcodeAnalysis({
+    required String productName,
+    required String imageUrl,
+    required double protein,
+    required double carbs,
+    required double fat,
+    required double calories,
+    required double healthScore,
+  }) async {
+    print('🔄 ImageAnalysisViewModel: Adding barcode analysis: $productName');
+    print('📥 ImageAnalysisViewModel: Downloading image from: $imageUrl');
+
+    // Set loading state to show shimmer on home page
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final userId = _auth.currentUser?.uid;
+      if (userId == null) {
+        print('❌ ImageAnalysisViewModel: No authenticated user');
+        throw Exception('User must be authenticated to add analysis');
+      }
+
+      // Download image from HTTP URL
+      final response = await http.get(Uri.parse(imageUrl));
+      if (response.statusCode != 200) {
+        throw Exception('Failed to download image: ${response.statusCode}');
+      }
+
+      // Get temporary directory
+      final tempDir = await getTemporaryDirectory();
+      final fileName = 'barcode_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final tempFile = File('${tempDir.path}/$fileName');
+
+      // Save downloaded image to temporary file
+      await tempFile.writeAsBytes(response.bodyBytes);
+      print('✅ ImageAnalysisViewModel: Image downloaded and saved to: ${tempFile.path}');
+
+      // Upload image to S3
+      print('📤 ImageAnalysisViewModel: Uploading image to S3...');
+      final s3ImageUrl = await _awsService.uploadImageToS3(tempFile);
+      if (s3ImageUrl == null) {
+        throw Exception('Failed to upload image to S3');
+      }
+      print('✅ ImageAnalysisViewModel: Image uploaded to S3: $s3ImageUrl');
+
+      // Create FoodAnalysis with S3 path
+      final analysis = FoodAnalysis(
+        id: const Uuid().v4(),
+        name: productName,
+        protein: protein,
+        carbs: carbs,
+        fat: fat,
+        calories: calories,
+        healthScore: healthScore,
+        imagePath: s3ImageUrl, // Legacy field
+        localImagePath: tempFile.path, // Local file path
+        s3ImageUrl: s3ImageUrl, // S3 URL
+        orderNumber: 0,
+        date: _selectedDate,
+        dateOrderNumber: 0,
+      );
+
+      print('📝 ImageAnalysisViewModel: Created barcode analysis: ${analysis.name} (${analysis.calories} cal)');
+
+      // Insert the analysis at the beginning of the list (top)
+      _savedAnalyses.insert(0, analysis);
+
+      print('💾 ImageAnalysisViewModel: Saving analyses to storage...');
+      await _storage.saveAnalyses(_savedAnalyses);
+
+      // Debug: Check what's in SQLite after saving
+      await _sqliteService.debugPrintFoodAnalyses(userId: userId);
+
+      // Sync with AWS (user is authenticated)
+      print('🔄 ImageAnalysisViewModel: Syncing to AWS...');
+      await _syncService.saveFoodAnalysisToAWS(analysis);
+      print('✅ ImageAnalysisViewModel: AWS sync completed');
+
+      // Check if it's a good time to show the rating dialog
+      await _checkAndShowRating();
+
+      print('✅ ImageAnalysisViewModel: Barcode analysis added successfully');
+    } catch (e) {
+      print('❌ ImageAnalysisViewModel: Error adding barcode analysis: $e');
+      _error = e.toString();
+    } finally {
+      // Clear loading state
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 }
