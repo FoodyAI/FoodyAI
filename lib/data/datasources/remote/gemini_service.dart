@@ -111,6 +111,14 @@ class GeminiService implements AIService {
         final Map<String, dynamic> jsonResponse = jsonDecode(jsonString);
         print('✅ [Gemini] Parsed JSON: $jsonResponse');
 
+        // Check if the image is food-related
+        final isFoodRelated = jsonResponse['isFoodRelated'];
+        print('🔍 [Gemini] isFoodRelated: $isFoodRelated');
+        if (isFoodRelated == false || isFoodRelated == 'false') {
+          print('❌ [Gemini] Not a food item detected!');
+          throw Exception('This image is not related to food');
+        }
+
         double numToDouble(dynamic v, {double fallback = 0}) {
           if (v is num) return v.toDouble();
           if (v is String) {
