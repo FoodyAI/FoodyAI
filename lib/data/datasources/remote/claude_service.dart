@@ -26,7 +26,7 @@ class ClaudeService implements AIService {
               {
                 'type': 'text',
                 'text':
-                    'Analyze this food image and respond ONLY in valid JSON: {"name": "food name", "protein": number, "carbs": number, "fat": number, "calories": number, "healthScore": number}. Units in grams; healthScore 0-10. No code blocks, no markdown.'
+                    'Analyze this image and determine if it contains FOOD, DRINK, or FOOD INGREDIENTS (vegetables, fruits, raw materials, etc.). Respond ONLY in valid JSON format: {"isFoodRelated": boolean, "name": "food name", "protein": number, "carbs": number, "fat": number, "calories": number, "healthScore": number}. Set isFoodRelated to true ONLY if the image shows food, beverages, or food ingredients. Set it to false for non-food items like cars, phones, people, buildings, etc. Values should be in grams except healthScore (0-10). No code blocks, no markdown.'
               },
               {
                 'type': 'image',
