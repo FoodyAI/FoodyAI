@@ -21,7 +21,7 @@ class GeminiService implements AIService {
             'parts': [
               {
                 'text':
-                    'Analyze this food image and respond ONLY in valid JSON format: {"name": "food name", "protein": number, "carbs": number, "fat": number, "calories": number, "healthScore": number}. Values should be in grams except healthScore (0-10). Do not include any markdown formatting or code blocks, just pure JSON.'
+                    'Analyze this image and determine if it contains FOOD, DRINK, or FOOD INGREDIENTS (vegetables, fruits, raw materials, etc.). Respond ONLY in valid JSON format: {"isFoodRelated": boolean, "name": "food name", "protein": number, "carbs": number, "fat": number, "calories": number, "healthScore": number}. Set isFoodRelated to true ONLY if the image shows food, beverages, or food ingredients. Set it to false for non-food items like cars, phones, people, buildings, etc. Values should be in grams except healthScore (0-10). Do not include any markdown formatting or code blocks, just pure JSON.'
               },
               {
                 'inline_data': {
