@@ -169,11 +169,6 @@ class _SubscriptionViewState extends State<SubscriptionView> {
                         // Pro Plan Card with Glassmorphism
                         _buildProPlanCard(context, isDark),
 
-                        const SizedBox(height: 24),
-
-                        // Features List with Glassmorphism
-                        _buildFeaturesList(context, isDark),
-
                         const SizedBox(height: 89), // Space for fixed button
                       ],
                     ),
@@ -448,101 +443,113 @@ class _SubscriptionViewState extends State<SubscriptionView> {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(25), // More rounded
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeInOut,
-          height: 80, // Fixed height for both buttons
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+          height: 60, // Reduced height for more button-like appearance
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
           decoration: BoxDecoration(
             color: isSelected
                 ? AppColors.primary
                 : (isDark
-                    ? Colors.white.withValues(alpha: 0.05)
-                    : Colors.white.withValues(alpha: 0.6)),
-            borderRadius: BorderRadius.circular(16),
+                    ? Colors.white.withValues(alpha: 0.1)
+                    : Colors.white.withValues(alpha: 0.8)),
+            borderRadius: BorderRadius.circular(25), // Fully rounded buttons
             border: Border.all(
               color: isSelected
                   ? AppColors.primary
                   : (isDark
-                      ? Colors.white.withValues(alpha: 0.1)
-                      : Colors.white.withValues(alpha: 0.3)),
-              width: isSelected ? 2 : 1.5,
+                      ? Colors.white.withValues(alpha: 0.2)
+                      : Colors.grey.withValues(alpha: 0.3)),
+              width: isSelected ? 2 : 1,
             ),
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.3),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
+                      color: AppColors.primary.withValues(alpha: 0.4),
+                      blurRadius: 12,
+                      offset: const Offset(0, 6),
                     ),
                   ]
-                : null,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: isSelected
-                          ? Colors.white
-                          : (isDark
-                              ? AppColors.darkTextPrimary
-                              : AppColors.textPrimary),
-                    ),
-                  ),
-                  if (showBadge) ...[
-                    const SizedBox(width: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? Colors.white.withValues(alpha: 0.2)
-                            : AppColors.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(
-                          color: isSelected
-                              ? Colors.white.withValues(alpha: 0.3)
-                              : AppColors.primary.withValues(alpha: 0.2),
-                          width: 1,
-                        ),
-                      ),
-                      child: Text(
-                        'RECOMMENDED',
-                        style: TextStyle(
-                          color: isSelected ? Colors.white : AppColors.primary,
-                          fontSize: 8,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
+                : [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
                     ),
                   ],
-                ],
-              ),
-              const SizedBox(height: 4),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
               Text(
-                subtitle,
+                title,
                 style: TextStyle(
-                  fontSize: 10, // Reduced to match Pro plan card
-                  fontWeight: FontWeight.w500,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
                   color: isSelected
-                      ? Colors.white.withValues(alpha: 0.9)
+                      ? Colors.white
                       : (isDark
-                          ? AppColors.darkTextSecondary
-                          : AppColors.textSecondary),
+                          ? AppColors.darkTextPrimary
+                          : AppColors.textPrimary),
                 ),
               ),
+              if (showBadge) ...[
+                const SizedBox(width: 8),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? Colors.white.withValues(alpha: 0.2)
+                        : AppColors.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: isSelected
+                          ? Colors.white.withValues(alpha: 0.3)
+                          : AppColors.primary.withValues(alpha: 0.2),
+                      width: 1,
+                    ),
+                  ),
+                  child: Text(
+                    'RECOMMENDED',
+                    style: TextStyle(
+                      fontSize: 9,
+                      fontWeight: FontWeight.bold,
+                      color: isSelected ? Colors.white : AppColors.primary,
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildPlanFeature(bool isDark, String text, String emoji) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        children: [
+          Text(
+            emoji,
+            style: const TextStyle(fontSize: 16),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            text,
+            style: TextStyle(
+              fontSize: 13,
+              color: isDark
+                  ? AppColors.darkTextSecondary
+                  : AppColors.textSecondary,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -588,15 +595,24 @@ class _SubscriptionViewState extends State<SubscriptionView> {
                           children: [
                             Row(
                               children: [
-                                Text(
-                                  'Pro Plan',
-                                  style: TextStyle(
-                                    fontSize: 32,
-                                    fontWeight: FontWeight.bold,
-                                    color: isDark
-                                        ? AppColors.darkTextPrimary
-                                        : AppColors.textPrimary,
-                                  ),
+                                Row(
+                                  children: [
+                                    Text(
+                                      isYearly ? 'Unlimited' : 'Power Plan',
+                                      style: TextStyle(
+                                        fontSize: 32,
+                                        fontWeight: FontWeight.bold,
+                                        color: isDark
+                                            ? AppColors.darkTextPrimary
+                                            : AppColors.textPrimary,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      isYearly ? '🚀' : '💪',
+                                      style: const TextStyle(fontSize: 24),
+                                    ),
+                                  ],
                                 ),
                                 if (isYearly) ...[
                                   const SizedBox(width: 12),
@@ -626,18 +642,55 @@ class _SubscriptionViewState extends State<SubscriptionView> {
                               ],
                             ),
                             const SizedBox(height: 8),
-                            Text(
-                              'Everything you need to succeed',
-                              style: TextStyle(
-                                fontSize: 15,
-                                color: isDark
-                                    ? AppColors.darkTextSecondary
-                                    : AppColors.textSecondary,
-                              ),
+                            Row(
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    'Everything you need to reach your goals',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: isDark
+                                          ? AppColors.darkTextSecondary
+                                          : AppColors.textSecondary,
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '🎯',
+                                  style: const TextStyle(fontSize: 14),
+                                ),
+                              ],
                             ),
                           ],
                         ),
                       ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  // What you get section
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'What you get:',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: isDark
+                              ? AppColors.darkTextPrimary
+                              : AppColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      _buildPlanFeature(isDark, 'Unlimited food scans', '∞'),
+                      _buildPlanFeature(isDark, 'Barcode scanner', '📱'),
+                      _buildPlanFeature(isDark, 'Ad-free experience', '🚫'),
+                      _buildPlanFeature(
+                          isDark, 'Advanced nutrition insights', '📊'),
+                      _buildPlanFeature(isDark, 'Priority support', '⭐'),
                     ],
                   ),
                   const SizedBox(height: 24),
@@ -700,98 +753,6 @@ class _SubscriptionViewState extends State<SubscriptionView> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildFeaturesList(BuildContext context, bool isDark) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(24),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.05)
-                : Colors.white.withValues(alpha: 0.6),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.1)
-                  : Colors.white.withValues(alpha: 0.3),
-              width: 1.5,
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'What You Get',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: isDark
-                      ? AppColors.darkTextPrimary
-                      : AppColors.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 20),
-              _buildFeatureItem(
-                  isDark, 'Unlimited food scans', FontAwesomeIcons.infinity),
-              _buildFeatureItem(
-                  isDark, 'Barcode scanner', FontAwesomeIcons.barcode),
-              _buildFeatureItem(
-                  isDark, 'Ad-free experience', FontAwesomeIcons.ban),
-              _buildFeatureItem(isDark, 'Advanced nutrition insights',
-                  FontAwesomeIcons.chartLine),
-              _buildFeatureItem(
-                  isDark, 'Priority support', FontAwesomeIcons.headset),
-              _buildFeatureItem(
-                  isDark, 'Early access to features', FontAwesomeIcons.rocket,
-                  isLast: true),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFeatureItem(bool isDark, String title, IconData icon,
-      {bool isLast = false}) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: isLast ? 0 : 18),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: AppColors.primary.withValues(alpha: 0.2),
-                width: 1.5,
-              ),
-            ),
-            child: FaIcon(
-              icon,
-              color: AppColors.primary,
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Text(
-              title,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color:
-                    isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }
