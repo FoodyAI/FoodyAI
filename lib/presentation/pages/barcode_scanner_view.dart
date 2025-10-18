@@ -74,6 +74,9 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
 
     final analysisVM = Provider.of<ImageAnalysisViewModel>(context, listen: false);
 
+    // Debug: Print the image URL
+    print('🖼️ BarcodeScanner: Product imageUrl = ${_scannedProduct!.imageUrl}');
+
     // Create FoodAnalysis from Product
     final foodAnalysis = FoodAnalysis(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -86,6 +89,8 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
       localImagePath: null,
       s3ImageUrl: _scannedProduct!.imageUrl,
     );
+
+    print('🖼️ BarcodeScanner: FoodAnalysis s3ImageUrl = ${foodAnalysis.s3ImageUrl}');
 
     if (context.mounted) {
       // Show success message
