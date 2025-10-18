@@ -83,22 +83,41 @@ class _SplashScreenState extends State<SplashScreen>
     }
   }
 
-  /// Wait for ViewModels to finish initialization
+  /// 🔧 FIX #2 + #5: Wait for Firebase Auth AND profile data
   Future<void> _waitForInitialization(
     AuthViewModel authVM,
     UserProfileViewModel userProfileVM,
   ) async {
-    // Wait for profile loading to complete (max 3 seconds timeout)
     final startTime = DateTime.now();
-    const maxWaitTime = Duration(seconds: 3);
+    const maxWaitTime = Duration(seconds: 10);
 
+    print('⏳ SplashScreen: Waiting for initialization...');
+
+    // CRITICAL: Wait for AuthViewModel to finish checking Firebase session
+    // AuthState.initial means Firebase is still restoring the session
+    while (authVM.authState == AuthState.initial &&
+        DateTime.now().difference(startTime) < maxWaitTime) {
+      print('⏳ SplashScreen: Waiting for Firebase to restore session...');
+      await Future.delayed(const Duration(milliseconds: 100));
+    }
+
+    // Now wait for profile loading to complete
     while (userProfileVM.isLoading &&
         DateTime.now().difference(startTime) < maxWaitTime) {
       await Future.delayed(const Duration(milliseconds: 100));
     }
 
-    print('✅ SplashScreen: Initialization complete');
+    // Give extra time if we have a signed-in user but profile isn't loaded yet
+    if (authVM.isSignedIn && userProfileVM.profile == null) {
+      print('⏳ SplashScreen: User signed in but profile loading, waiting extra 2s...');
+      await Future.delayed(const Duration(seconds: 2));
+    }
+
+    final elapsed = DateTime.now().difference(startTime);
+    print('✅ SplashScreen: Initialization complete (${elapsed.inMilliseconds}ms)');
+    print('   - Auth state: ${authVM.authState}');
     print('   - Auth signed in: ${authVM.isSignedIn}');
+    print('   - Has profile: ${userProfileVM.profile != null}');
     print('   - Onboarding completed: ${userProfileVM.hasCompletedOnboarding}');
   }
 
