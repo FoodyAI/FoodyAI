@@ -468,11 +468,7 @@ class _HomeContentState extends State<_HomeContent> {
                                                     .millisecondsSinceEpoch));
 
                                 if (fullIndex != -1) {
-                                  final removedAnalysis =
-                                      await vm.removeAnalysis(fullIndex);
-                                  if (removedAnalysis != null) {
-                                    _showUndoSnackbar(removedAnalysis, vm);
-                                  }
+                                  await vm.removeAnalysis(fullIndex);
                                 }
                               },
                             ),
