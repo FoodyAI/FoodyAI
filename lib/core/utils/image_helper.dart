@@ -438,6 +438,17 @@ class ImageHelper {
           loadingBuilder: loadingBuilder,
         );
 
+      case _ImageSourceType.network:
+        print('🌐 ImageHelper: Using NETWORK image: ${imageSource.path}');
+        return buildNetworkImageWithRetry(
+          imageUrl: imageSource.path!,
+          width: width,
+          height: height,
+          fit: fit,
+          errorBuilder: errorBuilder,
+          loadingBuilder: loadingBuilder,
+        );
+
       case _ImageSourceType.none:
         return Container(
           width: width,
@@ -466,13 +477,27 @@ class ImageHelper {
       }
     }
 
-    // 2. Try S3 URL (new field)
+    // 2. Try s3ImageUrl field (could be S3 URL or HTTP/HTTPS network URL)
     if (analysis.s3ImageUrl != null && analysis.s3ImageUrl.isNotEmpty) {
-      print('☁️ ImageHelper: Using S3 URL: ${analysis.s3ImageUrl}');
-      return _ImageSource(
-        type: _ImageSourceType.s3,
-        path: analysis.s3ImageUrl,
-      );
+      final url = analysis.s3ImageUrl as String;
+
+      // Check if it's an S3 URL (s3://)
+      if (isS3Url(url)) {
+        print('☁️ ImageHelper: Using S3 URL: $url');
+        return _ImageSource(
+          type: _ImageSourceType.s3,
+          path: url,
+        );
+      }
+
+      // Check if it's a regular HTTP/HTTPS URL (like OpenFoodFacts images)
+      if (url.startsWith('http://') || url.startsWith('https://')) {
+        print('🌐 ImageHelper: Using network URL: $url');
+        return _ImageSource(
+          type: _ImageSourceType.network,
+          path: url,
+        );
+      }
     }
 
     // 3. Try legacy imagePath field
@@ -505,7 +530,7 @@ class ImageHelper {
 }
 
 /// Internal class to represent image source determination result
-enum _ImageSourceType { local, s3, none }
+enum _ImageSourceType { local, s3, network, none }
 
 class _ImageSource {
   final _ImageSourceType type;

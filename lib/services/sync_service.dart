@@ -87,10 +87,16 @@ class SyncService {
 
       for (final analysis in unsyncedAnalyses) {
         try {
+          // Use s3ImageUrl first (for barcode/network images), then localImagePath, then imagePath
+          final imageUrl = analysis.s3ImageUrl ??
+                          analysis.localImagePath ??
+                          analysis.imagePath ??
+                          '';
+
           // Save to AWS
           final result = await _awsService.saveFoodAnalysis(
             userId: userId,
-            imageUrl: analysis.imagePath ?? '',
+            imageUrl: imageUrl,
             foodName: analysis.name,
             calories: analysis.calories.toInt(),
             protein: analysis.protein,
@@ -268,6 +274,13 @@ class SyncService {
               ? (foodData['health_score'] as num).toDouble()
               : double.parse(foodData['health_score'].toString());
 
+          final imageUrl = foodData['image_url'] as String?;
+
+          // If image URL is HTTP/HTTPS (barcode item), store in s3ImageUrl
+          // If it's S3 path (camera/gallery), store in imagePath
+          final isHttpUrl = imageUrl != null &&
+                           (imageUrl.startsWith('http://') || imageUrl.startsWith('https://'));
+
           return FoodAnalysis(
             id: foodData['id'] as String,
             name: foodData['food_name'] as String,
@@ -276,7 +289,8 @@ class SyncService {
             fat: fat,
             calories: calories,
             healthScore: healthScore,
-            imagePath: foodData['image_url'] as String?,
+            imagePath: !isHttpUrl && imageUrl?.isNotEmpty == true ? imageUrl : null,
+            s3ImageUrl: isHttpUrl ? imageUrl : null,
             date: DateTime.parse(foodData['analysis_date'] as String),
             syncedToAws: true, // Already in AWS
             createdAt: foodData['created_at'] != null
@@ -347,9 +361,18 @@ class SyncService {
         return;
       }
 
+      // Use s3ImageUrl first (for barcode/network images), then localImagePath, then imagePath
+      final imageUrl = analysis.s3ImageUrl ??
+                      analysis.localImagePath ??
+                      analysis.imagePath ??
+                      '';
+      print('📸 AWS: Image URL: $imageUrl');
+
+      // Send the image URL to AWS - if it's an HTTP URL (barcode), AWS will store it
+      // If it's an S3 path (camera/gallery), AWS will also store it
       final result = await _awsService.saveFoodAnalysis(
         userId: userId,
-        imageUrl: analysis.imagePath ?? '',
+        imageUrl: imageUrl,
         foodName: analysis.name,
         calories: analysis.calories.toInt(),
         protein: analysis.protein,
