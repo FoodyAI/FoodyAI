@@ -495,7 +495,7 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
                           Expanded(
                             child: _buildGlassButton(
                               context,
-                              'Scan Again',
+                              'Rescan',
                               FontAwesomeIcons.arrowsRotate,
                               onPressed: () {
                                 setState(() {
@@ -675,15 +675,15 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
                     children: [
                       FaIcon(
                         icon,
-                        size: 14,
+                        size: 12,
                         color: Colors.white,
                       ),
-                      const SizedBox(width: 6),
+                      const SizedBox(width: 4),
                       Flexible(
                         child: Text(
                           label,
                           style: const TextStyle(
-                            fontSize: 13,
+                            fontSize: 11,
                             fontWeight: FontWeight.w600,
                             color: Colors.white,
                           ),
@@ -721,17 +721,17 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
                       children: [
                         FaIcon(
                           icon,
-                          size: 14,
+                          size: 12,
                           color: isDark
                               ? AppColors.darkTextPrimary
                               : AppColors.textPrimary,
                         ),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 4),
                         Flexible(
                           child: Text(
                             label,
                             style: TextStyle(
-                              fontSize: 13,
+                              fontSize: 11,
                               fontWeight: FontWeight.w600,
                               color: isDark
                                   ? AppColors.darkTextPrimary
