@@ -16,6 +16,7 @@ import 'welcome_view.dart';
 import '../../services/notification_service.dart';
 import '../../services/aws_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../config/routes/navigation_service.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
@@ -638,6 +639,76 @@ class _ProfileViewState extends State<ProfileView>
             ),
           ),
           const SizedBox(height: 16),
+          // Subscription Section
+          Card(
+            elevation: 4,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: InkWell(
+              onTap: () {
+                NavigationService.navigateToSubscription(
+                    returnRoute: '/profile');
+              },
+              borderRadius: BorderRadius.circular(16),
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            AppColors.primary,
+                            AppColors.primaryDark,
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const FaIcon(
+                        FontAwesomeIcons.crown,
+                        color: Colors.white,
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Subscription',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: colorScheme.onSurface,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Manage your plan & usage',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: colorScheme.onSurface.withOpacity(0.7),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    FaIcon(
+                      FontAwesomeIcons.chevronRight,
+                      color: colorScheme.onSurface.withOpacity(0.3),
+                      size: 16,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
           // Measurement Units Section
           Card(
             elevation: 4,
@@ -1009,13 +1080,15 @@ class _ProfileViewState extends State<ProfileView>
                 : colorScheme.outline.withOpacity(0.5),
             width: 2,
           ),
-          boxShadow: isSelected ? [
-            BoxShadow(
-              color: colorScheme.primary.withOpacity(0.2),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ] : null,
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: colorScheme.primary.withOpacity(0.2),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
         ),
         child: Row(
           children: [
@@ -1560,7 +1633,6 @@ class _ProfileViewState extends State<ProfileView>
     );
   }
 
-
   Widget _buildDangerZoneCard(
       BuildContext context, AuthViewModel authVM, ColorScheme colorScheme) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -1798,7 +1870,7 @@ class _ProfileViewState extends State<ProfileView>
     );
   }
 
-  Future<void> _handleDeleteAccount(
+  static Future<void> _handleDeleteAccount(
       BuildContext context, AuthViewModel authVM) async {
     // Show loading overlay immediately after confirmation
     AuthLoadingOverlay.showLoading(
@@ -1824,9 +1896,9 @@ class _ProfileViewState extends State<ProfileView>
           // Show re-authentication dialog with better UX
           final shouldReauth = await ReauthDialog.showForAccountDeletion(
             context,
-            () {
-              // Re-attempt deletion after user confirms
-              _handleDeleteAccount(context, authVM);
+            () async {
+              // Re-attempt deletion after user confirms with reauthentication
+              await _handleDeleteAccountWithReauth(context, authVM);
             },
           );
 
@@ -1871,6 +1943,59 @@ class _ProfileViewState extends State<ProfileView>
               textColor: AppColors.white,
               onPressed: () => _handleDeleteAccount(context, authVM),
             ),
+          ),
+        );
+      }
+    }
+  }
+
+  /// Handle delete account with reauthentication after user confirms
+  static Future<void> _handleDeleteAccountWithReauth(
+    BuildContext context,
+    AuthViewModel authVM,
+  ) async {
+    // Show loading overlay immediately after confirmation
+    AuthLoadingOverlay.showLoading(
+      context,
+      message: 'Deleting your account...',
+    );
+
+    try {
+      // Use the new reauthentication method
+      final success = await authVM.deleteUserWithReauth();
+
+      // Hide loading overlay
+      if (context.mounted) {
+        AuthLoadingOverlay.hideLoading(context);
+      }
+
+      if (!success && context.mounted) {
+        // Show error message
+        final errorMessage = authVM.errorMessage ??
+            'Failed to delete account. Please try again.';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 4),
+            action: SnackBarAction(
+              label: 'Retry',
+              textColor: AppColors.white,
+              onPressed: () => _handleDeleteAccount(context, authVM),
+            ),
+          ),
+        );
+      }
+      // Note: Success case is handled automatically by AuthViewModel
+    } catch (e) {
+      // Hide loading overlay on error
+      if (context.mounted) {
+        AuthLoadingOverlay.hideLoading(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to delete account: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 4),
           ),
         );
       }

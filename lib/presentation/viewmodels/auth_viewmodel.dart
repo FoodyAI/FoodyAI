@@ -343,9 +343,62 @@ class AuthViewModel extends ChangeNotifier {
       // Provide user-friendly error messages
       String errorMessage;
       if (e.toString().contains('Re-authentication failed')) {
-        errorMessage = 'Account deletion cancelled. Please try again and sign in when prompted.';
+        errorMessage =
+            'Account deletion cancelled. Please try again and sign in when prompted.';
       } else if (e.toString().contains('requires-recent-login')) {
-        errorMessage = 'For security, please sign in again to delete your account.';
+        errorMessage =
+            'For security, please sign in again to delete your account.';
+      } else {
+        errorMessage = 'Failed to delete account: ${e.toString()}';
+      }
+
+      _setError(errorMessage);
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<bool> deleteUserWithReauth([BuildContext? context]) async {
+    try {
+      _setLoading(true);
+      _clearError();
+
+      if (_user == null) {
+        _setError('No user to delete');
+        return false;
+      }
+
+      // Note: AWS deletion and FCM token deletion were already done in the first attempt
+      // We only need to handle Firebase deletion with reauthentication
+
+      // Clear local data (in case it wasn't cleared in first attempt)
+      await SQLiteService().clearAllData();
+      ProfileUpdateEvent.notifyUpdate();
+
+      // Delete from Firebase with reauthentication
+      await _authService.deleteUserAfterReauth();
+      _user = null;
+      _setAuthState(AuthState.unauthenticated);
+
+      // Navigate to welcome with success message
+      if (context != null && context.mounted) {
+        await _authFlow.handlePostLogoutNavigation(
+          context,
+          message: 'Account deleted successfully',
+          isAccountDeletion: true,
+        );
+      }
+
+      return true;
+    } catch (e) {
+      print('❌ AuthViewModel: Delete account with reauth error: $e');
+
+      // Provide user-friendly error messages
+      String errorMessage;
+      if (e.toString().contains('Re-authentication failed')) {
+        errorMessage =
+            'Account deletion cancelled. Please try again and sign in when prompted.';
       } else {
         errorMessage = 'Failed to delete account: ${e.toString()}';
       }

@@ -7,6 +7,7 @@ import '../../presentation/pages/analyze_view.dart';
 import '../../presentation/pages/profile_view.dart';
 import '../../presentation/pages/barcode_scanner_view.dart';
 import '../../presentation/pages/analysis_loading_view.dart';
+import '../../presentation/pages/subscription_view.dart';
 
 class AppRoutes {
   // Route names
@@ -18,6 +19,7 @@ class AppRoutes {
   static const String profile = '/profile';
   static const String barcodeScanner = '/barcode-scanner';
   static const String analysisLoading = '/analysis-loading';
+  static const String subscription = '/subscription';
 
   // Route arguments
   static const String isFirstTimeUser = 'isFirstTimeUser';
@@ -46,6 +48,13 @@ class AppRoutes {
       profile: (context) => const ProfileView(),
       barcodeScanner: (context) => const BarcodeScannerView(),
       analysisLoading: (context) => const AnalysisLoadingView(),
+      subscription: (context) {
+        final args =
+            ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+        return SubscriptionView(
+          returnRoute: args?['returnRoute'],
+        );
+      },
     };
   }
 

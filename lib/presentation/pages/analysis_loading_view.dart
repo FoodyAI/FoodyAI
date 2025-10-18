@@ -118,7 +118,8 @@ class _AnalysisLoadingViewState extends State<AnalysisLoadingView>
                           Center(
                             child: ElevatedButton(
                               onPressed: () {
-                                NavigationService.navigateToHome();
+                                Navigator.of(context)
+                                    .pushReplacementNamed('/subscription');
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.primary,
@@ -154,16 +155,20 @@ class _AnalysisLoadingViewState extends State<AnalysisLoadingView>
 
                       // Dynamic sizing based on screen dimensions
                       final iconSize = screenWidth * 0.3; // 30% of screen width
-                      final titleFontSize = screenWidth * 0.055; // ~5.5% of width
-                      final subtitleFontSize = screenWidth * 0.04; // ~4% of width
-                      final horizontalPadding = screenWidth * 0.1; // 10% padding on sides
+                      final titleFontSize =
+                          screenWidth * 0.055; // ~5.5% of width
+                      final subtitleFontSize =
+                          screenWidth * 0.04; // ~4% of width
+                      final horizontalPadding =
+                          screenWidth * 0.1; // 10% padding on sides
 
                       return Opacity(
                         opacity: _opacityAnimation.value,
                         child: Transform.scale(
                           scale: _scaleAnimation.value,
                           child: Padding(
-                            padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: horizontalPadding),
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
@@ -171,7 +176,8 @@ class _AnalysisLoadingViewState extends State<AnalysisLoadingView>
                                   width: iconSize.clamp(100.0, 150.0),
                                   height: iconSize.clamp(100.0, 150.0),
                                   decoration: BoxDecoration(
-                                    color: AppColors.primary.withValues(alpha: 0.1),
+                                    color: AppColors.primary
+                                        .withValues(alpha: 0.1),
                                     shape: BoxShape.circle,
                                   ),
                                   child: Center(
@@ -197,7 +203,8 @@ class _AnalysisLoadingViewState extends State<AnalysisLoadingView>
                                   'Saving your health information and analyzing your data',
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
-                                    fontSize: subtitleFontSize.clamp(14.0, 18.0),
+                                    fontSize:
+                                        subtitleFontSize.clamp(14.0, 18.0),
                                     color: isDark
                                         ? AppColors.white.withValues(alpha: 0.7)
                                         : AppColors.grey600,
