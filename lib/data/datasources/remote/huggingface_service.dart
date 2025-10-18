@@ -21,9 +21,11 @@ class HuggingFaceService implements AIService {
       final bytes = await image.readAsBytes();
       final base64Image = base64Encode(bytes);
 
-      const prompt = 'Analyze this food image and respond ONLY as valid JSON: '
-          '{"name": "food name", "protein": number, "carbs": number, '
+      const prompt = 'Analyze this image and determine if it contains FOOD, DRINK, or FOOD INGREDIENTS (vegetables, fruits, raw materials, etc.). '
+          'Respond ONLY as valid JSON: {"isFoodRelated": boolean, "name": "food name", "protein": number, "carbs": number, '
           '"fat": number, "calories": number, "healthScore": number}. '
+          'Set isFoodRelated to true ONLY if the image shows food, beverages, or food ingredients. '
+          'Set it to false for non-food items like cars, phones, people, buildings, etc. '
           'Units in grams; healthScore 0-10. No extra text.';
 
       final requestBody = {
