@@ -49,64 +49,77 @@ class AuthViewModel extends ChangeNotifier {
   }
 
   void _initializeAuth() {
-    // IMPORTANT: Check current user IMMEDIATELY (synchronously)
-    // Firebase Auth persists the session, so currentUser will be non-null
-    // if the user was previously signed in
+    // 🔧 FIX #5 (CRITICAL): Wait for Firebase to restore persisted session
+    // Firebase Auth takes time to restore session from local storage, especially offline
+    // We need to check TWICE: immediately + after a short delay
+
+    // First check (may be null if Firebase hasn't restored yet)
     _user = _authService.currentUser;
     if (_user != null) {
-      print('✅ AuthViewModel: Found persisted user: ${_user!.email}');
+      print('✅ AuthViewModel: Found persisted user immediately: ${_user!.email}');
       _setAuthState(AuthState.authenticated);
-      // Background sync - don't block UI
-      _performBackgroundSync();
     } else {
-      print('ℹ️ AuthViewModel: No persisted user found');
-      _setAuthState(AuthState.unauthenticated);
+      print('⏳ AuthViewModel: No user found immediately, waiting for Firebase to restore session...');
+      _setAuthState(AuthState.initial); // Keep initial state while waiting
+
+      // Give Firebase time to restore session (especially important offline)
+      Future.delayed(const Duration(milliseconds: 500), () {
+        _user = _authService.currentUser;
+        if (_user != null) {
+          print('✅ AuthViewModel: Found persisted user after delay: ${_user!.email}');
+          _setAuthState(AuthState.authenticated);
+          notifyListeners();
+        } else {
+          print('ℹ️ AuthViewModel: No persisted user found after delay');
+          _setAuthState(AuthState.unauthenticated);
+          notifyListeners();
+        }
+      });
     }
 
     // Listen to Firebase Auth state changes for future updates
     _authService.authStateChanges.listen((User? user) {
       _user = user;
       if (user != null) {
+        print('✅ AuthViewModel: Auth state changed - user signed in: ${user.email}');
         _setAuthState(AuthState.authenticated);
-        // Background sync - don't block UI
-        _performBackgroundSync();
       } else {
+        print('ℹ️ AuthViewModel: Auth state changed - user signed out');
         _setAuthState(AuthState.unauthenticated);
       }
       notifyListeners();
     });
   }
 
-  /// Perform background sync without blocking UI
-  void _performBackgroundSync() {
-    // Fire and forget - sync in background
-    Future.microtask(() async {
-      // Skip if data is already being loaded
-      if (_isDataLoading) {
-        print(
-            '⏭️ AuthViewModel: Skipping background sync - data already loading');
-        return;
-      }
+  /// 🔧 FIX #4: Public method to trigger sync AFTER routing (called from home screen)
+  /// This ensures routing happens fast based on local data, then syncs in background
+  Future<void> syncAfterRouting() async {
+    // Skip if data is already being loaded
+    if (_isDataLoading) {
+      print('⏭️ AuthViewModel: Skipping sync - data already loading');
+      return;
+    }
 
-      try {
-        _isDataLoading = true;
-        print('🔄 AuthViewModel: Starting background data sync...');
-        // Load ALL user data from AWS (profile + foods)
-        await _syncService.loadUserDataFromAWS();
-        print('✅ AuthViewModel: Background data sync completed');
+    if (_user == null) {
+      print('⏭️ AuthViewModel: No user signed in, skipping sync');
+      return;
+    }
 
-        // Note: ProfileUpdateEvent.notifyUpdate() is handled by the main sign-in flow
-        // to avoid duplicate UI updates
+    try {
+      _isDataLoading = true;
+      print('🔄 AuthViewModel: Starting background data sync after routing...');
+      // Load ALL user data from AWS (profile + foods)
+      await _syncService.loadUserDataFromAWS();
+      print('✅ AuthViewModel: Background data sync completed');
 
-        // Note: We can't access ImageAnalysisViewModel here since we don't have context
-        // The authStateChanges listener in ImageAnalysisViewModel will handle reloading
-      } catch (e) {
-        print('⚠️ AuthViewModel: Background sync failed: $e');
-        // Don't propagate background sync errors to UI
-      } finally {
-        _isDataLoading = false;
-      }
-    });
+      // Notify listeners that profile data was updated
+      ProfileUpdateEvent.notifyUpdate();
+    } catch (e) {
+      print('⚠️ AuthViewModel: Background sync failed: $e');
+      // Don't propagate background sync errors to UI
+    } finally {
+      _isDataLoading = false;
+    }
   }
 
   /// Enhanced Google Sign-In with smart flow handling
