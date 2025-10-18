@@ -117,7 +117,7 @@ class BarcodeScannerShimmer extends StatelessWidget {
                   width: 1.5,
                 ),
               ),
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(40),
               child: Shimmer.fromColors(
                 baseColor: Theme.of(context).brightness == Brightness.dark
                     ? AppColors.withOpacity(AppColors.grey800, 0.5)
