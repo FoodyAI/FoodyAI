@@ -123,12 +123,20 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   /// Navigate to appropriate screen based on state
-  void _navigateToAppropriateScreen(
+  Future<void> _navigateToAppropriateScreen(
     AuthViewModel authVM,
     UserProfileViewModel userProfileVM,
-  ) {
-    if (!authVM.isSignedIn) {
-      // Not signed in -> Welcome screen
+  ) async {
+    // Check if user has seen intro onboarding
+    final prefs = await SharedPreferences.getInstance();
+    final hasSeenIntro = prefs.getBool('intro_completed') ?? false;
+
+    if (!hasSeenIntro) {
+      // First time user -> Show intro onboarding
+      print('🔀 SplashScreen: Routing to intro (first time user)');
+      NavigationService.pushNamedAndRemoveUntil(AppRoutes.intro);
+    } else if (!authVM.isSignedIn) {
+      // Seen intro but not signed in -> Welcome screen
       print('🔀 SplashScreen: Routing to welcome (not signed in)');
       NavigationService.pushNamedAndRemoveUntil(AppRoutes.welcome);
     } else if (!userProfileVM.hasCompletedOnboarding) {
