@@ -15,6 +15,7 @@ import '../../services/sync_service.dart';
 import '../../services/aws_service.dart';
 import '../../services/permission_service.dart';
 import '../../core/events/food_data_update_event.dart';
+import '../../core/services/connection_service.dart';
 import '../widgets/rating_dialog.dart';
 import '../../config/routes/navigation_service.dart';
 
