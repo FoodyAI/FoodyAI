@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../../services/sync_service.dart';
+import '../../core/services/sync_service.dart';
 import '../../data/services/sqlite_service.dart';
 
 class ThemeViewModel extends ChangeNotifier {
@@ -62,14 +62,14 @@ class ThemeViewModel extends ChangeNotifier {
     try {
       // Save to SQLite in background
       await _sqliteService.setThemePreference(themeString);
-      
-      // Sync theme preference to AWS if user is signed in (in background)
+
+      // Sync theme preference to AWS if user is signed in
+      // Uses new SyncService: tries immediate sync if online, marks for later if offline
       if (_auth.currentUser != null) {
-        _syncService.updateUserProfileInAWS(
-          themePreference: themeString,
-        ).catchError((error) {
+        _syncService.trySyncTheme(themeString).catchError((error) {
           print('❌ ThemeViewModel: Failed to sync theme to AWS: $error');
-          // Could show a subtle error message here if needed
+          // Error is already logged by SyncService, theme will be marked for retry
+          return false;
         });
       }
     } catch (e) {
