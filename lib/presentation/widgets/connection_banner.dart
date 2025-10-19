@@ -23,6 +23,8 @@ class _ConnectionBannerState extends State<ConnectionBanner> {
   void didUpdateWidget(ConnectionBanner oldWidget) {
     super.didUpdateWidget(oldWidget);
 
+    print('🎨 ConnectionBanner: didUpdateWidget - Old: ${oldWidget.isConnected}, New: ${widget.isConnected}');
+
     if (!oldWidget.isConnected && widget.isConnected) {
       // Connection restored - show green banner briefly
       setState(() {
