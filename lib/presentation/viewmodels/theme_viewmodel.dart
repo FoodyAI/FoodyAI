@@ -77,7 +77,7 @@ class ThemeViewModel extends ChangeNotifier {
       // Rollback on error
       _themeMode = previousMode;
       notifyListeners();
-      
+
       // Show error message to user
       _showThemeError();
     }
