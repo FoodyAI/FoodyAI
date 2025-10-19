@@ -276,12 +276,10 @@ class ImageAnalysisViewModel extends ChangeNotifier {
     _error = null;
     notifyListeners();
     try {
-      // Get user's selected AI provider
-      final profile = await _profileRepository.getProfile();
-      AIProvider? aiProvider = profile?.aiProvider;
+      // ALWAYS use Gemini (forced)
+      final aiProvider = AIProvider.gemini;
 
-      // If no AI provider is set, use default
-      aiProvider ??= AIProvider.gemini;
+      print('🤖 [ViewModel] Using AI Provider: ${aiProvider.name} (FORCED TO GEMINI)');
 
       // Get the appropriate AI service
       final AIService service = AIServiceFactory.getService(aiProvider);
