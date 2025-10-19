@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
+import 'dart:async';
 import '../../data/services/sqlite_service.dart';
 import '../viewmodels/image_analysis_viewmodel.dart';
 import '../viewmodels/user_profile_viewmodel.dart';
@@ -10,7 +11,6 @@ import '../viewmodels/auth_viewmodel.dart';
 import '../widgets/food_analysis_card.dart';
 import '../widgets/calorie_tracking_card.dart';
 import '../widgets/bottom_navigation.dart';
-import '../widgets/undo_delete_snackbar.dart';
 import '../widgets/custom_app_bar.dart';
 import '../widgets/guest_signin_banner.dart';
 import '../widgets/connection_banner.dart';
@@ -20,11 +20,11 @@ import 'profile_view.dart';
 import '../../../core/constants/app_colors.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../config/routes/navigation_service.dart';
+import '../../core/services/connection_service.dart';
+import '../../core/services/sync_service.dart';
 
 class HomeView extends StatefulWidget {
-  final ConnectionBanner? connectionBanner;
-
-  const HomeView({super.key, this.connectionBanner});
+  const HomeView({super.key});
 
   @override
   State<HomeView> createState() => _HomeViewState();
@@ -32,6 +32,10 @@ class HomeView extends StatefulWidget {
 
 class _HomeViewState extends State<HomeView> {
   int _currentIndex = 0;
+  final ConnectionService _connectionService = ConnectionService();
+  final SyncService _syncService = SyncService();
+  StreamSubscription<bool>? _connectionSubscription;
+  bool _wasOffline = false;
 
   final List<Widget> _pages = [
     const _HomeContent(),
@@ -40,19 +44,61 @@ class _HomeViewState extends State<HomeView> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+
+    // Listen to connection changes and trigger sync when coming back online
+    _connectionSubscription = _connectionService.connectionStream.listen((isConnected) {
+      print('🌐 HomeView: Connection changed to: $isConnected');
+
+      // If transitioning from offline to online, trigger sync
+      if (isConnected && _wasOffline) {
+        print('📡 HomeView: Connection restored, triggering sync...');
+        _syncService.syncPendingChanges();
+      }
+
+      // Update offline status
+      _wasOffline = !isConnected;
+    });
+
+    // Also sync on startup if there are pending changes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_connectionService.isConnected) {
+        print('🚀 HomeView: App started online, checking for pending syncs...');
+        _syncService.syncOnStartup();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _connectionSubscription?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: _pages[_currentIndex],
-      bottomNavigationBar: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (widget.connectionBanner != null) widget.connectionBanner!,
-          BottomNavigation(
-            currentIndex: _currentIndex,
-            onTap: (index) => setState(() => _currentIndex = index),
+    return StreamBuilder<bool>(
+      stream: _connectionService.connectionStream,
+      initialData: _connectionService.isConnected,
+      builder: (context, snapshot) {
+        final isConnected = snapshot.data ?? true;
+        print('🏠 HomeView: StreamBuilder rebuilt with isConnected = $isConnected');
+
+        return Scaffold(
+          body: _pages[_currentIndex],
+          bottomNavigationBar: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ConnectionBanner(isConnected: isConnected),
+              BottomNavigation(
+                currentIndex: _currentIndex,
+                onTap: (index) => setState(() => _currentIndex = index),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -74,19 +120,27 @@ class _HomeContentState extends State<_HomeContent> {
     super.initState();
     _loadBannerState();
 
-    // Listen for auth state changes to refresh data when user signs in
+    // 🔧 FIX #4: Trigger background sync AFTER routing to home screen
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authVM = Provider.of<AuthViewModel>(context, listen: false);
       final analysisVM =
           Provider.of<ImageAnalysisViewModel>(context, listen: false);
 
-      // If user is authenticated and we have no data, try to reload
-      if (authVM.isSignedIn && analysisVM.savedAnalyses.isEmpty) {
-        Future.delayed(const Duration(milliseconds: 1000), () {
-          if (mounted) {
-            analysisVM.forceRefresh();
-          }
-        });
+      if (authVM.isSignedIn) {
+        // Trigger background AWS sync now that we're on the home screen
+        // This syncs data without blocking initial routing
+        print('🏠 HomeView: Triggering background sync after routing...');
+        authVM.syncAfterRouting();
+
+        // If we have no data loaded yet, force refresh from SQLite
+        if (analysisVM.savedAnalyses.isEmpty) {
+          Future.delayed(const Duration(milliseconds: 500), () {
+            if (mounted) {
+              print('🏠 HomeView: No data found, forcing refresh from SQLite...');
+              analysisVM.forceRefresh();
+            }
+          });
+        }
       }
     });
   }
@@ -334,6 +388,28 @@ class _HomeContentState extends State<_HomeContent> {
                         ),
                         onTap: () {
                           Navigator.pop(context);
+
+                          // Check network connection BEFORE opening barcode scanner
+                          final connectionService = ConnectionService();
+                          if (!connectionService.isConnected) {
+                            // Show network error snackbar
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Row(
+                                  children: const [
+                                    Icon(Icons.wifi_off, color: Colors.white),
+                                    SizedBox(width: 12),
+                                    Text('No internet connection'),
+                                  ],
+                                ),
+                                backgroundColor: Colors.red[700],
+                                duration: const Duration(seconds: 3),
+                              ),
+                            );
+                            return; // Block barcode scanner
+                          }
+
+                          // Network available, proceed to barcode scanner
                           NavigationService.navigateToBarcodeScanner();
                         },
                       ),
@@ -413,7 +489,7 @@ class _HomeContentState extends State<_HomeContent> {
                               ),
                             ),
                             confirmDismiss: (_) async {
-                              return await showDialog(
+                              final confirmed = await showDialog<bool>(
                                 context: context,
                                 builder: (BuildContext context) {
                                   return AlertDialog(
@@ -439,6 +515,53 @@ class _HomeContentState extends State<_HomeContent> {
                                   );
                                 },
                               );
+
+                              // If user confirmed, check network before proceeding
+                              if (confirmed == true) {
+                                final connectionService = ConnectionService();
+                                if (!connectionService.isConnected) {
+                                  // Show network error snackbar
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Row(
+                                          children: const [
+                                            Icon(
+                                              Icons.wifi_off,
+                                              color: Colors.white,
+                                              size: 20,
+                                            ),
+                                            SizedBox(width: 12),
+                                            Expanded(
+                                              child: Text(
+                                                'No internet connection',
+                                                style: TextStyle(
+                                                  fontSize: 15,
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        backgroundColor: Colors.red[700],
+                                        behavior: SnackBarBehavior.floating,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        margin: const EdgeInsets.all(16),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 16, vertical: 14),
+                                        duration: const Duration(seconds: 3),
+                                      ),
+                                    );
+                                  }
+                                  return false; // Don't dismiss
+                                }
+                                return true; // Network available, allow dismiss
+                              }
+
+                              return false; // User cancelled
                             },
                             onDismissed: (direction) async {
                               // Find the analysis in the full list using unique identifier
@@ -452,11 +575,7 @@ class _HomeContentState extends State<_HomeContent> {
                                                   .millisecondsSinceEpoch));
 
                               if (fullIndex != -1) {
-                                final removedAnalysis =
-                                    await vm.removeAnalysis(fullIndex);
-                                if (removedAnalysis != null) {
-                                  _showUndoSnackbar(removedAnalysis, vm);
-                                }
+                                await vm.removeAnalysis(fullIndex);
                               }
                             },
                             child: FoodAnalysisCard(
@@ -473,11 +592,7 @@ class _HomeContentState extends State<_HomeContent> {
                                                     .millisecondsSinceEpoch));
 
                                 if (fullIndex != -1) {
-                                  final removedAnalysis =
-                                      await vm.removeAnalysis(fullIndex);
-                                  if (removedAnalysis != null) {
-                                    _showUndoSnackbar(removedAnalysis, vm);
-                                  }
+                                  await vm.removeAnalysis(fullIndex);
                                 }
                               },
                             ),
@@ -541,16 +656,4 @@ class _HomeContentState extends State<_HomeContent> {
     );
   }
 
-  void _showUndoSnackbar(
-      FoodAnalysis removedAnalysis, ImageAnalysisViewModel vm) {
-    if (mounted) {
-      UndoDeleteSnackbar.show(
-        context: context,
-        removedAnalysis: removedAnalysis,
-        onUndo: () {
-          vm.addAnalysis(removedAnalysis);
-        },
-      );
-    }
-  }
 }

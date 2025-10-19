@@ -70,11 +70,11 @@ class UserProfile {
     required this.heightCm,
     required this.activityLevel,
     this.weightGoal = WeightGoal.maintain,
-    this.aiProvider = AIProvider.gemini,
+    AIProvider? aiProvider, // Ignore any AI provider passed, always use Gemini
     this.fcmToken,
     this.notificationsEnabled = true,
     this.isPremium = false,
-  });
+  }) : aiProvider = AIProvider.gemini; // ALWAYS use Gemini - ignores parameter
 
   double get bmi => weightKg / ((heightCm / 100) * (heightCm / 100));
 

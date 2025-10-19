@@ -144,9 +144,16 @@ class SyncService {
       // Step 1: Load user profile from AWS
       final profileData = await _awsService.getUserProfile(userId);
 
-      // If user doesn't exist in AWS (deleted account), clear local data and return
-      if (profileData == null || profileData['success'] == false) {
-        print('ℹ️ AWS: User not found in AWS - clearing local data');
+      // 🔧 FIX #6 (CRITICAL): Don't clear local data on network errors!
+      // Only clear if we get a successful response saying user doesn't exist
+      // If profileData is null, it could be a network error (offline), not a deleted account
+      if (profileData == null) {
+        print('⚠️ AWS: Could not reach AWS (likely offline) - keeping local data');
+        return; // Keep existing local data, don't clear anything
+      }
+
+      if (profileData['success'] == false) {
+        print('ℹ️ AWS: User not found in AWS (account deleted) - clearing local data');
         await _sqliteService.clearAllData();
         return;
       }
@@ -236,11 +243,10 @@ class SyncService {
             print('❌ AWS: FAILED to verify profile in local SQLite!');
           }
 
-          if (userData['theme_preference'] != null) {
-            await _sqliteService
-                .setThemePreference(userData['theme_preference']);
-            print('   - Theme: ${userData['theme_preference']}');
-          }
+          // Always set theme preference - default to 'system' if not in AWS
+          final themePreference = userData['theme_preference'] ?? 'system';
+          await _sqliteService.setThemePreference(themePreference);
+          print('   - Theme: $themePreference');
         }
       } else {
         print('❌ AWS: Failed to load user profile from AWS');

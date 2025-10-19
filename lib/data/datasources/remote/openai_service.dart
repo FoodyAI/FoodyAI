@@ -23,7 +23,7 @@ class OpenAIService implements AIService {
               {
                 'type': 'text',
                 'text':
-                    'Analyze this food image and respond ONLY in the following JSON format: {"name": "...", "protein": ..., "carbs": ..., "fat": ..., "calories": ..., healthScore}.'
+                    'Analyze this image and determine if it contains FOOD, DRINK, or FOOD INGREDIENTS (vegetables, fruits, raw materials, etc.). Respond ONLY in valid JSON format: {"isFoodRelated": boolean, "name": "food name", "protein": number, "carbs": number, "fat": number, "calories": number, "healthScore": number}. Set isFoodRelated to true ONLY if the image shows food, beverages, or food ingredients. Set it to false for non-food items like cars, phones, people, buildings, etc. Values should be in grams except healthScore (0-10).'
               },
               {
                 'type': 'image_url',
@@ -52,7 +52,7 @@ class OpenAIService implements AIService {
                 {
                   'type': 'text',
                   'text':
-                      'Analyze this food image and respond ONLY in the following JSON format: {"name": "...", "protein": ..., "carbs": ..., "fat": ..., "calories": ..., healthScore}.'
+                      'Analyze this image and determine if it contains FOOD, DRINK, or FOOD INGREDIENTS (vegetables, fruits, raw materials, etc.). Respond ONLY in valid JSON format: {"isFoodRelated": boolean, "name": "food name", "protein": number, "carbs": number, "fat": number, "calories": number, "healthScore": number}. Set isFoodRelated to true ONLY if the image shows food, beverages, or food ingredients. Set it to false for non-food items like cars, phones, people, buildings, etc. Values should be in grams except healthScore (0-10).'
                 },
                 {
                   'type': 'image_url',
@@ -83,7 +83,15 @@ class OpenAIService implements AIService {
 
           final jsonResponse = jsonDecode(jsonString!);
           print('✅ [OpenAI] Parsed JSON: $jsonResponse');
-          
+
+          // Check if the image is food-related
+          final isFoodRelated = jsonResponse['isFoodRelated'];
+          print('🔍 [OpenAI] isFoodRelated: $isFoodRelated');
+          if (isFoodRelated == false || isFoodRelated == 'false') {
+            print('❌ [OpenAI] Not a food item detected!');
+            throw Exception('This image is not related to food');
+          }
+
           return FoodAnalysis(
             name: jsonResponse['name'],
             protein: jsonResponse['protein'].toDouble(),

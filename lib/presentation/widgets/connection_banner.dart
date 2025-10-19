@@ -23,6 +23,8 @@ class _ConnectionBannerState extends State<ConnectionBanner> {
   void didUpdateWidget(ConnectionBanner oldWidget) {
     super.didUpdateWidget(oldWidget);
 
+    print('🎨 ConnectionBanner: didUpdateWidget - Old: ${oldWidget.isConnected}, New: ${widget.isConnected}');
+
     if (!oldWidget.isConnected && widget.isConnected) {
       // Connection restored - show green banner briefly
       setState(() {
@@ -92,6 +94,7 @@ class _ConnectionBannerState extends State<ConnectionBanner> {
 
   @override
   Widget build(BuildContext context) {
+    print('🎨 ConnectionBanner: build() - showBanner: $_showBanner, isConnected: ${widget.isConnected}');
     if (!_showBanner) return const SizedBox.shrink();
 
     return AnimatedSlide(

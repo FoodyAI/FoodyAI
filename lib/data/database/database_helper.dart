@@ -21,7 +21,7 @@ class DatabaseHelper {
     print('Database path: $path');
     return await openDatabase(
       path,
-      version: 5, // Increment version to trigger migration
+      version: 6, // Increment version to trigger migration
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -173,6 +173,23 @@ class DatabaseHelper {
 
       print(
           '✅ Database upgraded: Version 5 migration completed - all columns verified');
+    }
+
+    if (oldVersion < 6) {
+      // Version 6: Force all users to use Gemini AI provider
+      print('🔄 Database upgraded: Version 6 migration - forcing Gemini as AI provider');
+
+      // Ensure ai_provider column exists first
+      await _addColumnIfNotExists(db, 'user_profile', 'ai_provider', 'TEXT DEFAULT \'gemini\'');
+
+      // Update all existing users to use Gemini
+      await db.execute('''
+        UPDATE user_profile
+        SET ai_provider = 'gemini'
+        WHERE ai_provider != 'gemini' OR ai_provider IS NULL
+      ''');
+
+      print('✅ Database upgraded: All users now use Gemini AI provider');
     }
   }
 

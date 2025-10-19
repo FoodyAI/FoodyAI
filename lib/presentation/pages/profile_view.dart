@@ -13,10 +13,11 @@ import '../widgets/reauth_dialog.dart';
 import '../../core/constants/app_colors.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'welcome_view.dart';
-import '../../services/notification_service.dart';
 import '../../services/aws_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../config/routes/navigation_service.dart';
+import '../../core/services/connection_service.dart';
+import '../../core/services/sync_service.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
@@ -1028,11 +1029,11 @@ class _ProfileViewState extends State<ProfileView>
           initialValue: initialValue,
           colorScheme: colorScheme,
           onToggle: (value) async {
-            final notificationService = NotificationService();
-            final success =
-                await notificationService.updateNotificationPreferences(
-              userId: user.uid,
-              notificationsEnabled: value,
+            // Use SyncService to try sync immediately (if online) or mark for later (if offline)
+            final syncService = SyncService();
+            final success = await syncService.trySyncNotificationSettings(
+              user.uid,
+              value,
             );
             return success;
           },
@@ -1703,7 +1704,27 @@ class _ProfileViewState extends State<ProfileView>
       child: ElevatedButton.icon(
         onPressed: authVM.isLoading
             ? null
-            : () => _showDeleteAccountDialog(context, authVM),
+            : () {
+                // Check network connection FIRST before any UI actions
+                final connectionService = ConnectionService();
+                if (!connectionService.isConnected) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Row(
+                        children: const [
+                          Icon(Icons.wifi_off, color: Colors.white),
+                          SizedBox(width: 12),
+                          Text('No internet connection'),
+                        ],
+                      ),
+                      backgroundColor: Colors.red[700],
+                      duration: const Duration(seconds: 3),
+                    ),
+                  );
+                  return; // Block delete account dialog
+                }
+                _showDeleteAccountDialog(context, authVM);
+              },
         icon: const FaIcon(
           FontAwesomeIcons.trash,
           size: 16,
