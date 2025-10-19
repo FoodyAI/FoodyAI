@@ -13,6 +13,7 @@ import '../../presentation/pages/subscription_view.dart';
 class AppRoutes {
   // Route names
   static const String splash = '/';
+  static const String intro = '/intro';
   static const String welcome = '/welcome';
   static const String onboarding = '/onboarding';
   static const String home = '/home';
@@ -30,6 +31,7 @@ class AppRoutes {
   static Map<String, WidgetBuilder> getRoutes() {
     return {
       splash: (context) => const SplashScreen(),
+      intro: (context) => const IntroOnboardingScreen(),
       welcome: (context) => const WelcomeScreen(),
       onboarding: (context) {
         final args =
