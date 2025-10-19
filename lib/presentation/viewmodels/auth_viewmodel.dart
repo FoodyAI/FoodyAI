@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
-import '../../services/sync_service.dart';
+import '../../services/sync_service.dart' as old_sync;
+import '../../core/services/sync_service.dart';
 import '../../services/aws_service.dart';
 import '../../services/authentication_flow.dart';
 import '../../services/notification_service.dart';
@@ -21,6 +22,7 @@ enum AuthState {
 
 class AuthViewModel extends ChangeNotifier {
   final AuthService _authService = AuthService();
+  final old_sync.SyncService _oldSyncService = old_sync.SyncService();
   final SyncService _syncService = SyncService();
   final AWSService _awsService = AWSService();
   final AuthenticationFlow _authFlow = AuthenticationFlow();
