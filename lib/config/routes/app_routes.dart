@@ -37,13 +37,7 @@ class AppRoutes {
           isFirstTimeUser: args?[isFirstTimeUser] ?? false,
         );
       },
-      home: (context) {
-        final args =
-            ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-        return HomeView(
-          connectionBanner: args?[connectionBanner],
-        );
-      },
+      home: (context) => const HomeView(),
       analyze: (context) => const AnalyzeView(),
       profile: (context) => const ProfileView(),
       barcodeScanner: (context) => const BarcodeScannerView(),
