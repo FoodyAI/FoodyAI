@@ -60,8 +60,8 @@ class MyApp extends StatelessWidget {
       child: Consumer<ThemeViewModel>(
         builder: (context, themeVM, _) {
           return AnimatedTheme(
-            data: themeVM.themeMode == ThemeMode.dark 
-                ? AppTheme.darkTheme 
+            data: themeVM.themeMode == ThemeMode.dark
+                ? AppTheme.darkTheme
                 : AppTheme.lightTheme,
             duration: const Duration(milliseconds: 200),
             curve: Curves.easeInOut,
