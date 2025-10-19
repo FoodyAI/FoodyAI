@@ -141,22 +141,8 @@ class UserProfileViewModel extends ChangeNotifier {
 
     await _useCase.saveProfile(_profile!, isMetric, userId: userId);
 
-    // Sync with AWS since user is authenticated
-    // Get actual theme preference from SQLite
-    final themePreference =
-        await _sqliteService.getThemePreference() ?? 'system';
-
-    await _syncService.updateUserProfileInAWS(
-      gender: gender,
-      age: age,
-      weight: weightKg,
-      height: heightCm,
-      activityLevel: activityLevel.name,
-      goal: weightGoal?.name,
-      themePreference: themePreference,
-      aiProvider: aiProvider?.name,
-      measurementUnit: isMetric ? 'metric' : 'imperial',
-    );
+    // Try to sync with AWS (if online, sync immediately; if offline, mark for later)
+    await _syncService.trySyncProfile(_profile!);
 
     notifyListeners();
   }
