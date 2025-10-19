@@ -1,17 +1,27 @@
 import 'dart:io';
+import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
+import 'package:crypto/crypto.dart';
 
 /// Utility class for handling image display in the Foody app
 /// Supports both local file paths and S3 URLs with proper caching
 class ImageHelper {
   // In-memory cache to store fetched image bytes
   static final Map<String, Uint8List> _imageCache = {};
-  
+
   // Track which local paths have been verified to exist
   static final Map<String, bool> _localFileExistsCache = {};
+
+  // Track in-flight network requests to prevent duplicate fetches
+  static final Map<String, Future<Uint8List>> _inFlightRequests = {};
+
+  // Semaphore to limit concurrent network requests (max 3 at a time)
+  static int _activeRequests = 0;
+  static const int _maxConcurrentRequests = 3;
 
   /// Determines if the imagePath is an S3 URL or local file path
   static bool isS3Url(String? imagePath) {
@@ -45,12 +55,15 @@ class ImageHelper {
     }
   }
 
-  /// Clears the image cache (useful when user signs out)
-  static void clearCache() {
+  /// Clears all image caches (memory + disk) - useful when user signs out
+  static Future<void> clearCache() async {
     _imageCache.clear();
     _localFileExistsCache.clear();
     _imageSourceCache.clear();
-    print('🗑️ ImageHelper: All caches cleared');
+    _inFlightRequests.clear();
+    _activeRequests = 0;
+    await clearDiskCache();
+    print('🗑️ ImageHelper: All caches cleared (memory + disk)');
   }
 
   /// Converts S3 URL to image serve endpoint URL
@@ -274,17 +287,76 @@ class ImageHelper {
     );
   }
 
-  /// Fetches base64 image data from Lambda and converts to bytes
-  /// Caches the result in memory to avoid repeated network calls
+  /// 🔧 FIX #10: Optimized image fetching with smart caching and concurrency control
+  /// - Checks memory cache first (instant)
+  /// - Checks disk cache second (offline support)
+  /// - Prevents duplicate requests for same image
+  /// - Limits concurrent network requests (max 3 at a time)
+  /// - Fast parallel loading with short timeout
   static Future<Uint8List> _getImageBytesFromS3(String s3Url) async {
-    // Check cache first
+    // Step 1: Check memory cache first (instant return!)
     if (_imageCache.containsKey(s3Url)) {
-      print('✅ ImageHelper: Returning cached image bytes');
       return _imageCache[s3Url]!;
     }
 
+    // Step 2: Check disk cache (works offline, very fast)
+    final cacheFile = await _getCacheFile(s3Url);
+    if (await cacheFile.exists()) {
+      try {
+        final imageBytes = await cacheFile.readAsBytes();
+        // Cache in memory for next time
+        _imageCache[s3Url] = imageBytes;
+        return imageBytes;
+      } catch (e) {
+        print('⚠️ ImageHelper: Failed to read disk cache: $e');
+      }
+    }
+
+    // Step 3: Check if this image is already being fetched
+    if (_inFlightRequests.containsKey(s3Url)) {
+      print('⏳ ImageHelper: Waiting for in-flight request');
+      return await _inFlightRequests[s3Url]!;
+    }
+
+    // Step 4: Fetch from network with concurrency control
+    final fetchFuture = _fetchWithConcurrencyLimit(s3Url, cacheFile);
+    _inFlightRequests[s3Url] = fetchFuture;
+
+    try {
+      final result = await fetchFuture;
+      return result;
+    } finally {
+      // Remove from in-flight requests when done
+      _inFlightRequests.remove(s3Url);
+    }
+  }
+
+  /// Fetches image with concurrency control (max 3 simultaneous requests)
+  static Future<Uint8List> _fetchWithConcurrencyLimit(
+    String s3Url,
+    File cacheFile,
+  ) async {
+    // Wait if we've hit the concurrency limit
+    while (_activeRequests >= _maxConcurrentRequests) {
+      await Future.delayed(const Duration(milliseconds: 50));
+    }
+
+    _activeRequests++;
+    print('🔄 ImageHelper: Fetching ($s3Url) [Active: $_activeRequests/$_maxConcurrentRequests]');
+
+    try {
+      return await _fetchImageFromNetwork(s3Url, cacheFile);
+    } finally {
+      _activeRequests--;
+    }
+  }
+
+  /// Fetches a single image from network with optimized timeout
+  static Future<Uint8List> _fetchImageFromNetwork(
+    String s3Url,
+    File cacheFile,
+  ) async {
     final imageUrl = s3UrlToImageServeUrl(s3Url);
-    print('🔄 ImageHelper: Fetching base64 image data from: $imageUrl');
 
     try {
       final response = await http.get(
@@ -293,29 +365,94 @@ class ImageHelper {
           'Accept': 'image/*',
           'User-Agent': 'FoodyApp/1.0',
         },
-      );
+      ).timeout(const Duration(seconds: 6));
 
       if (response.statusCode == 200) {
-        // The response body contains base64 encoded image data
         final base64Data = response.body;
-        print('✅ ImageHelper: Got base64 data (${base64Data.length} characters)');
-
-        // Decode base64 to bytes
         final imageBytes = base64Decode(base64Data);
-        print('✅ ImageHelper: Decoded to ${imageBytes.length} bytes');
 
-        // Cache the bytes
+        // Cache in memory immediately
         _imageCache[s3Url] = imageBytes;
-        print('💾 ImageHelper: Cached image bytes for: $s3Url');
 
+        // Cache to disk in background (don't wait)
+        _saveToDiskCache(cacheFile, imageBytes);
+
+        print('✅ ImageHelper: Fetched successfully (${imageBytes.length} bytes)');
         return imageBytes;
       } else {
-        throw Exception(
-            'Failed to get image data: ${response.statusCode} ${response.reasonPhrase}');
+        throw Exception('HTTP ${response.statusCode}: ${response.reasonPhrase}');
+      }
+    } on TimeoutException catch (e) {
+      print('⏱️ ImageHelper: Timeout after 6s');
+      throw Exception('Timeout: $e');
+    } catch (e) {
+      print('❌ ImageHelper: Fetch failed: $e');
+      rethrow;
+    }
+  }
+
+  /// Gets the cache file for a given S3 URL
+  static Future<File> _getCacheFile(String s3Url) async {
+    final cacheDir = await getApplicationCacheDirectory();
+    final imagesDir = Directory('${cacheDir.path}/food_images');
+
+    // Create directory if it doesn't exist
+    if (!await imagesDir.exists()) {
+      await imagesDir.create(recursive: true);
+    }
+
+    // Create a safe filename from the S3 URL using MD5 hash
+    final hash = md5.convert(utf8.encode(s3Url)).toString();
+    return File('${imagesDir.path}/$hash.jpg');
+  }
+
+  /// Saves image bytes to disk cache (background operation)
+  static Future<void> _saveToDiskCache(File cacheFile, Uint8List imageBytes) async {
+    try {
+      await cacheFile.writeAsBytes(imageBytes);
+      print('💾 ImageHelper: Saved to disk cache (${imageBytes.length} bytes)');
+    } catch (e) {
+      print('⚠️ ImageHelper: Failed to save to disk cache: $e');
+      // Don't rethrow - caching is optional
+    }
+  }
+
+  /// Clears the disk cache (useful for clearing storage or on logout)
+  static Future<void> clearDiskCache() async {
+    try {
+      final cacheDir = await getApplicationCacheDirectory();
+      final imagesDir = Directory('${cacheDir.path}/food_images');
+
+      if (await imagesDir.exists()) {
+        await imagesDir.delete(recursive: true);
+        print('🗑️ ImageHelper: Disk cache cleared');
       }
     } catch (e) {
-      print('❌ ImageHelper: Error fetching image data: $e');
-      rethrow;
+      print('⚠️ ImageHelper: Error clearing disk cache: $e');
+    }
+  }
+
+  /// Gets the size of disk cache in MB
+  static Future<double> getCacheSizeMB() async {
+    try {
+      final cacheDir = await getApplicationCacheDirectory();
+      final imagesDir = Directory('${cacheDir.path}/food_images');
+
+      if (!await imagesDir.exists()) {
+        return 0.0;
+      }
+
+      int totalSize = 0;
+      await for (final entity in imagesDir.list()) {
+        if (entity is File) {
+          totalSize += await entity.length();
+        }
+      }
+
+      return totalSize / (1024 * 1024); // Convert bytes to MB
+    } catch (e) {
+      print('⚠️ ImageHelper: Error calculating cache size: $e');
+      return 0.0;
     }
   }
 

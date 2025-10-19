@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../viewmodels/auth_viewmodel.dart';
 import 'auth_loading_overlay.dart';
+import '../../core/services/connection_service.dart';
 
 class SignOutButton extends StatelessWidget {
   final VoidCallback? onPressed;
@@ -87,6 +88,27 @@ class SignOutButtonWithAuth extends StatelessWidget {
 
   Future<void> _handleSignOut(
       BuildContext context, AuthViewModel authVM) async {
+    // Check network connection FIRST before any UI actions
+    final connectionService = ConnectionService();
+    if (!connectionService.isConnected) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: const [
+                Icon(Icons.wifi_off, color: Colors.white),
+                SizedBox(width: 12),
+                Text('No internet connection'),
+              ],
+            ),
+            backgroundColor: Colors.red[700],
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+      return; // Block sign out completely
+    }
+
     if (showConfirmation) {
       final shouldSignOut = await _showSignOutConfirmation(context);
       if (!shouldSignOut) return;

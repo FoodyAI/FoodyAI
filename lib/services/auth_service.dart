@@ -105,7 +105,7 @@ class AuthService {
 
   // Sign out
   Future<void> signOut() async {
-    ImageHelper.clearCache();
+    await ImageHelper.clearCache(); // Clear both memory and disk cache
     await _auth.signOut();
     await _googleSignIn.signOut();
   }

@@ -11,25 +11,22 @@ import '../../data/datasources/remote/ai_service_factory.dart';
 import '../../data/datasources/local/food_analysis_storage.dart';
 import '../../data/services/sqlite_service.dart';
 import '../../domain/entities/ai_provider.dart';
-import '../../domain/repositories/user_profile_repository.dart';
-import '../../di/service_locator.dart';
 import '../../services/sync_service.dart';
 import '../../services/aws_service.dart';
 import '../../services/permission_service.dart';
 import '../../core/events/food_data_update_event.dart';
+import '../../core/services/connection_service.dart';
 import '../widgets/rating_dialog.dart';
-
-final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+import '../../config/routes/navigation_service.dart';
 
 class ImageAnalysisViewModel extends ChangeNotifier {
   final ImagePicker _picker = ImagePicker();
   final FoodAnalysisStorage _storage = FoodAnalysisStorage();
   final SQLiteService _sqliteService = SQLiteService();
-  final UserProfileRepository _profileRepository =
-      getIt<UserProfileRepository>();
   final SyncService _syncService = SyncService();
   final AWSService _awsService = AWSService();
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final ConnectionService _connectionService = ConnectionService();
 
   File? _selectedImage;
   FoodAnalysis? _currentAnalysis;
@@ -92,34 +89,43 @@ class ImageAnalysisViewModel extends ChangeNotifier {
   }
 
   Future<void> _loadSavedAnalyses() async {
-    _savedAnalyses = await _storage.loadAnalyses();
-    // Sort by createdAt in descending order (latest first)
-    _savedAnalyses.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-    notifyListeners();
+    // 🔧 FIX #1: Add retry logic with exponential backoff
+    int maxRetries = 3;
+    int retryCount = 0;
+
+    while (retryCount < maxRetries) {
+      try {
+        print('📥 ImageAnalysisViewModel: Loading analyses from SQLite (attempt ${retryCount + 1}/$maxRetries)...');
+        _savedAnalyses = await _storage.loadAnalyses();
+        // Sort by createdAt in descending order (latest first)
+        _savedAnalyses.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        print('✅ ImageAnalysisViewModel: Loaded ${_savedAnalyses.length} analyses successfully');
+        notifyListeners();
+        return; // Success - exit retry loop
+      } catch (e) {
+        retryCount++;
+        print('⚠️ ImageAnalysisViewModel: Failed to load analyses (attempt $retryCount/$maxRetries): $e');
+
+        if (retryCount >= maxRetries) {
+          // Final failure - set empty list to avoid null issues
+          print('❌ ImageAnalysisViewModel: All retry attempts failed, setting empty list');
+          _savedAnalyses = [];
+          notifyListeners();
+          return;
+        }
+
+        // Exponential backoff: 100ms, 500ms, 1000ms
+        final delayMs = retryCount == 1 ? 100 : (retryCount == 2 ? 500 : 1000);
+        await Future.delayed(Duration(milliseconds: delayMs));
+      }
+    }
   }
 
   // Public method to reload analyses (called after AWS sync)
   Future<void> reloadAnalyses() async {
-    print(
-        '🔄 ImageAnalysisViewModel: Manually reloading analyses after AWS sync...');
-
-    try {
-      await _loadSavedAnalyses();
-      print(
-          '✅ ImageAnalysisViewModel: Analyses reloaded, count: ${_savedAnalyses.length}');
-    } catch (e) {
-      print('❌ ImageAnalysisViewModel: Failed to reload analyses: $e');
-      // If reload fails, try again after a short delay
-      Future.delayed(const Duration(milliseconds: 1000), () async {
-        try {
-          await _loadSavedAnalyses();
-          print(
-              '✅ ImageAnalysisViewModel: Retry successful, count: ${_savedAnalyses.length}');
-        } catch (retryError) {
-          print('❌ ImageAnalysisViewModel: Retry also failed: $retryError');
-        }
-      });
-    }
+    print('🔄 ImageAnalysisViewModel: Manually reloading analyses after AWS sync...');
+    // Retry logic is now handled inside _loadSavedAnalyses()
+    await _loadSavedAnalyses();
   }
 
   Future<void> _checkAndShowRating() async {
@@ -140,7 +146,7 @@ class ImageAnalysisViewModel extends ChangeNotifier {
     }
 
     // Show rating dialog
-    final context = navigatorKey.currentContext;
+    final context = NavigationService.currentContext;
     if (context != null) {
       showDialog(
         context: context,
@@ -152,6 +158,16 @@ class ImageAnalysisViewModel extends ChangeNotifier {
 
   Future<void> pickImage(ImageSource source, BuildContext context) async {
     try {
+      // Check network connection FIRST before picking image
+      if (!_connectionService.isConnected) {
+        print('📵 [ViewModel] No internet connection');
+        final validContext = NavigationService.currentContext;
+        if (validContext != null && validContext.mounted) {
+          _showNetworkErrorSnackBar(validContext);
+        }
+        return;
+      }
+
       // Check camera permission if using camera
       if (source == ImageSource.camera) {
         // Always try to request permission - this handles all cases:
@@ -171,14 +187,154 @@ class ImageAnalysisViewModel extends ChangeNotifier {
         _currentAnalysis = null;
         _error = null;
         notifyListeners();
+
+        print('📸 [ViewModel] Image picked, starting analysis...');
         await analyzeImage();
+        print('✅ [ViewModel] Analysis complete, error: $_error');
+
+        // Show error snackbar if analysis failed
+        if (_error != null) {
+          print('⚠️ [ViewModel] Error detected, showing snackbar...');
+          // Use NavigationService to get a valid context instead of the passed context
+          final validContext = NavigationService.currentContext;
+          if (validContext != null && validContext.mounted) {
+            _showErrorSnackBar(validContext, _error!);
+          } else {
+            print('❌ [ViewModel] No valid context available!');
+          }
+        } else {
+          print('✅ [ViewModel] No error, analysis successful');
+        }
       }
       // User cancelled - no need to show message
     } catch (e) {
       // Handle unexpected errors (permission errors are already handled by PermissionService)
       _error = 'Failed to access camera. Please try again.';
       notifyListeners();
+      final validContext = NavigationService.currentContext;
+      if (validContext != null && validContext.mounted) {
+        _showErrorSnackBar(validContext, _error!);
+      }
     }
+  }
+
+  void _showNetworkErrorSnackBar(BuildContext context) {
+    print('📵 [ViewModel] Showing network error snackbar');
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(
+              Icons.wifi_off,
+              color: Colors.white,
+              size: 20,
+            ),
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Text(
+                'No internet connection',
+                style: TextStyle(
+                  fontSize: 15,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: Colors.red[700],
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        margin: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
+  void _showErrorSnackBar(BuildContext context, String errorMessage) {
+    print('🚨 [ViewModel] Showing error snackbar: $errorMessage');
+
+    // Determine the error type and show appropriate message
+    String displayMessage;
+    IconData icon;
+
+    // Check for network errors FIRST
+    if (errorMessage.contains('SocketException') ||
+        errorMessage.contains('Failed host lookup') ||
+        errorMessage.contains('Network is unreachable') ||
+        errorMessage.contains('No address associated with hostname')) {
+      displayMessage = 'No internet connection';
+      icon = Icons.wifi_off;
+    }
+    // Check for food validation errors
+    else if (errorMessage.contains('This image is not related to food') ||
+        errorMessage.contains('not related to food') ||
+        errorMessage.contains('is not a food item')) {
+      displayMessage = 'This image is not related to food';
+      icon = Icons.error_outline;
+    }
+    // Check for timeout errors
+    else if (errorMessage.contains('TimeoutException') ||
+        errorMessage.contains('timed out') ||
+        errorMessage.contains('Timeout')) {
+      displayMessage = 'Request timed out. Please try again.';
+      icon = Icons.access_time;
+    }
+    // Generic error
+    else {
+      // Clean up error message
+      displayMessage = errorMessage
+          .replaceAll('Exception: ', '')
+          .replaceAll('Error analyzing image with Gemini: ', '')
+          .replaceAll('Error analyzing image: ', '');
+
+      // If still too long, show generic message
+      if (displayMessage.length > 100) {
+        displayMessage = 'Failed to analyze image. Please try again.';
+      }
+      icon = Icons.error_outline;
+    }
+
+    print('📝 [ViewModel] Display message: $displayMessage');
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(
+              icon,
+              color: Colors.white,
+              size: 20,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                displayMessage,
+                style: const TextStyle(
+                  fontSize: 15,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: Colors.red[700],
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        margin: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        duration: const Duration(seconds: 4),
+      ),
+    );
+
+    print('✅ [ViewModel] Snackbar displayed');
   }
 
   Future<void> analyzeImage() async {
@@ -188,12 +344,10 @@ class ImageAnalysisViewModel extends ChangeNotifier {
     _error = null;
     notifyListeners();
     try {
-      // Get user's selected AI provider
-      final profile = await _profileRepository.getProfile();
-      AIProvider? aiProvider = profile?.aiProvider;
+      // ALWAYS use Gemini (forced)
+      final aiProvider = AIProvider.gemini;
 
-      // If no AI provider is set, use default
-      aiProvider ??= AIProvider.gemini;
+      print('🤖 [ViewModel] Using AI Provider: ${aiProvider.name} (FORCED TO GEMINI)');
 
       // Get the appropriate AI service
       final AIService service = AIServiceFactory.getService(aiProvider);
@@ -215,6 +369,7 @@ class ImageAnalysisViewModel extends ChangeNotifier {
     } catch (e) {
       _error = e.toString();
       _isLoading = false;
+      _selectedImage = null; // Clear selected image on error
       notifyListeners();
     }
   }

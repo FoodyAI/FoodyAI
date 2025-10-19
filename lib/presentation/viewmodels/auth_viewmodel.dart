@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
-import '../../services/sync_service.dart';
+import '../../services/sync_service.dart' as old_sync;
+import '../../core/services/sync_service.dart';
 import '../../services/aws_service.dart';
 import '../../services/authentication_flow.dart';
 import '../../services/notification_service.dart';
@@ -21,6 +22,7 @@ enum AuthState {
 
 class AuthViewModel extends ChangeNotifier {
   final AuthService _authService = AuthService();
+  final old_sync.SyncService _oldSyncService = old_sync.SyncService();
   final SyncService _syncService = SyncService();
   final AWSService _awsService = AWSService();
   final AuthenticationFlow _authFlow = AuthenticationFlow();
@@ -49,64 +51,77 @@ class AuthViewModel extends ChangeNotifier {
   }
 
   void _initializeAuth() {
-    // IMPORTANT: Check current user IMMEDIATELY (synchronously)
-    // Firebase Auth persists the session, so currentUser will be non-null
-    // if the user was previously signed in
+    // 🔧 FIX #5 (CRITICAL): Wait for Firebase to restore persisted session
+    // Firebase Auth takes time to restore session from local storage, especially offline
+    // We need to check TWICE: immediately + after a short delay
+
+    // First check (may be null if Firebase hasn't restored yet)
     _user = _authService.currentUser;
     if (_user != null) {
-      print('✅ AuthViewModel: Found persisted user: ${_user!.email}');
+      print('✅ AuthViewModel: Found persisted user immediately: ${_user!.email}');
       _setAuthState(AuthState.authenticated);
-      // Background sync - don't block UI
-      _performBackgroundSync();
     } else {
-      print('ℹ️ AuthViewModel: No persisted user found');
-      _setAuthState(AuthState.unauthenticated);
+      print('⏳ AuthViewModel: No user found immediately, waiting for Firebase to restore session...');
+      _setAuthState(AuthState.initial); // Keep initial state while waiting
+
+      // Give Firebase time to restore session (especially important offline)
+      Future.delayed(const Duration(milliseconds: 500), () {
+        _user = _authService.currentUser;
+        if (_user != null) {
+          print('✅ AuthViewModel: Found persisted user after delay: ${_user!.email}');
+          _setAuthState(AuthState.authenticated);
+          notifyListeners();
+        } else {
+          print('ℹ️ AuthViewModel: No persisted user found after delay');
+          _setAuthState(AuthState.unauthenticated);
+          notifyListeners();
+        }
+      });
     }
 
     // Listen to Firebase Auth state changes for future updates
     _authService.authStateChanges.listen((User? user) {
       _user = user;
       if (user != null) {
+        print('✅ AuthViewModel: Auth state changed - user signed in: ${user.email}');
         _setAuthState(AuthState.authenticated);
-        // Background sync - don't block UI
-        _performBackgroundSync();
       } else {
+        print('ℹ️ AuthViewModel: Auth state changed - user signed out');
         _setAuthState(AuthState.unauthenticated);
       }
       notifyListeners();
     });
   }
 
-  /// Perform background sync without blocking UI
-  void _performBackgroundSync() {
-    // Fire and forget - sync in background
-    Future.microtask(() async {
-      // Skip if data is already being loaded
-      if (_isDataLoading) {
-        print(
-            '⏭️ AuthViewModel: Skipping background sync - data already loading');
-        return;
-      }
+  /// 🔧 FIX #4: Public method to trigger sync AFTER routing (called from home screen)
+  /// This ensures routing happens fast based on local data, then syncs in background
+  Future<void> syncAfterRouting() async {
+    // Skip if data is already being loaded
+    if (_isDataLoading) {
+      print('⏭️ AuthViewModel: Skipping sync - data already loading');
+      return;
+    }
 
-      try {
-        _isDataLoading = true;
-        print('🔄 AuthViewModel: Starting background data sync...');
-        // Load ALL user data from AWS (profile + foods)
-        await _syncService.loadUserDataFromAWS();
-        print('✅ AuthViewModel: Background data sync completed');
+    if (_user == null) {
+      print('⏭️ AuthViewModel: No user signed in, skipping sync');
+      return;
+    }
 
-        // Note: ProfileUpdateEvent.notifyUpdate() is handled by the main sign-in flow
-        // to avoid duplicate UI updates
+    try {
+      _isDataLoading = true;
+      print('🔄 AuthViewModel: Starting background data sync after routing...');
+      // Load ALL user data from AWS (profile + foods)
+      await _oldSyncService.loadUserDataFromAWS();
+      print('✅ AuthViewModel: Background data sync completed');
 
-        // Note: We can't access ImageAnalysisViewModel here since we don't have context
-        // The authStateChanges listener in ImageAnalysisViewModel will handle reloading
-      } catch (e) {
-        print('⚠️ AuthViewModel: Background sync failed: $e');
-        // Don't propagate background sync errors to UI
-      } finally {
-        _isDataLoading = false;
-      }
-    });
+      // Notify listeners that profile data was updated
+      ProfileUpdateEvent.notifyUpdate();
+    } catch (e) {
+      print('⚠️ AuthViewModel: Background sync failed: $e');
+      // Don't propagate background sync errors to UI
+    } finally {
+      _isDataLoading = false;
+    }
   }
 
   /// Enhanced Google Sign-In with smart flow handling
@@ -139,7 +154,7 @@ class AuthViewModel extends ChangeNotifier {
         print('🔄 AuthViewModel: Loading user data before navigation...');
         try {
           _isDataLoading = true;
-          await _syncService.loadUserDataFromAWS();
+          await _oldSyncService.loadUserDataFromAWS();
           print('✅ AuthViewModel: User data loaded successfully');
           ProfileUpdateEvent.notifyUpdate();
 
@@ -262,6 +277,11 @@ class AuthViewModel extends ChangeNotifier {
       await _notificationService.deleteToken();
       print('✅ AuthViewModel: FCM token deleted');
 
+      // Clear all sync flags (no pending syncs after sign out)
+      print('🔄 AuthViewModel: Clearing all sync flags...');
+      await _syncService.clearAllSyncFlags();
+      print('✅ AuthViewModel: All sync flags cleared');
+
       // Clear local data
       await SQLiteService().clearAllData();
       ProfileUpdateEvent.notifyUpdate();
@@ -310,6 +330,11 @@ class AuthViewModel extends ChangeNotifier {
       print('🔔 AuthViewModel: Deleting FCM token...');
       await _notificationService.deleteToken();
       print('✅ AuthViewModel: FCM token deleted');
+
+      // Clear all sync flags (no pending syncs after account deletion)
+      print('🔄 AuthViewModel: Clearing all sync flags...');
+      await _syncService.clearAllSyncFlags();
+      print('✅ AuthViewModel: All sync flags cleared');
 
       // Delete from AWS first
       final awsResult = await _awsService.deleteUser(userId);
@@ -371,6 +396,11 @@ class AuthViewModel extends ChangeNotifier {
 
       // Note: AWS deletion and FCM token deletion were already done in the first attempt
       // We only need to handle Firebase deletion with reauthentication
+
+      // Clear all sync flags (in case they weren't cleared in first attempt)
+      print('🔄 AuthViewModel: Clearing all sync flags...');
+      await _syncService.clearAllSyncFlags();
+      print('✅ AuthViewModel: All sync flags cleared');
 
       // Clear local data (in case it wasn't cleared in first attempt)
       await SQLiteService().clearAllData();

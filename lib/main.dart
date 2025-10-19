@@ -15,6 +15,7 @@ import 'config/routes/app_routes.dart';
 import 'config/routes/route_transitions.dart';
 import 'config/routes/navigation_service.dart';
 import 'services/notification_service.dart';
+import 'core/services/connection_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,11 +35,18 @@ void main() async {
   final migrationService = MigrationService();
   await migrationService.migrateFromSharedPreferences();
 
-  runApp(const MyApp());
+  // Initialize and start monitoring network connection
+  final connectionService = ConnectionService();
+  connectionService.startMonitoring();
+  print('🌐 ConnectionService: Started monitoring network status');
+
+  runApp(MyApp(connectionService: connectionService));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final ConnectionService connectionService;
+
+  const MyApp({super.key, required this.connectionService});
 
   @override
   Widget build(BuildContext context) {
@@ -52,8 +60,8 @@ class MyApp extends StatelessWidget {
       child: Consumer<ThemeViewModel>(
         builder: (context, themeVM, _) {
           return AnimatedTheme(
-            data: themeVM.themeMode == ThemeMode.dark 
-                ? AppTheme.darkTheme 
+            data: themeVM.themeMode == ThemeMode.dark
+                ? AppTheme.darkTheme
                 : AppTheme.lightTheme,
             duration: const Duration(milliseconds: 200),
             curve: Curves.easeInOut,
