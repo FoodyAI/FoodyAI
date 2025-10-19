@@ -243,11 +243,10 @@ class SyncService {
             print('❌ AWS: FAILED to verify profile in local SQLite!');
           }
 
-          if (userData['theme_preference'] != null) {
-            await _sqliteService
-                .setThemePreference(userData['theme_preference']);
-            print('   - Theme: ${userData['theme_preference']}');
-          }
+          // Always set theme preference - default to 'system' if not in AWS
+          final themePreference = userData['theme_preference'] ?? 'system';
+          await _sqliteService.setThemePreference(themePreference);
+          print('   - Theme: $themePreference');
         }
       } else {
         print('❌ AWS: Failed to load user profile from AWS');
