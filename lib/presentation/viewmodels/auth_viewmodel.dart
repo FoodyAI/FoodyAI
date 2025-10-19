@@ -277,6 +277,11 @@ class AuthViewModel extends ChangeNotifier {
       await _notificationService.deleteToken();
       print('✅ AuthViewModel: FCM token deleted');
 
+      // Clear all sync flags (no pending syncs after sign out)
+      print('🔄 AuthViewModel: Clearing all sync flags...');
+      await _syncService.clearAllSyncFlags();
+      print('✅ AuthViewModel: All sync flags cleared');
+
       // Clear local data
       await SQLiteService().clearAllData();
       ProfileUpdateEvent.notifyUpdate();
