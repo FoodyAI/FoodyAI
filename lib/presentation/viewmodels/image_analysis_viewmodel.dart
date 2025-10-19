@@ -26,6 +26,7 @@ class ImageAnalysisViewModel extends ChangeNotifier {
   final SyncService _syncService = SyncService();
   final AWSService _awsService = AWSService();
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final ConnectionService _connectionService = ConnectionService();
 
   File? _selectedImage;
   FoodAnalysis? _currentAnalysis;
