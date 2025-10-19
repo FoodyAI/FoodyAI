@@ -22,8 +22,6 @@ class ImageAnalysisViewModel extends ChangeNotifier {
   final ImagePicker _picker = ImagePicker();
   final FoodAnalysisStorage _storage = FoodAnalysisStorage();
   final SQLiteService _sqliteService = SQLiteService();
-  final UserProfileRepository _profileRepository =
-      getIt<UserProfileRepository>();
   final SyncService _syncService = SyncService();
   final AWSService _awsService = AWSService();
   final FirebaseAuth _auth = FirebaseAuth.instance;
