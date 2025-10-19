@@ -455,6 +455,53 @@ class _HomeContentState extends State<_HomeContent> {
                                   );
                                 },
                               );
+
+                              // If user confirmed, check network before proceeding
+                              if (confirmed == true) {
+                                final connectionService = ConnectionService();
+                                if (!connectionService.isConnected) {
+                                  // Show network error snackbar
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Row(
+                                          children: const [
+                                            Icon(
+                                              Icons.wifi_off,
+                                              color: Colors.white,
+                                              size: 20,
+                                            ),
+                                            SizedBox(width: 12),
+                                            Expanded(
+                                              child: Text(
+                                                'No internet connection',
+                                                style: TextStyle(
+                                                  fontSize: 15,
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        backgroundColor: Colors.red[700],
+                                        behavior: SnackBarBehavior.floating,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        margin: const EdgeInsets.all(16),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 16, vertical: 14),
+                                        duration: const Duration(seconds: 3),
+                                      ),
+                                    );
+                                  }
+                                  return false; // Don't dismiss
+                                }
+                                return true; // Network available, allow dismiss
+                              }
+
+                              return false; // User cancelled
                             },
                             onDismissed: (direction) async {
                               // Find the analysis in the full list using unique identifier
