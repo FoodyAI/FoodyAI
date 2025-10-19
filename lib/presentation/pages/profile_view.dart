@@ -17,6 +17,7 @@ import '../../services/notification_service.dart';
 import '../../services/aws_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../config/routes/navigation_service.dart';
+import '../../core/services/connection_service.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
