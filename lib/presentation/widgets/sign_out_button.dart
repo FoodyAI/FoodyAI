@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../viewmodels/auth_viewmodel.dart';
 import 'auth_loading_overlay.dart';
+import '../../core/services/connection_service.dart';
 
 class SignOutButton extends StatelessWidget {
   final VoidCallback? onPressed;
