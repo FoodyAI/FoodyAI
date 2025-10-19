@@ -40,18 +40,27 @@ class _HomeViewState extends State<HomeView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: _pages[_currentIndex],
-      bottomNavigationBar: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (widget.connectionBanner != null) widget.connectionBanner!,
-          BottomNavigation(
-            currentIndex: _currentIndex,
-            onTap: (index) => setState(() => _currentIndex = index),
+    return StreamBuilder<bool>(
+      stream: _connectionService.connectionStream,
+      initialData: _connectionService.isConnected,
+      builder: (context, snapshot) {
+        final isConnected = snapshot.data ?? true;
+        print('🏠 HomeView: StreamBuilder rebuilt with isConnected = $isConnected');
+
+        return Scaffold(
+          body: _pages[_currentIndex],
+          bottomNavigationBar: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ConnectionBanner(isConnected: isConnected),
+              BottomNavigation(
+                currentIndex: _currentIndex,
+                onTap: (index) => setState(() => _currentIndex = index),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
