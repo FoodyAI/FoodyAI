@@ -94,6 +94,7 @@ class _ConnectionBannerState extends State<ConnectionBanner> {
 
   @override
   Widget build(BuildContext context) {
+    print('🎨 ConnectionBanner: build() - showBanner: $_showBanner, isConnected: ${widget.isConnected}');
     if (!_showBanner) return const SizedBox.shrink();
 
     return AnimatedSlide(
