@@ -1704,7 +1704,27 @@ class _ProfileViewState extends State<ProfileView>
       child: ElevatedButton.icon(
         onPressed: authVM.isLoading
             ? null
-            : () => _showDeleteAccountDialog(context, authVM),
+            : () {
+                // Check network connection FIRST before any UI actions
+                final connectionService = ConnectionService();
+                if (!connectionService.isConnected) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Row(
+                        children: const [
+                          Icon(Icons.wifi_off, color: Colors.white),
+                          SizedBox(width: 12),
+                          Text('No internet connection'),
+                        ],
+                      ),
+                      backgroundColor: Colors.red[700],
+                      duration: const Duration(seconds: 3),
+                    ),
+                  );
+                  return; // Block delete account dialog
+                }
+                _showDeleteAccountDialog(context, authVM);
+              },
         icon: const FaIcon(
           FontAwesomeIcons.trash,
           size: 16,
