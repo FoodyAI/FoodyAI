@@ -19,11 +19,10 @@ import 'profile_view.dart';
 import '../../../core/constants/app_colors.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../config/routes/navigation_service.dart';
+import '../../core/services/connection_service.dart';
 
 class HomeView extends StatefulWidget {
-  final ConnectionBanner? connectionBanner;
-
-  const HomeView({super.key, this.connectionBanner});
+  const HomeView({super.key});
 
   @override
   State<HomeView> createState() => _HomeViewState();
