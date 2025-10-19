@@ -11,8 +11,6 @@ import '../../data/datasources/remote/ai_service_factory.dart';
 import '../../data/datasources/local/food_analysis_storage.dart';
 import '../../data/services/sqlite_service.dart';
 import '../../domain/entities/ai_provider.dart';
-import '../../domain/repositories/user_profile_repository.dart';
-import '../../di/service_locator.dart';
 import '../../services/sync_service.dart';
 import '../../services/aws_service.dart';
 import '../../services/permission_service.dart';
