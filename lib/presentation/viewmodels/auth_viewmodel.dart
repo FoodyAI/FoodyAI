@@ -111,7 +111,7 @@ class AuthViewModel extends ChangeNotifier {
       _isDataLoading = true;
       print('🔄 AuthViewModel: Starting background data sync after routing...');
       // Load ALL user data from AWS (profile + foods)
-      await _syncService.loadUserDataFromAWS();
+      await _oldSyncService.loadUserDataFromAWS();
       print('✅ AuthViewModel: Background data sync completed');
 
       // Notify listeners that profile data was updated
@@ -154,7 +154,7 @@ class AuthViewModel extends ChangeNotifier {
         print('🔄 AuthViewModel: Loading user data before navigation...');
         try {
           _isDataLoading = true;
-          await _syncService.loadUserDataFromAWS();
+          await _oldSyncService.loadUserDataFromAWS();
           print('✅ AuthViewModel: User data loaded successfully');
           ProfileUpdateEvent.notifyUpdate();
 
