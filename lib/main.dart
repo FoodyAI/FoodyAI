@@ -35,11 +35,18 @@ void main() async {
   final migrationService = MigrationService();
   await migrationService.migrateFromSharedPreferences();
 
-  runApp(const MyApp());
+  // Initialize and start monitoring network connection
+  final connectionService = ConnectionService();
+  connectionService.startMonitoring();
+  print('🌐 ConnectionService: Started monitoring network status');
+
+  runApp(MyApp(connectionService: connectionService));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final ConnectionService connectionService;
+
+  const MyApp({super.key, required this.connectionService});
 
   @override
   Widget build(BuildContext context) {
