@@ -44,6 +44,39 @@ class _HomeViewState extends State<HomeView> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+
+    // Listen to connection changes and trigger sync when coming back online
+    _connectionSubscription = _connectionService.connectionStream.listen((isConnected) {
+      print('🌐 HomeView: Connection changed to: $isConnected');
+
+      // If transitioning from offline to online, trigger sync
+      if (isConnected && _wasOffline) {
+        print('📡 HomeView: Connection restored, triggering sync...');
+        _syncService.syncPendingChanges();
+      }
+
+      // Update offline status
+      _wasOffline = !isConnected;
+    });
+
+    // Also sync on startup if there are pending changes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_connectionService.isConnected) {
+        print('🚀 HomeView: App started online, checking for pending syncs...');
+        _syncService.syncOnStartup();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _connectionSubscription?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return StreamBuilder<bool>(
       stream: _connectionService.connectionStream,
