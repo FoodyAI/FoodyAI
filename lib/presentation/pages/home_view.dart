@@ -33,6 +33,9 @@ class HomeView extends StatefulWidget {
 class _HomeViewState extends State<HomeView> {
   int _currentIndex = 0;
   final ConnectionService _connectionService = ConnectionService();
+  final SyncService _syncService = SyncService();
+  StreamSubscription<bool>? _connectionSubscription;
+  bool _wasOffline = false;
 
   final List<Widget> _pages = [
     const _HomeContent(),
