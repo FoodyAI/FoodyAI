@@ -429,7 +429,7 @@ class _HomeContentState extends State<_HomeContent> {
                               ),
                             ),
                             confirmDismiss: (_) async {
-                              return await showDialog(
+                              final confirmed = await showDialog<bool>(
                                 context: context,
                                 builder: (BuildContext context) {
                                   return AlertDialog(
