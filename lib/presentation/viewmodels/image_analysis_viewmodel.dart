@@ -305,8 +305,8 @@ class ImageAnalysisViewModel extends ChangeNotifier {
       SnackBar(
         content: Row(
           children: [
-            const Icon(
-              Icons.error_outline,
+            Icon(
+              icon,
               color: Colors.white,
               size: 20,
             ),
