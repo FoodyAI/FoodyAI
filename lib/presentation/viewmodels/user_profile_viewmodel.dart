@@ -4,15 +4,13 @@ import '../../domain/entities/user_profile.dart';
 import '../../domain/entities/ai_provider.dart';
 import '../../domain/usecases/user_profile_usecase.dart';
 import '../../core/events/profile_update_event.dart';
-import '../../services/sync_service.dart';
-import '../../data/services/sqlite_service.dart';
+import '../../core/services/sync_service.dart';
 import 'dart:async';
 
 class UserProfileViewModel extends ChangeNotifier {
   final UserProfileUseCase _useCase;
   final SyncService _syncService = SyncService();
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final SQLiteService _sqliteService = SQLiteService();
   UserProfile? _profile;
   bool _isLoading = true;
   bool _isMetric = true;
