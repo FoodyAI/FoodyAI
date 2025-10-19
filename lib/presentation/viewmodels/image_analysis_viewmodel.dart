@@ -218,29 +218,85 @@ class ImageAnalysisViewModel extends ChangeNotifier {
     }
   }
 
+  void _showNetworkErrorSnackBar(BuildContext context) {
+    print('📵 [ViewModel] Showing network error snackbar');
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(
+              Icons.wifi_off,
+              color: Colors.white,
+              size: 20,
+            ),
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Text(
+                'No internet connection',
+                style: TextStyle(
+                  fontSize: 15,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: Colors.red[700],
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        margin: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
   void _showErrorSnackBar(BuildContext context, String errorMessage) {
     print('🚨 [ViewModel] Showing error snackbar: $errorMessage');
 
-    // Extract user-friendly message from error
-    String displayMessage = 'This image is not related to food';
+    // Determine the error type and show appropriate message
+    String displayMessage;
+    IconData icon;
 
-    // Check if it contains our specific error message
-    if (errorMessage.contains('This image is not related to food')) {
+    // Check for network errors FIRST
+    if (errorMessage.contains('SocketException') ||
+        errorMessage.contains('Failed host lookup') ||
+        errorMessage.contains('Network is unreachable') ||
+        errorMessage.contains('No address associated with hostname')) {
+      displayMessage = 'No internet connection';
+      icon = Icons.wifi_off;
+    }
+    // Check for food validation errors
+    else if (errorMessage.contains('This image is not related to food') ||
+        errorMessage.contains('not related to food') ||
+        errorMessage.contains('is not a food item')) {
       displayMessage = 'This image is not related to food';
-    } else {
-      // For other errors, clean up and show
+      icon = Icons.error_outline;
+    }
+    // Check for timeout errors
+    else if (errorMessage.contains('TimeoutException') ||
+        errorMessage.contains('timed out') ||
+        errorMessage.contains('Timeout')) {
+      displayMessage = 'Request timed out. Please try again.';
+      icon = Icons.access_time;
+    }
+    // Generic error
+    else {
+      // Clean up error message
       displayMessage = errorMessage
           .replaceAll('Exception: ', '')
           .replaceAll('Error analyzing image with Gemini: ', '')
-          .replaceAll('Error analyzing image with OpenAI: ', '')
-          .replaceAll('Error analyzing image with Claude: ', '')
-          .replaceAll('Error analyzing image with Hugging Face: ', '')
           .replaceAll('Error analyzing image: ', '');
 
-      // If the message is too long, just show the core message
+      // If still too long, show generic message
       if (displayMessage.length > 100) {
-        displayMessage = 'This image is not related to food';
+        displayMessage = 'Failed to analyze image. Please try again.';
       }
+      icon = Icons.error_outline;
     }
 
     print('📝 [ViewModel] Display message: $displayMessage');
