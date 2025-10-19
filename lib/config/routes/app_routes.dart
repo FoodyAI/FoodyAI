@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../presentation/pages/splash_screen.dart';
 import '../../presentation/pages/welcome_view.dart';
 import '../../presentation/pages/onboarding_view.dart';
+import '../../presentation/pages/intro/intro_onboarding_screen.dart';
 import '../../presentation/pages/home_view.dart';
 import '../../presentation/pages/analyze_view.dart';
 import '../../presentation/pages/profile_view.dart';
