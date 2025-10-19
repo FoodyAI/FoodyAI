@@ -1,0 +1,107 @@
+{
+  "app_config": {
+    "app_name": "Foody",
+    "tagline": "Your Personal Nutrition Companion"
+  },
+  "theme": {
+    "primary_color": "#FF1744",
+    "secondary_color": "#FF4081",
+    "accent_color": "#FF80AB",
+    "background_dark": "#0A0E27",
+    "background_darker": "#06080F",
+    "text_primary": "#FFFFFF",
+    "text_secondary": "#B0B0B0",
+    "button_gradient": {
+      "start_color": "#FF1744",
+      "end_color": "#FF4081"
+    }
+  },
+  "onboarding_pages": [
+    {
+      "id": "page_1",
+      "title": "Discover\nDelicious Food",
+      "description": "Experience the finest culinary creations with our intelligent food tracking and nutrition analysis.",
+      "background_image": "assets/images/bg_nutrition.jpg",
+      "background_image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=1080&h=1920&fit=crop",
+      "icon": "nutrition",
+      "primary_color_override": null
+    },
+    {
+      "id": "page_2",
+      "title": "Track Your\nNutrition",
+      "description": "Get accurate nutrition insights and personalized health guidance tailored to your wellness goals.",
+      "background_image": "assets/images/bg_bmi.jpg",
+      "background_image_url": "https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=1080&h=1920&fit=crop",
+      "background_video_url": "assets/videos/second.mp4",
+      "use_video": true,
+      "icon": "calculator",
+      "primary_color_override": null
+    },
+    {
+      "id": "page_3",
+      "title": "Achieve Your\nHealth Goals",
+      "description": "Monitor your progress, discover healthy recipes, and maintain a balanced lifestyle with ease.",
+      "background_image": "assets/images/bg_activity.jpg",
+      "background_image_url": "https://images.unsplash.com/photo-1490818387583-1baba5e638af?w=1080&h=1920&fit=crop",
+      "icon": "activity",
+      "primary_color_override": null
+    }
+  ],
+  "ui_elements": {
+    "skip_button": {
+      "text": "Skip",
+      "show": true,
+      "position": "top_right"
+    },
+    "back_button": {
+      "text": "Back",
+      "show_on_first_page": false,
+      "style": "outlined"
+    },
+    "continue_button": {
+      "text": "Continue",
+      "style": "filled"
+    },
+    "get_started_button": {
+      "text": "Get Started",
+      "show_on_last_page": true,
+      "style": "filled_gradient"
+    },
+    "page_indicators": {
+      "type": "expanding_dots",
+      "active_width": 28,
+      "inactive_width": 8,
+      "height": 8,
+      "spacing": 6,
+      "active_color": "#FFFFFF",
+      "inactive_color": "#FFFFFF40",
+      "animation_duration_ms": 300
+    }
+  },
+  "phone_mockup": {
+    "show": true,
+    "style": "iphone_pro",
+    "border_width": 8,
+    "border_color": "#FFFFFF20",
+    "corner_radius": 40,
+    "notch_width": 120,
+    "notch_height": 25,
+    "shadow": {
+      "color": "#FF174450",
+      "blur_radius": 40,
+      "spread_radius": 5
+    },
+    "content_padding": 32
+  },
+  "animations": {
+    "page_transition_duration_ms": 300,
+    "page_transition_curve": "easeInOut",
+    "background_fade_duration_ms": 500,
+    "indicator_animation_duration_ms": 300
+  },
+  "navigation": {
+    "on_complete_route": "/welcome",
+    "on_skip_route": "/welcome",
+    "allow_back_navigation": true
+  }
+}
