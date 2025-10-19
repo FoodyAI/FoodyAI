@@ -21,6 +21,7 @@ import '../../../core/constants/app_colors.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../config/routes/navigation_service.dart';
 import '../../core/services/connection_service.dart';
+import '../../core/services/sync_service.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
