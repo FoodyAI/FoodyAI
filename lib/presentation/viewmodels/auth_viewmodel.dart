@@ -397,6 +397,11 @@ class AuthViewModel extends ChangeNotifier {
       // Note: AWS deletion and FCM token deletion were already done in the first attempt
       // We only need to handle Firebase deletion with reauthentication
 
+      // Clear all sync flags (in case they weren't cleared in first attempt)
+      print('🔄 AuthViewModel: Clearing all sync flags...');
+      await _syncService.clearAllSyncFlags();
+      print('✅ AuthViewModel: All sync flags cleared');
+
       // Clear local data (in case it wasn't cleared in first attempt)
       await SQLiteService().clearAllData();
       ProfileUpdateEvent.notifyUpdate();
