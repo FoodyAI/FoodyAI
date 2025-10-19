@@ -331,6 +331,11 @@ class AuthViewModel extends ChangeNotifier {
       await _notificationService.deleteToken();
       print('✅ AuthViewModel: FCM token deleted');
 
+      // Clear all sync flags (no pending syncs after account deletion)
+      print('🔄 AuthViewModel: Clearing all sync flags...');
+      await _syncService.clearAllSyncFlags();
+      print('✅ AuthViewModel: All sync flags cleared');
+
       // Delete from AWS first
       final awsResult = await _awsService.deleteUser(userId);
       if (awsResult == null) {
