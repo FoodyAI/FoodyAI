@@ -13,11 +13,11 @@ import '../widgets/reauth_dialog.dart';
 import '../../core/constants/app_colors.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'welcome_view.dart';
-import '../../services/notification_service.dart';
 import '../../services/aws_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../config/routes/navigation_service.dart';
 import '../../core/services/connection_service.dart';
+import '../../core/services/sync_service.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
