@@ -15,6 +15,7 @@ import 'config/routes/app_routes.dart';
 import 'config/routes/route_transitions.dart';
 import 'config/routes/navigation_service.dart';
 import 'services/notification_service.dart';
+import 'core/services/connection_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
