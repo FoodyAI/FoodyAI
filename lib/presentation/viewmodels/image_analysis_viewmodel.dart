@@ -158,6 +158,16 @@ class ImageAnalysisViewModel extends ChangeNotifier {
 
   Future<void> pickImage(ImageSource source, BuildContext context) async {
     try {
+      // Check network connection FIRST before picking image
+      if (!_connectionService.isConnected) {
+        print('📵 [ViewModel] No internet connection');
+        final validContext = NavigationService.currentContext;
+        if (validContext != null && validContext.mounted) {
+          _showNetworkErrorSnackBar(validContext);
+        }
+        return;
+      }
+
       // Check camera permission if using camera
       if (source == ImageSource.camera) {
         // Always try to request permission - this handles all cases:
