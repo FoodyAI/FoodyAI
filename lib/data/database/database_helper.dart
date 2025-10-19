@@ -21,7 +21,7 @@ class DatabaseHelper {
     print('Database path: $path');
     return await openDatabase(
       path,
-      version: 5, // Increment version to trigger migration
+      version: 6, // Increment version to trigger migration
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
