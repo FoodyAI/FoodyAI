@@ -388,6 +388,28 @@ class _HomeContentState extends State<_HomeContent> {
                         ),
                         onTap: () {
                           Navigator.pop(context);
+
+                          // Check network connection BEFORE opening barcode scanner
+                          final connectionService = ConnectionService();
+                          if (!connectionService.isConnected) {
+                            // Show network error snackbar
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Row(
+                                  children: const [
+                                    Icon(Icons.wifi_off, color: Colors.white),
+                                    SizedBox(width: 12),
+                                    Text('No internet connection'),
+                                  ],
+                                ),
+                                backgroundColor: Colors.red[700],
+                                duration: const Duration(seconds: 3),
+                              ),
+                            );
+                            return; // Block barcode scanner
+                          }
+
+                          // Network available, proceed to barcode scanner
                           NavigationService.navigateToBarcodeScanner();
                         },
                       ),
