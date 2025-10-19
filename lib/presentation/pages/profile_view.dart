@@ -1029,11 +1029,11 @@ class _ProfileViewState extends State<ProfileView>
           initialValue: initialValue,
           colorScheme: colorScheme,
           onToggle: (value) async {
-            final notificationService = NotificationService();
-            final success =
-                await notificationService.updateNotificationPreferences(
-              userId: user.uid,
-              notificationsEnabled: value,
+            // Use SyncService to try sync immediately (if online) or mark for later (if offline)
+            final syncService = SyncService();
+            final success = await syncService.trySyncNotificationSettings(
+              user.uid,
+              value,
             );
             return success;
           },
