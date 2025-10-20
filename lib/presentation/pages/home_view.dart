@@ -9,10 +9,10 @@ import '../../data/services/sqlite_service.dart';
 import '../viewmodels/image_analysis_viewmodel.dart';
 import '../viewmodels/user_profile_viewmodel.dart';
 import '../viewmodels/auth_viewmodel.dart';
+import '../../domain/entities/user_profile.dart';
 import '../widgets/food_analysis_card.dart';
 import '../widgets/calorie_tracking_card.dart';
 import '../widgets/bottom_navigation.dart';
-import '../widgets/custom_app_bar.dart';
 import '../widgets/guest_signin_banner.dart';
 import '../widgets/connection_banner.dart';
 import '../../data/models/food_analysis.dart';
@@ -459,6 +459,86 @@ class _HomeContentState extends State<_HomeContent> {
     }
   }
 
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) {
+      return 'Good Morning,';
+    } else if (hour < 17) {
+      return 'Good Afternoon,';
+    } else if (hour < 21) {
+      return 'Good Evening,';
+    } else {
+      return 'Good Night,';
+    }
+  }
+
+  PreferredSizeWidget _buildCustomAppBar(
+    BuildContext context,
+    AuthViewModel authVM,
+    UserProfile profile,
+  ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return AppBar(
+      automaticallyImplyLeading: false,
+      backgroundColor: isDark ? AppColors.darkBackground : Colors.white,
+      elevation: 0,
+      toolbarHeight: 64,
+      flexibleSpace: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 4),
+          child: Row(
+            children: [
+              // Profile Picture with Gender-based Avatar
+              CircleAvatar(
+                radius: 22,
+                backgroundImage: (authVM.userPhotoURL != null && authVM.userPhotoURL!.isNotEmpty)
+                    ? NetworkImage(authVM.userPhotoURL!)
+                    : null,
+                backgroundColor: AppColors.primary.withOpacity(0.1),
+                child: (authVM.userPhotoURL == null || authVM.userPhotoURL!.isEmpty)
+                    ? FaIcon(
+                        profile.gender.toLowerCase() == 'male' 
+                            ? FontAwesomeIcons.person
+                            : FontAwesomeIcons.personDress,
+                        size: 20,
+                        color: AppColors.primary,
+                      )
+                    : null,
+              ),
+              const SizedBox(width: 12),
+              // Greeting and Name
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Hi ${authVM.userDisplayName?.split(' ').first ?? profile.gender}',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      _getGreeting(),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final profileVM = Provider.of<UserProfileViewModel>(context);
@@ -520,11 +600,7 @@ class _HomeContentState extends State<_HomeContent> {
     final recommendedCalories = profile.dailyCalories;
 
     return Scaffold(
-      appBar: const CustomAppBar(
-        title: 'Home',
-        icon: FontAwesomeIcons.house,
-        showInfoButton: false,
-      ),
+      appBar: _buildCustomAppBar(context, authVM, profile),
       body: RefreshIndicator(
         onRefresh: () async {
           // Force refresh the food analyses when user pulls to refresh
