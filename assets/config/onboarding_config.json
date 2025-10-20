@@ -100,8 +100,8 @@
     "indicator_animation_duration_ms": 300
   },
   "navigation": {
-    "on_complete_route": "/welcome",
-    "on_skip_route": "/welcome",
+    "on_complete_route": "/intro",
+    "on_skip_route": "/intro",
     "allow_back_navigation": true
   }
 }
