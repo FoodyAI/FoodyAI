@@ -152,41 +152,96 @@ class _ProfileViewState extends State<ProfileView>
       body: Column(
         children: [
           Container(
+            margin: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? AppColors.darkBackground
-                  : colorScheme.surface,
+              borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.black.withOpacity(0.3)
+                      : Colors.grey.withOpacity(0.12),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6),
+                  spreadRadius: 1,
                 ),
               ],
             ),
-            child: TabBar(
-              controller: _tabController,
-              labelColor: colorScheme.primary,
-              unselectedLabelColor: colorScheme.onSurface.withOpacity(0.6),
-              indicatorColor: colorScheme.primary,
-              tabs: const [
-                Tab(
-                  icon: FaIcon(FontAwesomeIcons.user),
-                  text: 'Personal',
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+                child: Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: Theme.of(context).brightness == Brightness.dark
+                          ? [
+                              Colors.white.withOpacity(0.12),
+                              Colors.white.withOpacity(0.06),
+                            ]
+                          : [
+                              Colors.white.withOpacity(0.90),
+                              Colors.white.withOpacity(0.80),
+                            ],
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white.withOpacity(0.2)
+                          : Colors.white.withOpacity(0.7),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: TabBar(
+                    controller: _tabController,
+                    labelColor: colorScheme.primary,
+                    unselectedLabelColor: colorScheme.onSurface.withOpacity(0.6),
+                    labelStyle: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.3,
+                    ),
+                    unselectedLabelStyle: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    indicator: BoxDecoration(
+                      color: colorScheme.primary.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: colorScheme.primary.withOpacity(0.3),
+                        width: 1.5,
+                      ),
+                    ),
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    dividerColor: Colors.transparent,
+                    tabs: [
+                      Tab(
+                        icon: FaIcon(FontAwesomeIcons.user, size: 18),
+                        text: 'Personal',
+                        height: 65,
+                      ),
+                      Tab(
+                        icon: FaIcon(FontAwesomeIcons.dumbbell, size: 18),
+                        text: 'Activity',
+                        height: 65,
+                      ),
+                      Tab(
+                        icon: FaIcon(FontAwesomeIcons.bullseye, size: 18),
+                        text: 'Goals',
+                        height: 65,
+                      ),
+                      Tab(
+                        icon: FaIcon(FontAwesomeIcons.gear, size: 18),
+                        text: 'Settings',
+                        height: 65,
+                      ),
+                    ],
+                  ),
                 ),
-                Tab(
-                  icon: FaIcon(FontAwesomeIcons.dumbbell),
-                  text: 'Activity',
-                ),
-                Tab(
-                  icon: FaIcon(FontAwesomeIcons.bullseye),
-                  text: 'Goals',
-                ),
-                Tab(
-                  icon: FaIcon(FontAwesomeIcons.gear),
-                  text: 'Settings',
-                ),
-              ],
+              ),
             ),
           ),
           Expanded(
