@@ -55,8 +55,29 @@ class _ProfileViewState extends State<ProfileView>
     
     return Container(
       margin: margin,
+      padding: padding,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
+        // Solid background to prevent flickering during scroll
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDark
+              ? [
+                  Colors.grey[850]!.withOpacity(0.95),
+                  Colors.grey[900]!.withOpacity(0.95),
+                ]
+              : [
+                  Colors.white.withOpacity(0.90),
+                  Colors.white.withOpacity(0.85),
+                ],
+        ),
+        border: Border.all(
+          color: isDark 
+              ? Colors.white.withOpacity(0.2) 
+              : Colors.white.withOpacity(0.7),
+          width: 1.5,
+        ),
         boxShadow: [
           BoxShadow(
             color: isDark 
@@ -68,38 +89,7 @@ class _ProfileViewState extends State<ProfileView>
           ),
         ],
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-          child: Container(
-            padding: padding,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: isDark
-                    ? [
-                        Colors.white.withOpacity(0.12),
-                        Colors.white.withOpacity(0.06),
-                      ]
-                    : [
-                        Colors.white.withOpacity(0.90),
-                        Colors.white.withOpacity(0.80),
-                      ],
-              ),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: isDark 
-                    ? Colors.white.withOpacity(0.2) 
-                    : Colors.white.withOpacity(0.7),
-                width: 1.5,
-              ),
-            ),
-            child: child,
-          ),
-        ),
-      ),
+      child: child,
     );
   }
 
