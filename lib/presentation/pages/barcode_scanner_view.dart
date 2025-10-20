@@ -407,50 +407,63 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
                         BoxShadow(
                           color: isDark
                               ? Colors.black.withOpacity(0.4)
-                              : Colors.black.withOpacity(0.25),
-                          blurRadius: isDark ? 16 : 24,
-                          offset: const Offset(0, 6),
-                          spreadRadius: isDark ? 0 : 2,
+                              : Colors.black.withOpacity(0.35),
+                          blurRadius: isDark ? 16 : 28,
+                          offset: isDark ? const Offset(0, 6) : const Offset(0, 10),
+                          spreadRadius: isDark ? 0 : 4,
                         ),
                         // Add second shadow layer for more depth
                         if (!isDark)
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.15),
-                            blurRadius: 12,
-                            offset: const Offset(0, 3),
+                            color: Colors.black.withOpacity(0.20),
+                            blurRadius: 16,
+                            offset: const Offset(0, 4),
                           ),
                       ],
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(20),
                       child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                        filter: ImageFilter.blur(
+                          sigmaX: isDark ? 16 : 20, 
+                          sigmaY: isDark ? 16 : 20,
+                        ),
                         child: Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 24,
                             vertical: 18,
                           ),
                           decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: isDark
-                                  ? [
+                            color: isDark
+                                ? null
+                                : Colors.white.withOpacity(0.95),
+                            gradient: isDark
+                                ? LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
                                       Colors.white.withOpacity(0.20),
                                       Colors.white.withOpacity(0.12),
-                                    ]
-                                  : [
-                                      Colors.white.withOpacity(0.98),
-                                      Colors.white.withOpacity(0.92),
                                     ],
-                            ),
+                                  )
+                                : null,
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
                               color: isDark
                                   ? Colors.white.withOpacity(0.35)
-                                  : Colors.white.withOpacity(0.90),
-                              width: isDark ? 1.5 : 2,
+                                  : Colors.white.withOpacity(0.95),
+                              width: isDark ? 1.5 : 2.5,
                             ),
+                            boxShadow: !isDark
+                                ? [
+                                    BoxShadow(
+                                      color: Colors.white.withOpacity(0.8),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 0),
+                                      spreadRadius: -2,
+                                    ),
+                                  ]
+                                : null,
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
