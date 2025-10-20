@@ -193,11 +193,11 @@ class _ProfileViewState extends State<ProfileView>
                           : Colors.white.withOpacity(0.7),
                       width: 1.5,
                     ),
-                  ),
-                  child: TabBar(
-                    controller: _tabController,
-                    labelColor: colorScheme.primary,
-                    unselectedLabelColor: colorScheme.onSurface.withOpacity(0.6),
+            ),
+            child: TabBar(
+              controller: _tabController,
+              labelColor: colorScheme.primary,
+              unselectedLabelColor: colorScheme.onSurface.withOpacity(0.6),
                     labelStyle: GoogleFonts.inter(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -220,25 +220,25 @@ class _ProfileViewState extends State<ProfileView>
                     tabs: [
                       Tab(
                         icon: FaIcon(FontAwesomeIcons.user, size: 18),
-                        text: 'Personal',
+                  text: 'Personal',
                         height: 65,
-                      ),
-                      Tab(
+                ),
+                Tab(
                         icon: FaIcon(FontAwesomeIcons.dumbbell, size: 18),
-                        text: 'Activity',
+                  text: 'Activity',
                         height: 65,
-                      ),
-                      Tab(
+                ),
+                Tab(
                         icon: FaIcon(FontAwesomeIcons.bullseye, size: 18),
-                        text: 'Goals',
+                  text: 'Goals',
                         height: 65,
-                      ),
-                      Tab(
+                ),
+                Tab(
                         icon: FaIcon(FontAwesomeIcons.gear, size: 18),
-                        text: 'Settings',
+                  text: 'Settings',
                         height: 65,
-                      ),
-                    ],
+                ),
+              ],
                   ),
                 ),
               ),
@@ -270,71 +270,71 @@ class _ProfileViewState extends State<ProfileView>
         children: [
           _buildGlassmorphicCard(
             context: context,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Personal Information',
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Personal Information',
                   style: GoogleFonts.poppins(
                     fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.onSurface,
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurface,
+                    ),
                   ),
-                ),
                 const SizedBox(height: 6),
-                Text(
-                  'Manage your personal details and preferences',
+                  Text(
+                    'Manage your personal details and preferences',
                   style: GoogleFonts.inter(
                     fontSize: 13,
-                    color: colorScheme.onSurface.withOpacity(0.7),
+                      color: colorScheme.onSurface.withOpacity(0.7),
+                    ),
                   ),
-                ),
                 const SizedBox(height: 20),
-                GridView.count(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  crossAxisCount: 2,
+                  GridView.count(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    crossAxisCount: 2,
                   mainAxisSpacing: 12,
                   crossAxisSpacing: 12,
                   childAspectRatio: 1.05,
-                  children: [
-                    _buildInfoCard(
-                      context,
-                      FontAwesomeIcons.user,
-                      'Gender',
-                      profile.gender,
-                      colorScheme.primary,
-                      () => _showGenderDialog(context, profileVM),
-                    ),
-                    _buildInfoCard(
-                      context,
-                      FontAwesomeIcons.cakeCandles,
-                      'Age',
-                      '${profile.age} years',
-                      colorScheme.secondary,
-                      () => _showAgeDialog(context, profileVM),
-                    ),
-                    _buildInfoCard(
-                      context,
-                      FontAwesomeIcons.weightScale,
-                      'Weight',
-                      '${profileVM.displayWeight.toStringAsFixed(1)} ${profileVM.weightUnit}',
-                      colorScheme.tertiary,
-                      () => _showWeightDialog(context, profileVM),
-                    ),
-                    _buildInfoCard(
-                      context,
-                      FontAwesomeIcons.rulerVertical,
-                      'Height',
-                      profileVM.isMetric
-                          ? '${profileVM.displayHeight.toStringAsFixed(1)} cm'
-                          : '${(profileVM.displayHeight / 12).floor()}′${(profileVM.displayHeight % 12).round()}″',
-                      colorScheme.error,
-                      () => _showHeightDialog(context, profileVM),
-                    ),
-                  ],
-                ),
-              ],
+                    children: [
+                      _buildInfoCard(
+                        context,
+                        FontAwesomeIcons.user,
+                        'Gender',
+                        profile.gender,
+                        colorScheme.primary,
+                        () => _showGenderDialog(context, profileVM),
+                      ),
+                      _buildInfoCard(
+                        context,
+                        FontAwesomeIcons.cakeCandles,
+                        'Age',
+                        '${profile.age} years',
+                        colorScheme.secondary,
+                        () => _showAgeDialog(context, profileVM),
+                      ),
+                      _buildInfoCard(
+                        context,
+                        FontAwesomeIcons.weightScale,
+                        'Weight',
+                        '${profileVM.displayWeight.toStringAsFixed(1)} ${profileVM.weightUnit}',
+                        colorScheme.tertiary,
+                        () => _showWeightDialog(context, profileVM),
+                      ),
+                      _buildInfoCard(
+                        context,
+                        FontAwesomeIcons.rulerVertical,
+                        'Height',
+                        profileVM.isMetric
+                            ? '${profileVM.displayHeight.toStringAsFixed(1)} cm'
+                            : '${(profileVM.displayHeight / 12).floor()}′${(profileVM.displayHeight % 12).round()}″',
+                        colorScheme.error,
+                        () => _showHeightDialog(context, profileVM),
+                      ),
+                    ],
+                  ),
+                ],
             ),
           ),
           // Add bottom padding to prevent content from being hidden behind bottom nav bar
@@ -374,12 +374,12 @@ class _ProfileViewState extends State<ProfileView>
           filter: ImageFilter.blur(sigmaX: isDark ? 12 : 16, sigmaY: isDark ? 12 : 16),
           child: Material(
             color: Colors.transparent,
-            child: InkWell(
-              onTap: onTap,
+      child: InkWell(
+        onTap: onTap,
               borderRadius: BorderRadius.circular(20),
-              child: Container(
+        child: Container(
                 padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
+          decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -394,54 +394,54 @@ class _ProfileViewState extends State<ProfileView>
                           ],
                   ),
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
+            border: Border.all(
                     color: isDark 
                         ? Colors.white.withOpacity(0.15) 
                         : Colors.white.withOpacity(0.8),
                     width: isDark ? 1.2 : 2,
-                  ),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
+            ),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
                         color: color.withOpacity(0.12),
                         shape: BoxShape.circle,
                       ),
-                      child: FaIcon(
-                        icon,
+                child: FaIcon(
+                  icon,
                         color: color,
                         size: 22,
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      title,
+                  title,
                       style: GoogleFonts.inter(
                         fontSize: 12,
-                        fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w600,
                         color: Theme.of(context).colorScheme.onSurface,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                    ),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                ),
                     const SizedBox(height: 3),
                     Text(
-                      value,
+                  value,
                       style: GoogleFonts.poppins(
                         fontSize: 13,
                         color: color,
                         fontWeight: FontWeight.w700,
-                      ),
-                      textAlign: TextAlign.center,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+              ),
+            ],
                 ),
               ),
             ),
@@ -461,61 +461,61 @@ class _ProfileViewState extends State<ProfileView>
         children: [
           _buildGlassmorphicCard(
             context: context,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Activity Level',
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Activity Level',
                   style: GoogleFonts.poppins(
                     fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.onSurface,
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurface,
+                    ),
                   ),
-                ),
                 const SizedBox(height: 6),
-                Text(
-                  'How active are you in your daily life?',
+                  Text(
+                    'How active are you in your daily life?',
                   style: GoogleFonts.inter(
                     fontSize: 13,
-                    color: colorScheme.onSurface.withOpacity(0.7),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                ...ActivityLevel.values.map((level) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: _ProfileSettingOption<ActivityLevel>(
-                      value: level,
-                      selectedValue: profile.activityLevel,
-                      colorScheme: colorScheme,
-                      icon: _getActivityIcon(level),
-                      title: level.displayName,
-                      subtitle: _getActivityDescription(level),
-                      categoryName: 'Activity Level',
-                      onSelect: (selectedLevel) async {
-                        try {
-                          await profileVM.saveProfile(
-                            gender: profile.gender,
-                            age: profile.age,
-                            weight: profileVM.displayWeight,
-                            weightUnit: profileVM.weightUnit,
-                            height: profileVM.displayHeight,
-                            heightUnit: profileVM.heightUnit,
-                            activityLevel: selectedLevel,
-                            isMetric: profileVM.isMetric,
-                            weightGoal: profile.weightGoal,
-                            aiProvider: profile.aiProvider,
-                          );
-                          return true;
-                        } catch (e) {
-                          print('Error saving activity level: $e');
-                          return false;
-                        }
-                      },
+                      color: colorScheme.onSurface.withOpacity(0.7),
                     ),
-                  );
-                }).toList(),
-              ],
+                  ),
+                const SizedBox(height: 20),
+                  ...ActivityLevel.values.map((level) {
+                    return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                      child: _ProfileSettingOption<ActivityLevel>(
+                        value: level,
+                        selectedValue: profile.activityLevel,
+                        colorScheme: colorScheme,
+                        icon: _getActivityIcon(level),
+                        title: level.displayName,
+                        subtitle: _getActivityDescription(level),
+                        categoryName: 'Activity Level',
+                        onSelect: (selectedLevel) async {
+                          try {
+                            await profileVM.saveProfile(
+                              gender: profile.gender,
+                              age: profile.age,
+                              weight: profileVM.displayWeight,
+                              weightUnit: profileVM.weightUnit,
+                              height: profileVM.displayHeight,
+                              heightUnit: profileVM.heightUnit,
+                              activityLevel: selectedLevel,
+                              isMetric: profileVM.isMetric,
+                              weightGoal: profile.weightGoal,
+                              aiProvider: profile.aiProvider,
+                            );
+                            return true;
+                          } catch (e) {
+                            print('Error saving activity level: $e');
+                            return false;
+                          }
+                        },
+                      ),
+                    );
+                  }).toList(),
+                ],
             ),
           ),
           // Add bottom padding to prevent content from being hidden behind bottom nav bar
@@ -535,60 +535,60 @@ class _ProfileViewState extends State<ProfileView>
         children: [
           _buildGlassmorphicCard(
             context: context,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Weight Goal',
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Weight Goal',
                   style: GoogleFonts.poppins(
                     fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.onSurface,
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurface,
+                    ),
                   ),
-                ),
                 const SizedBox(height: 6),
-                Text(
-                  'What would you like to achieve?',
+                  Text(
+                    'What would you like to achieve?',
                   style: GoogleFonts.inter(
                     fontSize: 13,
-                    color: colorScheme.onSurface.withOpacity(0.7),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                ...WeightGoal.values.map((goal) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: _ProfileSettingOption<WeightGoal>(
-                      value: goal,
-                      selectedValue: profile.weightGoal,
-                      colorScheme: colorScheme,
-                      icon: _getWeightGoalIcon(goal),
-                      title: goal.displayName,
-                      subtitle: _getWeightGoalDescription(goal),
-                      categoryName: 'Weight Goal',
-                      onSelect: (selectedGoal) async {
-                        try {
-                          await profileVM.saveProfile(
-                            gender: profile.gender,
-                            age: profile.age,
-                            weight: profileVM.displayWeight,
-                            weightUnit: profileVM.weightUnit,
-                            height: profileVM.displayHeight,
-                            heightUnit: profileVM.heightUnit,
-                            activityLevel: profile.activityLevel,
-                            isMetric: profileVM.isMetric,
-                            weightGoal: selectedGoal,
-                            aiProvider: profile.aiProvider,
-                          );
-                          return true;
-                        } catch (e) {
-                          return false;
-                        }
-                      },
+                      color: colorScheme.onSurface.withOpacity(0.7),
                     ),
-                  );
-                }).toList(),
-              ],
+                  ),
+                const SizedBox(height: 20),
+                  ...WeightGoal.values.map((goal) {
+                    return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                      child: _ProfileSettingOption<WeightGoal>(
+                        value: goal,
+                        selectedValue: profile.weightGoal,
+                        colorScheme: colorScheme,
+                        icon: _getWeightGoalIcon(goal),
+                        title: goal.displayName,
+                        subtitle: _getWeightGoalDescription(goal),
+                        categoryName: 'Weight Goal',
+                        onSelect: (selectedGoal) async {
+                          try {
+                            await profileVM.saveProfile(
+                              gender: profile.gender,
+                              age: profile.age,
+                              weight: profileVM.displayWeight,
+                              weightUnit: profileVM.weightUnit,
+                              height: profileVM.displayHeight,
+                              heightUnit: profileVM.heightUnit,
+                              activityLevel: profile.activityLevel,
+                              isMetric: profileVM.isMetric,
+                              weightGoal: selectedGoal,
+                              aiProvider: profile.aiProvider,
+                            );
+                            return true;
+                          } catch (e) {
+                            return false;
+                          }
+                        },
+                      ),
+                    );
+                  }).toList(),
+                ],
             ),
           ),
           // Add bottom padding to prevent content from being hidden behind bottom nav bar
@@ -618,11 +618,11 @@ class _ProfileViewState extends State<ProfileView>
           // Account Section
           _buildGlassmorphicCard(
             context: context,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
@@ -634,18 +634,18 @@ class _ProfileViewState extends State<ProfileView>
                         color: colorScheme.primary,
                         size: 18,
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      'Account',
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Account',
                       style: GoogleFonts.poppins(
                         fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.onSurface,
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.onSurface,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
                 const SizedBox(height: 16),
 
                   // Show user details if signed in, otherwise show guest benefits
@@ -687,24 +687,24 @@ class _ProfileViewState extends State<ProfileView>
                                   children: [
                                     // User Name - Dynamic text size to fit content
                                     Text(
-                                      authVM.userDisplayName ?? 'User',
+                                        authVM.userDisplayName ?? 'User',
                                       style: GoogleFonts.poppins(
                                         fontSize: 16,
                                         fontWeight: FontWeight.w600,
-                                        color: colorScheme.onSurface,
-                                      ),
-                                      maxLines: 1,
+                                          color: colorScheme.onSurface,
+                                        ),
+                                        maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
-                                    ),
+                                      ),
                                     const SizedBox(height: 3),
                                     // User Email - Dynamic text size to fit content
                                     Text(
-                                      authVM.userEmail ?? '',
+                                        authVM.userEmail ?? '',
                                       style: GoogleFonts.inter(
                                         fontSize: 12,
                                         color: colorScheme.onSurface.withOpacity(0.7),
-                                      ),
-                                      maxLines: 1,
+                                        ),
+                                        maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ],
@@ -769,79 +769,79 @@ class _ProfileViewState extends State<ProfileView>
             padding: const EdgeInsets.all(16),
             child: Material(
               color: Colors.transparent,
-              child: InkWell(
-                onTap: () {
-                  NavigationService.navigateToSubscription(
-                      returnRoute: '/profile');
-                },
-                borderRadius: BorderRadius.circular(16),
-                child: Padding(
+            child: InkWell(
+              onTap: () {
+                NavigationService.navigateToSubscription(
+                    returnRoute: '/profile');
+              },
+              borderRadius: BorderRadius.circular(16),
+              child: Padding(
                   padding: const EdgeInsets.all(2),
-                  child: Row(
-                    children: [
-                      Container(
+                child: Row(
+                  children: [
+                    Container(
                         padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              AppColors.primary,
-                              AppColors.primaryDark,
-                            ],
-                          ),
-                          borderRadius: BorderRadius.circular(12),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            AppColors.primary,
+                            AppColors.primaryDark,
+                          ],
                         ),
-                        child: const FaIcon(
-                          FontAwesomeIcons.crown,
-                          color: Colors.white,
-                          size: 18,
-                        ),
+                        borderRadius: BorderRadius.circular(12),
                       ),
+                      child: const FaIcon(
+                        FontAwesomeIcons.crown,
+                        color: Colors.white,
+                          size: 18,
+                      ),
+                    ),
                       const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Subscription',
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Subscription',
                               style: GoogleFonts.poppins(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
-                                color: colorScheme.onSurface,
-                              ),
+                              color: colorScheme.onSurface,
                             ),
+                          ),
                             const SizedBox(height: 2),
-                            Text(
-                              'Manage your plan & usage',
+                          Text(
+                            'Manage your plan & usage',
                               style: GoogleFonts.inter(
                                 fontSize: 12,
                                 color: colorScheme.onSurface.withOpacity(0.65),
-                              ),
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
-                      FaIcon(
-                        FontAwesomeIcons.chevronRight,
+                    ),
+                    FaIcon(
+                      FontAwesomeIcons.chevronRight,
                         color: colorScheme.onSurface.withOpacity(0.35),
                         size: 14,
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
+          ),
           ),
           const SizedBox(height: 14),
           // Measurement Units Section
           _buildGlassmorphicCard(
             context: context,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
@@ -853,26 +853,26 @@ class _ProfileViewState extends State<ProfileView>
                         color: colorScheme.primary,
                         size: 18,
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      'Measurement Units',
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Measurement Units',
                       style: GoogleFonts.poppins(
                         fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.onSurface,
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.onSurface,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
                 const SizedBox(height: 6),
-                Text(
-                  'Choose your preferred measurement system',
+                  Text(
+                    'Choose your preferred measurement system',
                   style: GoogleFonts.inter(
                     fontSize: 13,
-                    color: colorScheme.onSurface.withOpacity(0.7),
+                      color: colorScheme.onSurface.withOpacity(0.7),
+                    ),
                   ),
-                ),
                 const SizedBox(height: 16),
                   _ProfileSettingOption<bool>(
                     value: true,
@@ -942,11 +942,11 @@ class _ProfileViewState extends State<ProfileView>
           // Appearance Section
           _buildGlassmorphicCard(
             context: context,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
@@ -958,26 +958,26 @@ class _ProfileViewState extends State<ProfileView>
                         color: colorScheme.primary,
                         size: 18,
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      'Appearance',
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Appearance',
                       style: GoogleFonts.poppins(
                         fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.onSurface,
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.onSurface,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
                 const SizedBox(height: 6),
-                Text(
-                  'Customize your app experience',
+                  Text(
+                    'Customize your app experience',
                   style: GoogleFonts.inter(
                     fontSize: 13,
-                    color: colorScheme.onSurface.withOpacity(0.7),
+                      color: colorScheme.onSurface.withOpacity(0.7),
+                    ),
                   ),
-                ),
                 const SizedBox(height: 16),
                   Consumer<ThemeViewModel>(
                     builder: (context, themeVM, _) {
@@ -1065,11 +1065,11 @@ class _ProfileViewState extends State<ProfileView>
           // Notification Settings Section
           _buildGlassmorphicCard(
             context: context,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
@@ -1081,29 +1081,29 @@ class _ProfileViewState extends State<ProfileView>
                         color: colorScheme.primary,
                         size: 18,
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      'Notifications',
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Notifications',
                       style: GoogleFonts.poppins(
                         fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.onSurface,
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.onSurface,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
                 const SizedBox(height: 6),
-                Text(
-                  'Manage your notification preferences',
+                  Text(
+                    'Manage your notification preferences',
                   style: GoogleFonts.inter(
                     fontSize: 13,
-                    color: colorScheme.onSurface.withOpacity(0.7),
+                      color: colorScheme.onSurface.withOpacity(0.7),
+                    ),
                   ),
-                ),
                 const SizedBox(height: 16),
-                _buildNotificationSettings(context, authVM),
-              ],
+                  _buildNotificationSettings(context, authVM),
+                ],
             ),
           ),
           const SizedBox(height: 16),
@@ -1196,13 +1196,13 @@ class _ProfileViewState extends State<ProfileView>
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: onTap,
+      onTap: onTap,
         borderRadius: BorderRadius.circular(18),
-        child: AnimatedContainer(
+      child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          curve: Curves.easeInOut,
+        curve: Curves.easeInOut,
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          decoration: BoxDecoration(
+        decoration: BoxDecoration(
             gradient: isSelected
                 ? LinearGradient(
                     begin: Alignment.topLeft,
@@ -1220,15 +1220,15 @@ class _ProfileViewState extends State<ProfileView>
                 : null,
             color: isSelected ? null : Colors.transparent,
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(
-              color: isSelected
-                  ? colorScheme.primary
+          border: Border.all(
+            color: isSelected
+                ? colorScheme.primary
                   : colorScheme.outline.withOpacity(0.3),
               width: 1.5,
             ),
-          ),
-          child: Row(
-            children: [
+        ),
+        child: Row(
+          children: [
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
@@ -1238,43 +1238,43 @@ class _ProfileViewState extends State<ProfileView>
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: FaIcon(
-                  icon,
+              icon,
                   color: isSelected ? colorScheme.primary : colorScheme.onSurface.withOpacity(0.7),
                   size: 20,
-                ),
+            ),
               ),
               const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
                       style: GoogleFonts.inter(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: isSelected
-                            ? colorScheme.primary
-                            : colorScheme.onSurface,
-                      ),
+                      color: isSelected
+                          ? colorScheme.primary
+                          : colorScheme.onSurface,
                     ),
-                    Text(
-                      subtitle,
+                  ),
+                  Text(
+                    subtitle,
                       style: GoogleFonts.inter(
                         fontSize: 11,
                         color: colorScheme.onSurface.withOpacity(0.65),
-                      ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              if (isSelected)
-                FaIcon(
-                  FontAwesomeIcons.circleCheck,
-                  color: colorScheme.primary,
+            ),
+            if (isSelected)
+              FaIcon(
+                FontAwesomeIcons.circleCheck,
+                color: colorScheme.primary,
                   size: 18,
-                ),
-            ],
+              ),
+          ],
           ),
         ),
       ),
@@ -1766,7 +1766,7 @@ class _ProfileViewState extends State<ProfileView>
             borderRadius: BorderRadius.circular(8),
           ),
           child: FaIcon(
-            icon,
+          icon,
             size: 14,
             color: colorScheme.primary,
           ),
@@ -1793,11 +1793,11 @@ class _ProfileViewState extends State<ProfileView>
     return _buildGlassmorphicCard(
       context: context,
       margin: EdgeInsets.zero,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Row(
+                children: [
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
@@ -1807,34 +1807,34 @@ class _ProfileViewState extends State<ProfileView>
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: FaIcon(
-                  FontAwesomeIcons.triangleExclamation,
-                  color: isDark ? Colors.red.shade400 : Colors.red.shade600,
+                    FontAwesomeIcons.triangleExclamation,
+                    color: isDark ? Colors.red.shade400 : Colors.red.shade600,
                   size: 18,
                 ),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                'Danger Zone',
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Danger Zone',
                 style: GoogleFonts.poppins(
                   fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.red.shade400 : Colors.red.shade600,
-                ),
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.red.shade400 : Colors.red.shade600,
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
           const SizedBox(height: 6),
-          Text(
-            'Irreversible and destructive actions',
+              Text(
+                'Irreversible and destructive actions',
             style: GoogleFonts.inter(
               fontSize: 13,
               color: colorScheme.onSurface.withOpacity(0.7),
             ),
           ),
           const SizedBox(height: 16),
-          // Delete Account Button
-          _buildDeleteAccountButton(context, authVM),
-        ],
+              // Delete Account Button
+              _buildDeleteAccountButton(context, authVM),
+            ],
       ),
     );
   }
@@ -2315,12 +2315,12 @@ class _ProfileSettingOptionState<T> extends State<_ProfileSettingOption<T>> {
           child: Material(
             color: Colors.transparent,
             child: InkWell(
-              onTap: _isLoading ? null : _handleSelection,
+      onTap: _isLoading ? null : _handleSelection,
               borderRadius: BorderRadius.circular(18),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                decoration: BoxDecoration(
+        decoration: BoxDecoration(
                   gradient: isSelected
                       ? LinearGradient(
                           begin: Alignment.topLeft,
@@ -2336,35 +2336,35 @@ class _ProfileSettingOptionState<T> extends State<_ProfileSettingOption<T>> {
                                 ],
                         )
                       : null,
-                  color: isSelected
+          color: isSelected
                       ? null
                       : isDark
                           ? Colors.white.withOpacity(0.05)
                           : Colors.white.withOpacity(0.50),
                   borderRadius: BorderRadius.circular(18),
-                  border: Border.all(
-                    color: isSelected
-                        ? widget.colorScheme.primary
+          border: Border.all(
+            color: isSelected
+                ? widget.colorScheme.primary
                         : isDark
                             ? Colors.white.withOpacity(0.10)
                             : Colors.white.withOpacity(0.40),
                     width: 1.5,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    if (_isLoading && isSelected)
-                      SizedBox(
+          ),
+        ),
+        child: Row(
+          children: [
+            if (_isLoading && isSelected)
+              SizedBox(
                         width: 28,
                         height: 28,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            widget.colorScheme.primary,
-                          ),
-                        ),
-                      )
-                    else
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    widget.colorScheme.primary,
+                  ),
+                ),
+              )
+            else
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
@@ -2374,45 +2374,45 @@ class _ProfileSettingOptionState<T> extends State<_ProfileSettingOption<T>> {
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: FaIcon(
-                          widget.icon,
-                          color: isSelected
-                              ? widget.colorScheme.primary
+                widget.icon,
+                color: isSelected
+                    ? widget.colorScheme.primary
                               : widget.colorScheme.onSurface.withOpacity(0.7),
                           size: 20,
-                        ),
+              ),
                       ),
                     const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            widget.title,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.title,
                             style: GoogleFonts.inter(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
-                              color: isSelected
-                                  ? widget.colorScheme.primary
-                                  : widget.colorScheme.onSurface,
-                            ),
-                          ),
-                          Text(
-                            widget.subtitle,
+                      color: isSelected
+                          ? widget.colorScheme.primary
+                          : widget.colorScheme.onSurface,
+                    ),
+                  ),
+                  Text(
+                    widget.subtitle,
                             style: GoogleFonts.inter(
                               fontSize: 11,
                               color: widget.colorScheme.onSurface.withOpacity(0.65),
-                            ),
-                          ),
-                        ],
-                      ),
                     ),
-                    if (isSelected && !_isLoading)
-                      FaIcon(
-                        FontAwesomeIcons.circleCheck,
-                        color: widget.colorScheme.primary,
+                  ),
+                ],
+              ),
+            ),
+            if (isSelected && !_isLoading)
+              FaIcon(
+                FontAwesomeIcons.circleCheck,
+                color: widget.colorScheme.primary,
                         size: 18,
-                      ),
-                  ],
+              ),
+          ],
                 ),
               ),
             ),
@@ -2555,8 +2555,8 @@ class _NotificationToggleWidgetState extends State<_NotificationToggleWidget> {
               borderRadius: BorderRadius.circular(10),
             ),
             child: FaIcon(
-              FontAwesomeIcons.bell,
-              color: widget.colorScheme.primary,
+            FontAwesomeIcons.bell,
+            color: widget.colorScheme.primary,
               size: 18,
             ),
           ),
@@ -2598,9 +2598,9 @@ class _NotificationToggleWidgetState extends State<_NotificationToggleWidget> {
             Transform.scale(
               scale: 0.85,
               child: Switch(
-                value: _notificationsEnabled,
-                onChanged: _handleToggle,
-                activeColor: widget.colorScheme.primary,
+              value: _notificationsEnabled,
+              onChanged: _handleToggle,
+              activeColor: widget.colorScheme.primary,
               ),
             ),
         ],
