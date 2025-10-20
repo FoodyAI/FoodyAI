@@ -229,218 +229,134 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
             },
           ),
 
-          // Scanning Guide Overlay
+          // Dark overlay outside scan area
           if (!_isLoading && _scannedProduct == null && _error == null)
-            Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Animated Scan Frame with Glassmorphism
-                  Container(
-                    width: _scanFrameSize,
-                    height: _scanFrameSize,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(24),
-                      boxShadow: [
-                        BoxShadow(
-                          color: isDark
-                              ? Colors.black.withOpacity(0.3)
-                              : Colors.grey.withOpacity(0.15),
-                          blurRadius: 20,
-                          offset: const Offset(0, 8),
-                          spreadRadius: 2,
-                        ),
-                      ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(24),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-                        child: Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: isDark
-                                  ? [
-                                      Colors.white.withOpacity(0.12),
-                                      Colors.white.withOpacity(0.06),
-                                    ]
-                                  : [
-                                      Colors.white.withOpacity(0.90),
-                                      Colors.white.withOpacity(0.80),
-                                    ],
-                            ),
-                            borderRadius: BorderRadius.circular(24),
-                            border: Border.all(
-                              color: isDark
-                                  ? Colors.white.withOpacity(0.20)
-                                  : Colors.white.withOpacity(0.70),
-                              width: 1.5,
-                            ),
+            Container(
+              color: Colors.black.withOpacity(0.6),
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Scan frame with corner brackets and buttons
+                    Container(
+                      width: _scanFrameSize,
+                      height: _scanFrameSize,
+                      child: Stack(
+                        children: [
+                          // Corner brackets - Top Left
+                          Positioned(
+                            top: 0,
+                            left: 0,
+                            child: _buildCornerBracket(true, true),
                           ),
-                          child: Stack(
-                            children: [
-                              // Corner markers with enhanced design
-                              Positioned(
-                                top: -2,
-                                left: -2,
-                                child: _buildCornerMarker(true, true),
+                          // Corner brackets - Top Right
+                          Positioned(
+                            top: 0,
+                            right: 0,
+                            child: _buildCornerBracket(true, false),
+                          ),
+                          // Corner brackets - Bottom Left
+                          Positioned(
+                            bottom: 0,
+                            left: 0,
+                            child: _buildCornerBracket(false, true),
+                          ),
+                          // Corner brackets - Bottom Right
+                          Positioned(
+                            bottom: 0,
+                            right: 0,
+                            child: _buildCornerBracket(false, false),
+                          ),
+                          // Bottom control buttons inside frame - Glassmorphic
+                          Positioned(
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            child: ClipRRect(
+                              borderRadius: const BorderRadius.only(
+                                bottomLeft: Radius.circular(24),
+                                bottomRight: Radius.circular(24),
                               ),
-                              Positioned(
-                                top: -2,
-                                right: -2,
-                                child: _buildCornerMarker(true, false),
-                              ),
-                              Positioned(
-                                bottom: -2,
-                                left: -2,
-                                child: _buildCornerMarker(false, true),
-                              ),
-                              Positioned(
-                                bottom: -2,
-                                right: -2,
-                                child: _buildCornerMarker(false, false),
-                              ),
-                              // Center Icon
-                              Center(
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.all(16),
-                                      decoration: BoxDecoration(
-                                        color: isDark
-                                            ? Colors.white.withOpacity(0.15)
-                                            : Colors.grey.withOpacity(0.20),
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: FaIcon(
-                                        FontAwesomeIcons.barcode,
-                                        size: 48,
-                                        color: isDark
-                                            ? Colors.white.withOpacity(0.7)
-                                            : Colors.grey.shade700,
+                              child: BackdropFilter(
+                                filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                                child: Container(
+                                  height: 55,
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                      colors: [
+                                        Colors.white.withOpacity(0.15),
+                                        Colors.white.withOpacity(0.08),
+                                      ],
+                                    ),
+                                    borderRadius: const BorderRadius.only(
+                                      bottomLeft: Radius.circular(24),
+                                      bottomRight: Radius.circular(24),
+                                    ),
+                                    border: Border(
+                                      top: BorderSide(
+                                        color: Colors.white.withOpacity(0.25),
+                                        width: 1.5,
                                       ),
                                     ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                  // Glassmorphic Instruction Card
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 32),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: isDark
-                              ? Colors.black.withOpacity(0.4)
-                              : Colors.black.withOpacity(0.35),
-                          blurRadius: isDark ? 16 : 28,
-                          offset: isDark ? const Offset(0, 6) : const Offset(0, 10),
-                          spreadRadius: isDark ? 0 : 4,
-                        ),
-                        // Add second shadow layer for more depth
-                        if (!isDark)
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.20),
-                            blurRadius: 16,
-                            offset: const Offset(0, 4),
-                          ),
-                      ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(
-                          sigmaX: isDark ? 16 : 20, 
-                          sigmaY: isDark ? 16 : 20,
-                        ),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 18,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isDark
-                                ? null
-                                : Colors.white.withOpacity(0.95),
-                            gradient: isDark
-                                ? LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: [
-                                      Colors.white.withOpacity(0.20),
-                                      Colors.white.withOpacity(0.12),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: _buildInFrameButton(
+                                          icon: FontAwesomeIcons.keyboard,
+                                          onTap: () => _showManualBarcodeInput(context),
+                                        ),
+                                      ),
+                                      Container(
+                                        width: 1.5,
+                                        height: 35,
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            begin: Alignment.topCenter,
+                                            end: Alignment.bottomCenter,
+                                            colors: [
+                                              Colors.white.withOpacity(0.0),
+                                              Colors.white.withOpacity(0.35),
+                                              Colors.white.withOpacity(0.0),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: ValueListenableBuilder(
+                                          valueListenable: controller.torchState,
+                                          builder: (context, state, child) {
+                                            return _buildInFrameButton(
+                                              icon: FontAwesomeIcons.bolt,
+                                              onTap: () => controller.toggleTorch(),
+                                            );
+                                          },
+                                        ),
+                                      ),
                                     ],
-                                  )
-                                : null,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: isDark
-                                  ? Colors.white.withOpacity(0.35)
-                                  : Colors.white.withOpacity(0.95),
-                              width: isDark ? 1.5 : 2.5,
+                                  ),
+                                ),
+                              ),
                             ),
-                            boxShadow: !isDark
-                                ? [
-                                    BoxShadow(
-                                      color: Colors.white.withOpacity(0.8),
-                                      blurRadius: 8,
-                                      offset: const Offset(0, 0),
-                                      spreadRadius: -2,
-                                    ),
-                                  ]
-                                : null,
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: AppColors.primary.withOpacity(0.18),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: AppColors.primary.withOpacity(0.3),
-                                    width: 1,
-                                  ),
-                                ),
-                                child: FaIcon(
-                                  FontAwesomeIcons.circleInfo,
-                                  size: 20,
-                                  color: AppColors.primary,
-                                ),
-                              ),
-                              const SizedBox(width: 14),
-                              Flexible(
-                                child: Text(
-                                  'Position barcode within the frame',
-                                  style: TextStyle(
-                                    color: isDark 
-                                        ? Colors.white
-                                        : AppColors.textPrimary,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: 0.2,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                        ],
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 40),
+                    // Instruction text
+                    Text(
+                      'Position barcode within the frame',
+                      style: GoogleFonts.inter(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
 
