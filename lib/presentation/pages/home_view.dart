@@ -386,16 +386,18 @@ class _HomeContentState extends State<_HomeContent> {
                           NavigationService.navigateToBarcodeScanner();
                         },
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
                     ],
                   ),
                 ),
-              );
-            },
+              ),
+            ),
           );
         },
-        child: const FaIcon(FontAwesomeIcons.plus),
-      ),
+      );
+      },
+      child: const FaIcon(FontAwesomeIcons.plus),
+    ),
       body: RefreshIndicator(
         onRefresh: () async {
           // Force refresh the food analyses when user pulls to refresh
