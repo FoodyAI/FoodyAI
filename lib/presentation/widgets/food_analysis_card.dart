@@ -49,34 +49,33 @@ class FoodAnalysisCard extends StatelessWidget {
             ),
         ],
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: isDark ? 10 : 18, sigmaY: isDark ? 10 : 18),
+      child: Container(
+        decoration: BoxDecoration(
+          // Solid background to prevent flickering during scroll
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: isDark
+                ? [
+                    Colors.grey[850]!.withOpacity(0.95),
+                    Colors.grey[900]!.withOpacity(0.95),
+                  ]
+                : [
+                    Colors.white.withOpacity(0.98),
+                    Colors.white.withOpacity(0.95),
+                  ],
+          ),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: isDark
+                ? Colors.white.withOpacity(0.15)
+                : Colors.white.withOpacity(0.9),
+            width: isDark ? 1.5 : 2.5,
+          ),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
           child: Container(
-            decoration: BoxDecoration(
-              // Enhanced glassmorphism with stronger visibility
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: isDark
-                    ? [
-                        Colors.white.withOpacity(0.10),
-                        Colors.white.withOpacity(0.05),
-                      ]
-                    : [
-                        Colors.white.withOpacity(0.98),
-                        Colors.white.withOpacity(0.92),
-                      ],
-              ),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: isDark
-                    ? Colors.white.withOpacity(0.15)
-                    : Colors.white.withOpacity(0.9),
-                width: isDark ? 1.5 : 2.5,
-              ),
-            ),
             child: InkWell(
               borderRadius: BorderRadius.circular(24),
               onTap: () {
