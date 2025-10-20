@@ -16,82 +16,133 @@ class BottomNavigation extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
-        border: Border(
-          top: BorderSide(
-            color: isDark ? AppColors.darkDivider : Colors.grey.shade200,
-            width: 0.5,
+      color: Colors.transparent,
+      padding: const EdgeInsets.only(bottom: 16, top: 0),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(28),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+              child: Container(
+                height: 56,
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? Colors.black.withValues(alpha: 0.25)
+                      : Colors.white.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(28),
+                  border: Border.all(
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.08)
+                        : Colors.white.withValues(alpha: 0.45),
+                    width: 1,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: isDark
+                          ? Colors.black.withValues(alpha: 0.15)
+                          : Colors.black.withValues(alpha: 0.06),
+                      blurRadius: 16,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    // Home
+                    _buildNavItem(
+                      context: context,
+                      icon: FontAwesomeIcons.house,
+                      label: 'Home',
+                      isSelected: currentIndex == 0,
+                      onTap: () => onTap(0),
+                      isDark: isDark,
+                    ),
+                    
+                    // Analyze
+                    _buildNavItem(
+                      context: context,
+                      icon: FontAwesomeIcons.chartLine,
+                      label: 'Analyze',
+                      isSelected: currentIndex == 1,
+                      onTap: () => onTap(1),
+                      isDark: isDark,
+                    ),
+                    
+                    // Settings
+                    _buildNavItem(
+                      context: context,
+                      icon: FontAwesomeIcons.gear,
+                      label: 'Settings',
+                      isSelected: currentIndex == 2,
+                      onTap: () => onTap(2),
+                      isDark: isDark,
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, -5),
-          ),
-        ],
       ),
-      child: BottomNavigationBar(
-        currentIndex: currentIndex,
+    );
+  }
+
+  Widget _buildNavItem({
+    required BuildContext context,
+    required IconData icon,
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+    required bool isDark,
+  }) {
+    return Expanded(
+      child: GestureDetector(
         onTap: onTap,
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        selectedItemColor: AppColors.primary,
-        unselectedItemColor:
-            isDark ? AppColors.textSecondary : Colors.grey.shade600,
-        selectedLabelStyle: const TextStyle(
-          fontWeight: FontWeight.w600,
-          fontSize: 12,
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          margin: const EdgeInsets.symmetric(horizontal: 4),
+          decoration: BoxDecoration(
+            color: isSelected
+                ? (isDark
+                    ? const Color(0xFF2D2D2D)
+                    : const Color(0xFF3D3D3D))
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              FaIcon(
+                icon,
+                size: 18,
+                color: isSelected
+                    ? Colors.white
+                    : (isDark
+                        ? AppColors.darkTextSecondary
+                        : AppColors.textSecondary),
+              ),
+              if (isSelected) ...[
+                const SizedBox(height: 2),
+                Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ],
+          ),
         ),
-        unselectedLabelStyle: TextStyle(
-          fontWeight: FontWeight.w500,
-          fontSize: 12,
-          color: isDark ? AppColors.textSecondary : Colors.grey.shade600,
-        ),
-        type: BottomNavigationBarType.fixed,
-        items: [
-          BottomNavigationBarItem(
-            icon: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: currentIndex == 0
-                    ? AppColors.primary.withOpacity(0.1)
-                    : Colors.transparent,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const FaIcon(FontAwesomeIcons.house, size: 20),
-            ),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: currentIndex == 1
-                    ? AppColors.primary.withOpacity(0.1)
-                    : Colors.transparent,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const FaIcon(FontAwesomeIcons.chartLine, size: 20),
-            ),
-            label: 'Analyze',
-          ),
-          BottomNavigationBarItem(
-            icon: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: currentIndex == 2
-                    ? AppColors.primary.withOpacity(0.1)
-                    : Colors.transparent,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const FaIcon(FontAwesomeIcons.user, size: 20),
-            ),
-            label: 'Profile',
-          ),
-        ],
       ),
     );
   }

@@ -469,6 +469,8 @@ class _ProfileViewState extends State<ProfileView>
               ),
             ),
           ),
+          // Add bottom padding to prevent content from being hidden behind bottom nav bar
+          const SizedBox(height: 100),
         ],
       ),
     );
@@ -988,6 +990,8 @@ class _ProfileViewState extends State<ProfileView>
           if (authVM.isSignedIn) ...[
             _buildDangerZoneCard(context, authVM, colorScheme),
           ],
+          // Add bottom padding to prevent content from being hidden behind bottom nav bar
+          const SizedBox(height: 100),
         ],
       ),
     );
