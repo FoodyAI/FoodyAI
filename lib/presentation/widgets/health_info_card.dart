@@ -147,11 +147,11 @@ class HealthInfoCard extends StatelessWidget {
                   percent: (caloriePercentage / 100).clamp(0.0, 1.0),
                   center: Container(
                     padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
                           const Color(0xFFFF6B35).withOpacity(0.2),
                           const Color(0xFFFF6B35).withOpacity(0.08),
                         ],
@@ -178,16 +178,16 @@ class HealthInfoCard extends StatelessWidget {
                   animation: true,
                   animationDuration: 1200,
                   curve: Curves.easeInOutCubic,
-                ),
-              ],
-            ),
+          ),
+        ],
+      ),
           ),
           const SizedBox(height: 16),
           
           // BMI and Daily Calories Row
           Row(
-            children: [
-              Expanded(
+              children: [
+                Expanded(
                 child: _buildInfoCard(
                   context,
                   'BMI',
@@ -206,16 +206,16 @@ class HealthInfoCard extends StatelessWidget {
                   'Recommended',
                   const Color(0xFFFF6B35),
                   Icons.restaurant_outlined,
+                  ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
           const SizedBox(height: 16),
           
           // Macronutrient Cards
           Row(
-            children: [
-              Expanded(
+                children: [
+                  Expanded(
                 child: _buildMacroCard(
                   context,
                   'Protein',
@@ -227,7 +227,7 @@ class HealthInfoCard extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: _buildMacroCard(
-                  context,
+                      context,
                   'Fat',
                   fatPercentage,
                   totalFat,
@@ -235,25 +235,25 @@ class HealthInfoCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              Expanded(
+                  Expanded(
                 child: _buildMacroCard(
-                  context,
+                      context,
                   'Carbs',
                   carbsPercentage,
                   totalCarbs,
                   const Color(0xFF88D66C),
-                ),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
           const SizedBox(height: 16),
           
           // Health Status Card at Bottom
           _buildGlassmorphicCard(
             context,
             padding: const EdgeInsets.all(18),
-            child: Row(
-              children: [
+              child: Row(
+                children: [
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
@@ -265,23 +265,23 @@ class HealthInfoCard extends StatelessWidget {
                     color: statusColor,
                     size: 22,
                   ),
-                ),
+                  ),
                 const SizedBox(width: 14),
-                Expanded(
-                  child: Text(
-                    'Based on your profile, we recommend maintaining a balanced diet and regular exercise routine.',
+                  Expanded(
+                    child: Text(
+                      'Based on your profile, we recommend maintaining a balanced diet and regular exercise routine.',
                     style: GoogleFonts.inter(
                       color: Theme.of(context).colorScheme.onSurface.withOpacity(0.75),
                       fontSize: 13,
                       height: 1.5,
                       fontWeight: FontWeight.w400,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
       ),
     );
   }
@@ -365,15 +365,15 @@ class HealthInfoCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
-                  icon,
-                  color: color,
+                icon,
+                color: color,
                   size: 20,
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
-                child: Text(
-                  title,
+                  child: Text(
+                    title,
                   style: GoogleFonts.inter(
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
@@ -385,19 +385,19 @@ class HealthInfoCard extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           Text(
-            value,
+              value,
             style: GoogleFonts.poppins(
               fontSize: 32,
-              fontWeight: FontWeight.bold,
-              color: color,
+                fontWeight: FontWeight.bold,
+                color: color,
               height: 1.0,
             ),
           ),
           const SizedBox(height: 4),
           Text(
-            subtitle,
+                subtitle,
             style: GoogleFonts.inter(
-              fontSize: 12,
+                  fontSize: 12,
               fontWeight: FontWeight.w500,
               color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
             ),
