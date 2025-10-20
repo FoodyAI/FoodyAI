@@ -1,0 +1,107 @@
+{
+  "app_config": {
+    "app_name": "Foody",
+    "tagline": "Your Personal Nutrition Companion"
+  },
+  "theme": {
+    "primary_color": "#FF6B6B",
+    "secondary_color": "#FF8E8E",
+    "accent_color": "#FFB5B5",
+    "background_dark": "#000000",
+    "background_darker": "#000000",
+    "text_primary": "#FFFFFF",
+    "text_secondary": "#B0B0B0",
+    "button_gradient": {
+      "start_color": "#FF6B6B",
+      "end_color": "#FF8E8E"
+    }
+  },
+  "onboarding_pages": [
+    {
+      "id": "page_1",
+      "title": "Effortless calorie tracking",
+      "description": "Snap your meal, and we'll handle the rest—calorie tracking!",
+      "background_image": "assets/images/bg_nutrition.jpg",
+      "background_image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=1080&h=1920&fit=crop",
+      "icon": "nutrition",
+      "primary_color_override": null
+    },
+    {
+      "id": "page_2",
+      "title": "Track your whole day calories",
+      "description": "Monitor your nutrition throughout the day with detailed macro breakdown and insights.",
+      "background_image": "assets/images/bg_bmi.jpg",
+      "background_image_url": "https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=1080&h=1920&fit=crop",
+      "background_video_url": "assets/videos/second.webm",
+      "use_video": true,
+      "icon": "calculator",
+      "primary_color_override": null
+    },
+    {
+      "id": "page_3",
+      "title": "Transform your body",
+      "description": "Today is the best time to start working toward your dream body",
+      "background_image": "assets/images/bg_activity.jpg",
+      "background_image_url": "https://images.unsplash.com/photo-1490818387583-1baba5e638af?w=1080&h=1920&fit=crop",
+      "icon": "activity",
+      "primary_color_override": null
+    }
+  ],
+  "ui_elements": {
+    "skip_button": {
+      "text": "Skip",
+      "show": true,
+      "position": "top_right"
+    },
+    "back_button": {
+      "text": "Back",
+      "show_on_first_page": false,
+      "style": "outlined"
+    },
+    "continue_button": {
+      "text": "Next",
+      "style": "filled"
+    },
+    "get_started_button": {
+      "text": "Get Started",
+      "show_on_last_page": true,
+      "style": "filled"
+    },
+    "page_indicators": {
+      "type": "dots",
+      "active_width": 8,
+      "inactive_width": 8,
+      "height": 8,
+      "spacing": 8,
+      "active_color": "#FF6B6B",
+      "inactive_color": "#E0E0E0",
+      "animation_duration_ms": 300
+    }
+  },
+  "phone_mockup": {
+    "show": false,
+    "style": "none",
+    "border_width": 0,
+    "border_color": "#FFFFFF00",
+    "corner_radius": 0,
+    "notch_width": 0,
+    "notch_height": 0,
+    "shadow": {
+      "color": "#00000000",
+      "blur_radius": 0,
+      "spread_radius": 0
+    },
+    "content_padding": 0
+  },
+  "animations": {
+    "page_transition_duration_ms": 300,
+    "page_transition_curve": "easeInOut",
+    "background_fade_duration_ms": 500,
+    "indicator_animation_duration_ms": 300
+  },
+  "navigation": {
+    "on_complete_route": "/intro",
+    "on_skip_route": "/intro",
+    "allow_back_navigation": true
+  }
+}

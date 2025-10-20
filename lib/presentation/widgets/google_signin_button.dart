@@ -45,14 +45,14 @@ class GoogleSignInButton extends StatelessWidget {
         foregroundColor: isDarkMode ? AppColors.white : AppColors.textPrimary,
         padding: isCompact
             ? const EdgeInsets.symmetric(horizontal: 12, vertical: 8)
-            : const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+            : const EdgeInsets.symmetric(vertical: 15),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(isCompact ? 10 : 12),
+          borderRadius: BorderRadius.circular(isCompact ? 12 : 30),
           side: BorderSide(
             color: isDarkMode
                 ? AppColors.withOpacity(AppColors.primary, 0.2)
                 : AppColors.grey300,
-            width: 1,
+            width: 1.5,
           ),
         ),
         elevation: 0,

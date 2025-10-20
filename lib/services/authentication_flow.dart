@@ -116,7 +116,9 @@ class AuthenticationFlow {
     String? message,
     bool isAccountDeletion = false,
   }) async {
-    if (!context.mounted) return;
+    if (!context.mounted) {
+      return;
+    }
 
     try {
       // Show appropriate message
@@ -125,15 +127,12 @@ class AuthenticationFlow {
               ? 'Account deleted successfully'
               : 'Signed out successfully');
 
-      // Clear navigation stack and go to welcome screen FIRST
-      await NavigationService.navigateToWelcome();
-
-      print(
-          '✅ AuthenticationFlow: Navigated to welcome screen after ${isAccountDeletion ? 'account deletion' : 'sign out'}');
+      // Clear navigation stack and go to intro screen FIRST
+      await NavigationService.navigateToIntro();
 
       // Show snackbar AFTER navigation completes on the new screen
       // Add a delay to ensure:
-      // 1. Welcome screen is fully rendered
+      // 1. Intro screen is fully rendered
       // 2. Any loading overlays are dismissed
       await Future.delayed(const Duration(milliseconds: 800));
 
@@ -150,20 +149,19 @@ class AuthenticationFlow {
 
       // Fallback navigation
       if (context.mounted) {
-        NavigationService.navigateToWelcome();
+        NavigationService.navigateToIntro();
       }
     }
   }
 
-  /// Navigate to welcome screen (used for sign out and account deletion)
-  Future<void> navigateToWelcome(BuildContext context,
-      {String? message}) async {
+  /// Navigate to intro screen (used for sign out and account deletion)
+  Future<void> navigateToIntro(BuildContext context, {String? message}) async {
     if (!context.mounted) return;
 
     if (message != null) {
       _showSnackBar(context, message, AppColors.primary);
     }
 
-    NavigationService.navigateToWelcome();
+    NavigationService.navigateToIntro();
   }
 }
