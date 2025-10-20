@@ -44,6 +44,65 @@ class _ProfileViewState extends State<ProfileView>
     super.dispose();
   }
 
+  /// Helper method to build glassmorphic cards
+  Widget _buildGlassmorphicCard({
+    required BuildContext context,
+    required Widget child,
+    EdgeInsets padding = const EdgeInsets.all(20),
+    EdgeInsets margin = const EdgeInsets.only(bottom: 14),
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return Container(
+      margin: margin,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: isDark 
+                ? Colors.black.withOpacity(0.3)
+                : Colors.grey.withOpacity(0.12),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+            spreadRadius: 1,
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+          child: Container(
+            padding: padding,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: isDark
+                    ? [
+                        Colors.white.withOpacity(0.12),
+                        Colors.white.withOpacity(0.06),
+                      ]
+                    : [
+                        Colors.white.withOpacity(0.90),
+                        Colors.white.withOpacity(0.80),
+                      ],
+              ),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: isDark 
+                    ? Colors.white.withOpacity(0.2) 
+                    : Colors.white.withOpacity(0.7),
+                width: 1.5,
+              ),
+            ),
+            child: child,
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final profileVM = Provider.of<UserProfileViewModel>(context);
