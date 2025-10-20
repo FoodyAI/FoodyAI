@@ -149,16 +149,7 @@ class _SplashScreenState extends State<SplashScreen>
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF000000),
-              Color(0xFF1A1A1A),
-              Color(0xFF000000),
-            ],
-            stops: [0.0, 0.5, 1.0],
-          ),
+          color: Colors.white,
         ),
         child: Stack(
           children: [
@@ -190,7 +181,7 @@ class _SplashScreenState extends State<SplashScreen>
                           style: TextStyle(
                             fontSize: 52,
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                            color: Colors.black,
                             letterSpacing: 1.5,
                           ),
                         ),
@@ -207,19 +198,19 @@ class _SplashScreenState extends State<SplashScreen>
                             vertical: 8,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.1),
+                            color: const Color(0xFFFF6B6B).withOpacity(0.1),
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
-                              color: Colors.white.withOpacity(0.3),
+                              color: const Color(0xFFFF6B6B).withOpacity(0.3),
                               width: 1,
                             ),
                           ),
-                          child: Text(
+                          child: const Text(
                             'Your AI Nutrition Assistant',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               fontSize: 13,
-                              color: Colors.white.withOpacity(0.8),
+                              color: Color(0xFFFF6B6B),
                               fontWeight: FontWeight.w600,
                               letterSpacing: 0.5,
                             ),
@@ -229,7 +220,7 @@ class _SplashScreenState extends State<SplashScreen>
 
                       const SizedBox(height: 60),
 
-                      // Animated text (black and white)
+                      // Animated colorful text
                       SizedBox(
                         height: 90,
                         child: Center(
@@ -244,11 +235,11 @@ class _SplashScreenState extends State<SplashScreen>
                                   letterSpacing: 0.3,
                                 ),
                                 colors: [
-                                  Colors.white,
-                                  Color(0xFFCCCCCC),
-                                  Color(0xFF999999),
-                                  Color(0xFFCCCCCC),
-                                  Colors.white,
+                                  Color(0xFFFF6B6B),
+                                  Color(0xFFFF8E8E),
+                                  Color(0xFFFFB5B5),
+                                  Color(0xFFFF8E8E),
+                                  Color(0xFFFF6B6B),
                                 ],
                                 speed: const Duration(milliseconds: 400),
                               ),
@@ -261,11 +252,11 @@ class _SplashScreenState extends State<SplashScreen>
                                   letterSpacing: 0.3,
                                 ),
                                 colors: [
-                                  Colors.white,
-                                  Color(0xFFCCCCCC),
-                                  Color(0xFF999999),
-                                  Color(0xFFCCCCCC),
-                                  Colors.white,
+                                  Color(0xFFFF6B6B),
+                                  Color(0xFFFF8E8E),
+                                  Color(0xFFFFB5B5),
+                                  Color(0xFFFF8E8E),
+                                  Color(0xFFFF6B6B),
                                 ],
                                 speed: const Duration(milliseconds: 400),
                               ),
@@ -278,11 +269,11 @@ class _SplashScreenState extends State<SplashScreen>
                                   letterSpacing: 0.3,
                                 ),
                                 colors: [
-                                  Colors.white,
-                                  Color(0xFFCCCCCC),
-                                  Color(0xFF999999),
-                                  Color(0xFFCCCCCC),
-                                  Colors.white,
+                                  Color(0xFFFF6B6B),
+                                  Color(0xFFFF8E8E),
+                                  Color(0xFFFFB5B5),
+                                  Color(0xFFFF8E8E),
+                                  Color(0xFFFF6B6B),
                                 ],
                                 speed: const Duration(milliseconds: 400),
                               ),
@@ -317,21 +308,21 @@ class _SplashScreenState extends State<SplashScreen>
 
   Widget _buildAnimatedIcon() {
     return FadeTransition(
-          opacity: _fadeAnimation,
-          child: ScaleTransition(
-            scale: _scaleAnimation,
+      opacity: _fadeAnimation,
+      child: ScaleTransition(
+        scale: _scaleAnimation,
         child: AnimatedBuilder(
           animation: _pulseAnimation,
           builder: (context, child) {
             return Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.white
-                        .withOpacity(0.3 * _pulseAnimation.value),
+                    color: const Color(0xFFFF6B6B)
+                        .withOpacity(0.4 * _pulseAnimation.value),
                     blurRadius: 30 * _pulseAnimation.value,
                     spreadRadius: 10 * _pulseAnimation.value,
                   ),
@@ -339,13 +330,20 @@ class _SplashScreenState extends State<SplashScreen>
               ),
               child: Container(
                 decoration: const BoxDecoration(
-                  color: Colors.white,
-                    shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Color(0xFFFF6B6B),
+                      Color(0xFFFF8E8E),
+                    ],
                   ),
-                  child: const Icon(
-                    Icons.restaurant_menu,
-                    size: 60,
-                  color: Colors.black,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.restaurant_menu,
+                  size: 60,
+                  color: Colors.white,
                 ),
               ),
             );
@@ -366,19 +364,19 @@ class _SplashScreenState extends State<SplashScreen>
           child: CircularProgressIndicator(
             strokeWidth: 3,
             valueColor: const AlwaysStoppedAnimation<Color>(
-              Colors.white,
+              Color(0xFFFF6B6B),
             ),
           ),
         ),
         const SizedBox(height: 20),
         FadeTransition(
           opacity: _fadeAnimation,
-          child: Text(
+          child: const Text(
             'Preparing your experience...',
             textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 14,
-              color: Colors.white.withOpacity(0.6),
+            style: TextStyle(
+              fontSize: 14,
+              color: Color(0xFF7F8C8D),
               fontWeight: FontWeight.w500,
               letterSpacing: 0.3,
             ),
@@ -411,11 +409,11 @@ class _SplashScreenState extends State<SplashScreen>
               left: MediaQuery.of(context).size.width * x + offsetX,
               top: MediaQuery.of(context).size.height * y + offsetY,
               child: Opacity(
-                opacity: 0.1,
+                opacity: 0.15,
                 child: Icon(
                   _getFoodIcon(index),
                   size: size,
-                  color: Colors.white,
+                  color: _getFoodColor(index),
                 ),
               ),
             );
@@ -441,6 +439,22 @@ class _SplashScreenState extends State<SplashScreen>
     return icons[index % icons.length];
   }
 
+  Color _getFoodColor(int index) {
+    final colors = [
+      const Color(0xFFFF6B6B), // Red
+      const Color(0xFFFFB347), // Orange
+      const Color(0xFFFFD93D), // Yellow
+      const Color(0xFF6BCF7F), // Green
+      const Color(0xFF4ECDC4), // Teal
+      const Color(0xFF5DADE2), // Blue
+      const Color(0xFF9B59B6), // Purple
+      const Color(0xFFFF6B9D), // Pink
+      const Color(0xFFFF8E8E), // Light Red
+      const Color(0xFFFFA07A), // Light Salmon
+    ];
+    return colors[index % colors.length];
+  }
+
   Widget _buildDecorativeCircles() {
     return Stack(
       children: [
@@ -455,7 +469,7 @@ class _SplashScreenState extends State<SplashScreen>
               shape: BoxShape.circle,
               gradient: RadialGradient(
                 colors: [
-                  Colors.white.withOpacity(0.05),
+                  const Color(0xFFFF6B6B).withOpacity(0.08),
                   Colors.transparent,
                 ],
               ),
@@ -473,13 +487,13 @@ class _SplashScreenState extends State<SplashScreen>
               shape: BoxShape.circle,
               gradient: RadialGradient(
                 colors: [
-                  Colors.white.withOpacity(0.05),
+                  const Color(0xFFFFB347).withOpacity(0.08),
                   Colors.transparent,
-              ],
+                ],
+              ),
             ),
           ),
         ),
-      ),
       ],
     );
   }
