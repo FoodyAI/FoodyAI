@@ -482,6 +482,8 @@ class _HomeContentState extends State<_HomeContent> {
     return AppBar(
       automaticallyImplyLeading: false,
       backgroundColor: isDark ? AppColors.darkBackground : Colors.white,
+      surfaceTintColor: Colors.transparent,
+      scrolledUnderElevation: 0,
       elevation: 0,
       toolbarHeight: 64,
       flexibleSpace: SafeArea(
