@@ -12,7 +12,6 @@ import '../widgets/auth_loading_overlay.dart';
 import '../widgets/reauth_dialog.dart';
 import '../../core/constants/app_colors.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'welcome_view.dart';
 import '../../services/aws_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../config/routes/navigation_service.dart';

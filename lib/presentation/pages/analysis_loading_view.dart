@@ -5,7 +5,7 @@ import '../widgets/custom_app_bar.dart';
 import '../../../core/constants/app_colors.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/user_profile_viewmodel.dart';
-import '../../config/routes/navigation_service.dart';
+
 
 class AnalysisLoadingView extends StatefulWidget {
   const AnalysisLoadingView({super.key});
