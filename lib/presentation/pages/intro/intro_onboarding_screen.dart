@@ -26,7 +26,7 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
   int _currentPage = 0;
   bool _isLoading = true;
   String? _errorMessage;
-  
+
   // Video player controller for page 2
   VideoPlayerController? _videoController;
   bool _isVideoInitialized = false;
@@ -50,38 +50,44 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
   /// Load the onboarding configuration from JSON
   Future<void> _loadConfiguration() async {
     try {
+      print('🎬 IntroOnboardingScreen: Loading configuration...');
       final config = await OnboardingConfig.loadFromAssets(widget.configPath);
+      print('🎬 IntroOnboardingScreen: Configuration loaded successfully');
+      print(
+          '🎬 IntroOnboardingScreen: Number of pages: ${config.pages.length}');
       setState(() {
         _config = config;
         _isLoading = false;
       });
-      
+
       // Initialize video for page 2 if needed
       _initializeVideoForPage(0);
     } catch (e) {
+      print('❌ IntroOnboardingScreen: Failed to load configuration: $e');
       setState(() {
         _errorMessage = 'Failed to load onboarding configuration: $e';
         _isLoading = false;
       });
     }
   }
-  
+
   /// Initialize video for a specific page if it uses video
   void _initializeVideoForPage(int pageIndex) {
     if (pageIndex >= 0 && pageIndex < _config.pages.length) {
       final page = _config.pages[pageIndex];
       if (page.useVideo && page.backgroundVideoUrl != null) {
         _videoController?.dispose();
-        
+
         // Check if it's a local asset or network URL
         if (page.backgroundVideoUrl!.startsWith('assets/')) {
-          _videoController = VideoPlayerController.asset(page.backgroundVideoUrl!);
+          _videoController =
+              VideoPlayerController.asset(page.backgroundVideoUrl!);
         } else {
           _videoController = VideoPlayerController.networkUrl(
             Uri.parse(page.backgroundVideoUrl!),
           );
         }
-        
+
         _videoController!.initialize().then((_) {
           if (mounted) {
             setState(() {
@@ -92,6 +98,15 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
             _videoController!.setLooping(true);
             // Add listener to track video state
             _videoController!.addListener(_videoListener);
+            // Auto-play the video immediately with a small delay for smooth playback
+            Future.delayed(const Duration(milliseconds: 100), () {
+              if (mounted && _videoController != null) {
+                _videoController!.play();
+                setState(() {
+                  _isVideoPlaying = true;
+                });
+              }
+            });
           }
         }).catchError((error) {
           print('Video initialization error: $error');
@@ -110,7 +125,7 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
       }
     }
   }
-  
+
   /// Listener to track video playing state
   void _videoListener() {
     if (_videoController != null && mounted) {
@@ -122,25 +137,14 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
       }
     }
   }
-  
-  /// Toggle video play/pause
-  void _toggleVideoPlayback() {
-    if (_videoController != null && _isVideoInitialized) {
-      if (_isVideoPlaying) {
-        _videoController!.pause();
-      } else {
-        _videoController!.play();
-      }
-      // State will update via listener
-    }
-  }
 
   /// Navigate to the next page
   void _nextPage() {
     if (_currentPage < _config.pages.length - 1) {
       _pageController.animateToPage(
         _currentPage + 1,
-        duration: Duration(milliseconds: _config.animations.pageTransitionDurationMs),
+        duration:
+            Duration(milliseconds: _config.animations.pageTransitionDurationMs),
         curve: _config.animations.getCurve(),
       );
     } else {
@@ -153,7 +157,8 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
     if (_currentPage > 0) {
       _pageController.animateToPage(
         _currentPage - 1,
-        duration: Duration(milliseconds: _config.animations.pageTransitionDurationMs),
+        duration:
+            Duration(milliseconds: _config.animations.pageTransitionDurationMs),
         curve: _config.animations.getCurve(),
       );
     }
@@ -161,6 +166,10 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
 
   /// Skip the onboarding
   Future<void> _skipOnboarding() async {
+    print('🚨 IntroOnboardingScreen: _skipOnboarding() called!');
+    print('🚨 IntroOnboardingScreen: Stack trace:');
+    print(StackTrace.current);
+
     // Mark intro as completed
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('intro_completed', true);
@@ -173,6 +182,10 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
 
   /// Complete the onboarding
   Future<void> _completeOnboarding() async {
+    print('🚨 IntroOnboardingScreen: _completeOnboarding() called!');
+    print('🚨 IntroOnboardingScreen: Stack trace:');
+    print(StackTrace.current);
+
     // Mark intro as completed
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('intro_completed', true);
@@ -180,19 +193,30 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
     if (!mounted) return;
 
     // Navigate to welcome/sign-in screen
-    Navigator.of(context).pushReplacementNamed(_config.navigation.onCompleteRoute);
+    Navigator.of(context)
+        .pushReplacementNamed(_config.navigation.onCompleteRoute);
   }
 
   @override
   Widget build(BuildContext context) {
+    print(
+        '🎬 IntroOnboardingScreen: build() called - Loading: $_isLoading, Error: $_errorMessage');
+    print('🎬 IntroOnboardingScreen: RENDERING INTRO SCREEN');
+    print('🎬 IntroOnboardingScreen: Stack trace:');
+    print(StackTrace.current);
+
     if (_isLoading) {
+      print('🎬 IntroOnboardingScreen: Showing loading screen');
       return _buildLoadingScreen();
     }
 
     if (_errorMessage != null) {
+      print('🎬 IntroOnboardingScreen: Showing error screen');
       return _buildErrorScreen();
     }
 
+    print(
+        '🎬 IntroOnboardingScreen: Showing main content - Current page: $_currentPage');
     return Scaffold(
       body: Stack(
         children: [
@@ -314,7 +338,7 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
     );
   }
 
-  /// Build video background with play button
+  /// Build video background with auto-play
   Widget _buildVideoBackground(OnboardingPageModel page) {
     if (_videoController == null || !_isVideoInitialized) {
       return Container(
@@ -325,75 +349,15 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
       );
     }
 
-    return Stack(
-      children: [
-        // Video player
-        SizedBox.expand(
-          child: FittedBox(
-            fit: BoxFit.cover,
-            child: SizedBox(
-              width: _videoController!.value.size.width,
-              height: _videoController!.value.size.height,
-              child: VideoPlayer(_videoController!),
-            ),
-          ),
+    return SizedBox.expand(
+      child: FittedBox(
+        fit: BoxFit.cover,
+        child: SizedBox(
+          width: _videoController!.value.size.width,
+          height: _videoController!.value.size.height,
+          child: VideoPlayer(_videoController!),
         ),
-        
-        // Play button overlay (only show when paused)
-        if (!_isVideoPlaying)
-          Positioned.fill(
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: _toggleVideoPlayback,
-                splashColor: Colors.white.withOpacity(0.2),
-                highlightColor: Colors.white.withOpacity(0.1),
-                child: Center(
-                  child: AnimatedScale(
-                    scale: 1.0,
-                    duration: const Duration(milliseconds: 100),
-                    child: Container(
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.75),
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: Colors.white,
-                          width: 3,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.5),
-                            blurRadius: 20,
-                            spreadRadius: 5,
-                          ),
-                        ],
-                      ),
-                      child: const Icon(
-                        Icons.play_arrow_rounded,
-                        size: 65,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          
-        // Tap to pause overlay (when playing)
-        if (_isVideoPlaying)
-          Positioned.fill(
-            child: GestureDetector(
-              onTap: _toggleVideoPlayback,
-              behavior: HitTestBehavior.translucent,
-              child: Container(
-                color: Colors.transparent,
-              ),
-            ),
-          ),
-      ],
+      ),
     );
   }
 
@@ -498,7 +462,8 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
               onPressed: _skipOnboarding,
               style: TextButton.styleFrom(
                 backgroundColor: Colors.black.withOpacity(0.25),
-                padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 10),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 22, vertical: 10),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(25),
                 ),
@@ -551,10 +516,16 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
               // Continue/Get Started button (wider on first page)
               Expanded(
                 flex: isFirstPage ? 1 : 2,
-                child: isLastPage ? _buildGetStartedButton() : _buildContinueButton(),
+                child: isLastPage
+                    ? _buildGetStartedButton()
+                    : _buildContinueButton(),
               ),
             ],
           ),
+
+          // Already signed in text (show on all pages)
+          const SizedBox(height: 16),
+          _buildAlreadySignedInText(),
         ],
       ),
     );
@@ -630,5 +601,35 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
         ),
       ),
     );
+  }
+
+  /// Build already signed in text
+  Widget _buildAlreadySignedInText() {
+    return Center(
+      child: TextButton(
+        onPressed: _navigateToWelcome,
+        style: TextButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        ),
+        child: Text(
+          'Already signed in?',
+          style: TextStyle(
+            color: Colors.white.withOpacity(0.8),
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            decoration: TextDecoration.underline,
+            decorationColor: Colors.white.withOpacity(0.6),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Navigate to welcome page
+  void _navigateToWelcome() {
+    print('🚨 IntroOnboardingScreen: _navigateToWelcome() called!');
+    print('🚨 IntroOnboardingScreen: Stack trace:');
+    print(StackTrace.current);
+    Navigator.of(context).pushReplacementNamed('/welcome');
   }
 }
