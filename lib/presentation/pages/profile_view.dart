@@ -1,5 +1,7 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../viewmodels/user_profile_viewmodel.dart';
 import '../viewmodels/theme_viewmodel.dart';
 import '../viewmodels/auth_viewmodel.dart';
@@ -39,6 +41,55 @@ class _ProfileViewState extends State<ProfileView>
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  /// Helper method to build glassmorphic cards
+  Widget _buildGlassmorphicCard({
+    required BuildContext context,
+    required Widget child,
+    EdgeInsets padding = const EdgeInsets.all(20),
+    EdgeInsets margin = const EdgeInsets.only(bottom: 14),
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return Container(
+      margin: margin,
+      padding: padding,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        // Solid background to prevent flickering during scroll
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDark
+              ? [
+                  Colors.grey[850]!.withOpacity(0.95),
+                  Colors.grey[900]!.withOpacity(0.95),
+                ]
+              : [
+                  Colors.white.withOpacity(0.90),
+                  Colors.white.withOpacity(0.85),
+                ],
+        ),
+        border: Border.all(
+          color: isDark 
+              ? Colors.white.withOpacity(0.2) 
+              : Colors.white.withOpacity(0.7),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: isDark 
+                ? Colors.black.withOpacity(0.3)
+                : Colors.grey.withOpacity(0.12),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+            spreadRadius: 1,
+          ),
+        ],
+      ),
+      child: child,
+    );
   }
 
   @override
@@ -87,41 +138,96 @@ class _ProfileViewState extends State<ProfileView>
       body: Column(
         children: [
           Container(
+            margin: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? AppColors.darkBackground
-                  : colorScheme.surface,
+              borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.black.withOpacity(0.3)
+                      : Colors.grey.withOpacity(0.12),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6),
+                  spreadRadius: 1,
                 ),
               ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+                child: Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: Theme.of(context).brightness == Brightness.dark
+                          ? [
+                              Colors.white.withOpacity(0.12),
+                              Colors.white.withOpacity(0.06),
+                            ]
+                          : [
+                              Colors.white.withOpacity(0.90),
+                              Colors.white.withOpacity(0.80),
+                            ],
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white.withOpacity(0.2)
+                          : Colors.white.withOpacity(0.7),
+                      width: 1.5,
+                    ),
             ),
             child: TabBar(
               controller: _tabController,
               labelColor: colorScheme.primary,
               unselectedLabelColor: colorScheme.onSurface.withOpacity(0.6),
-              indicatorColor: colorScheme.primary,
-              tabs: const [
-                Tab(
-                  icon: FaIcon(FontAwesomeIcons.user),
+                    labelStyle: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.3,
+                    ),
+                    unselectedLabelStyle: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    indicator: BoxDecoration(
+                      color: colorScheme.primary.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: colorScheme.primary.withOpacity(0.3),
+                        width: 1.5,
+                      ),
+                    ),
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    dividerColor: Colors.transparent,
+                    tabs: [
+                      Tab(
+                        icon: FaIcon(FontAwesomeIcons.user, size: 18),
                   text: 'Personal',
+                        height: 65,
                 ),
                 Tab(
-                  icon: FaIcon(FontAwesomeIcons.dumbbell),
+                        icon: FaIcon(FontAwesomeIcons.dumbbell, size: 18),
                   text: 'Activity',
+                        height: 65,
                 ),
                 Tab(
-                  icon: FaIcon(FontAwesomeIcons.bullseye),
+                        icon: FaIcon(FontAwesomeIcons.bullseye, size: 18),
                   text: 'Goals',
+                        height: 65,
                 ),
                 Tab(
-                  icon: FaIcon(FontAwesomeIcons.gear),
+                        icon: FaIcon(FontAwesomeIcons.gear, size: 18),
                   text: 'Settings',
+                        height: 65,
                 ),
               ],
+                  ),
+                ),
+              ),
             ),
           ),
           Expanded(
@@ -148,41 +254,35 @@ class _ProfileViewState extends State<ProfileView>
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          Card(
-            elevation: 4,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(24),
+          _buildGlassmorphicCard(
+            context: context,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Personal Information',
-                    style: TextStyle(
-                      fontSize: 24,
+                  style: GoogleFonts.poppins(
+                    fontSize: 20,
                       fontWeight: FontWeight.bold,
                       color: colorScheme.onSurface,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                const SizedBox(height: 6),
                   Text(
                     'Manage your personal details and preferences',
-                    style: TextStyle(
-                      fontSize: 16,
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
                       color: colorScheme.onSurface.withOpacity(0.7),
                     ),
                   ),
-                  const SizedBox(height: 24),
+                const SizedBox(height: 20),
                   GridView.count(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     crossAxisCount: 2,
-                    mainAxisSpacing: 16,
-                    crossAxisSpacing: 16,
-                    childAspectRatio:
-                        1.1, // Reduced from 1.2 to 1.1 to give more height
+                  mainAxisSpacing: 12,
+                  crossAxisSpacing: 12,
+                  childAspectRatio: 1.05,
                     children: [
                       _buildInfoCard(
                         context,
@@ -221,9 +321,10 @@ class _ProfileViewState extends State<ProfileView>
                     ],
                   ),
                 ],
-              ),
             ),
           ),
+          // Add bottom padding to prevent content from being hidden behind bottom nav bar
+          const SizedBox(height: 100),
         ],
       ),
     );
@@ -237,74 +338,99 @@ class _ProfileViewState extends State<ProfileView>
     Color color,
     VoidCallback onTap,
   ) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: isDark 
+                ? Colors.black.withOpacity(0.3)
+                : Colors.grey.withOpacity(0.15),
+            blurRadius: isDark ? 12 : 20,
+            offset: isDark ? const Offset(0, 4) : const Offset(0, 10),
+            spreadRadius: isDark ? 0 : 2,
+          ),
+        ],
       ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: isDark ? 12 : 16, sigmaY: isDark ? 12 : 16),
+          child: Material(
+            color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(20),
         child: Container(
-          padding: const EdgeInsets.all(10), // Reduced from 12 to 10
+                padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Theme.of(context).brightness == Brightness.dark
-                ? Theme.of(context).colorScheme.surface
-                : AppColors.white,
-            borderRadius: BorderRadius.circular(16),
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: isDark
+                        ? [
+                            Colors.white.withOpacity(0.10),
+                            Colors.white.withOpacity(0.05),
+                          ]
+                        : [
+                            Colors.white.withOpacity(0.95),
+                            Colors.white.withOpacity(0.85),
+                          ],
+                  ),
+                  borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? AppColors.darkDivider
-                  : AppColors.grey300,
-              width: 1,
+                    color: isDark 
+                        ? Colors.white.withOpacity(0.15) 
+                        : Colors.white.withOpacity(0.8),
+                    width: isDark ? 1.2 : 2,
             ),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Flexible(
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: color.withOpacity(0.12),
+                        shape: BoxShape.circle,
+                      ),
                 child: FaIcon(
                   icon,
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? AppColors.darkTextPrimary
-                      : AppColors.textPrimary,
-                  size: 24, // Reduced from 28 to 24
-                ),
-              ),
-              const SizedBox(height: 4), // Reduced from 6 to 4
-              Flexible(
-                child: Text(
+                        color: color,
+                        size: 22,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
                   title,
-                  style: TextStyle(
-                    fontSize: 13, // Reduced from 14 to 13
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? AppColors.darkTextPrimary
-                        : AppColors.textPrimary,
+                        color: Theme.of(context).colorScheme.onSurface,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.center,
                 ),
-              ),
-              const SizedBox(height: 1), // Reduced from 2 to 1
-              Flexible(
-                child: Text(
+                    const SizedBox(height: 3),
+                    Text(
                   value,
-                  style: TextStyle(
-                    fontSize: 12, // Reduced from 13 to 12
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? AppColors.darkTextSecondary
-                        : AppColors.textSecondary,
-                    fontWeight: FontWeight.w500,
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        color: color,
+                        fontWeight: FontWeight.w700,
                   ),
                   textAlign: TextAlign.center,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                ),
               ),
             ],
+                ),
+              ),
+            ),
           ),
         ),
       ),
@@ -319,36 +445,31 @@ class _ProfileViewState extends State<ProfileView>
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          Card(
-            elevation: 4,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(24),
+          _buildGlassmorphicCard(
+            context: context,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Activity Level',
-                    style: TextStyle(
-                      fontSize: 24,
+                  style: GoogleFonts.poppins(
+                    fontSize: 20,
                       fontWeight: FontWeight.bold,
                       color: colorScheme.onSurface,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                const SizedBox(height: 6),
                   Text(
                     'How active are you in your daily life?',
-                    style: TextStyle(
-                      fontSize: 16,
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
                       color: colorScheme.onSurface.withOpacity(0.7),
                     ),
                   ),
-                  const SizedBox(height: 32),
+                const SizedBox(height: 20),
                   ...ActivityLevel.values.map((level) {
                     return Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
+                    padding: const EdgeInsets.only(bottom: 12),
                       child: _ProfileSettingOption<ActivityLevel>(
                         value: level,
                         selectedValue: profile.activityLevel,
@@ -381,9 +502,10 @@ class _ProfileViewState extends State<ProfileView>
                     );
                   }).toList(),
                 ],
-              ),
             ),
           ),
+          // Add bottom padding to prevent content from being hidden behind bottom nav bar
+          const SizedBox(height: 100),
         ],
       ),
     );
@@ -397,36 +519,31 @@ class _ProfileViewState extends State<ProfileView>
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          Card(
-            elevation: 4,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(24),
+          _buildGlassmorphicCard(
+            context: context,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Weight Goal',
-                    style: TextStyle(
-                      fontSize: 24,
+                  style: GoogleFonts.poppins(
+                    fontSize: 20,
                       fontWeight: FontWeight.bold,
                       color: colorScheme.onSurface,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                const SizedBox(height: 6),
                   Text(
                     'What would you like to achieve?',
-                    style: TextStyle(
-                      fontSize: 16,
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
                       color: colorScheme.onSurface.withOpacity(0.7),
                     ),
                   ),
-                  const SizedBox(height: 32),
+                const SizedBox(height: 20),
                   ...WeightGoal.values.map((goal) {
                     return Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
+                    padding: const EdgeInsets.only(bottom: 12),
                       child: _ProfileSettingOption<WeightGoal>(
                         value: goal,
                         selectedValue: profile.weightGoal,
@@ -458,9 +575,10 @@ class _ProfileViewState extends State<ProfileView>
                     );
                   }).toList(),
                 ],
-              ),
             ),
           ),
+          // Add bottom padding to prevent content from being hidden behind bottom nav bar
+          const SizedBox(height: 100),
         ],
       ),
     );
@@ -484,47 +602,49 @@ class _ProfileViewState extends State<ProfileView>
       child: Column(
         children: [
           // Account Section
-          Card(
-            elevation: 4,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(24),
+          _buildGlassmorphicCard(
+            context: context,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      FaIcon(
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primary.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: FaIcon(
                         FontAwesomeIcons.user,
                         color: colorScheme.primary,
-                        size: 24,
+                        size: 18,
+                      ),
                       ),
                       const SizedBox(width: 12),
                       Text(
                         'Account',
-                        style: TextStyle(
-                          fontSize: 24,
+                      style: GoogleFonts.poppins(
+                        fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: colorScheme.onSurface,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
+                const SizedBox(height: 16),
 
                   // Show user details if signed in, otherwise show guest benefits
                   if (authVM.isSignedIn) ...[
                     // User Details Section
                     Container(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: AppColors.withOpacity(colorScheme.primary, 0.05),
-                        borderRadius: BorderRadius.circular(12),
+                        color: colorScheme.primary.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color:
-                              AppColors.withOpacity(colorScheme.primary, 0.2),
+                          color: colorScheme.primary.withOpacity(0.20),
+                          width: 1.2,
                         ),
                       ),
                       child: Column(
@@ -533,58 +653,52 @@ class _ProfileViewState extends State<ProfileView>
                           Row(
                             children: [
                               CircleAvatar(
-                                radius: 30,
+                                radius: 28,
                                 backgroundImage: authVM.userPhotoURL != null
                                     ? NetworkImage(authVM.userPhotoURL!)
                                     : null,
+                                backgroundColor: colorScheme.primary.withOpacity(0.12),
                                 child: authVM.userPhotoURL == null
                                     ? FaIcon(
                                         FontAwesomeIcons.user,
-                                        size: 24,
+                                        size: 20,
                                         color: colorScheme.primary,
                                       )
                                     : null,
                               ),
-                              const SizedBox(width: 16),
+                              const SizedBox(width: 14),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     // User Name - Dynamic text size to fit content
-                                    FittedBox(
-                                      fit: BoxFit.scaleDown,
-                                      alignment: Alignment.centerLeft,
-                                      child: Text(
+                                    Text(
                                         authVM.userDisplayName ?? 'User',
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
                                           color: colorScheme.onSurface,
                                         ),
                                         maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                       ),
-                                    ),
-                                    const SizedBox(height: 6),
+                                    const SizedBox(height: 3),
                                     // User Email - Dynamic text size to fit content
-                                    FittedBox(
-                                      fit: BoxFit.scaleDown,
-                                      alignment: Alignment.centerLeft,
-                                      child: Text(
+                                    Text(
                                         authVM.userEmail ?? '',
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color: colorScheme.onSurface
-                                              .withOpacity(0.7),
+                                      style: GoogleFonts.inter(
+                                        fontSize: 12,
+                                        color: colorScheme.onSurface.withOpacity(0.7),
                                         ),
                                         maxLines: 1,
-                                      ),
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ],
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 14),
                           // Sign Out Button
                           const SignOutButtonWithAuth(
                             isFullWidth: true,
@@ -595,13 +709,13 @@ class _ProfileViewState extends State<ProfileView>
                   ] else ...[
                     // Guest Benefits Section
                     Container(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: AppColors.withOpacity(colorScheme.primary, 0.05),
-                        borderRadius: BorderRadius.circular(12),
+                        color: colorScheme.primary.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color:
-                              AppColors.withOpacity(colorScheme.primary, 0.2),
+                          color: colorScheme.primary.withOpacity(0.20),
+                          width: 1.2,
                         ),
                       ),
                       child: Column(
@@ -611,13 +725,13 @@ class _ProfileViewState extends State<ProfileView>
                             FontAwesomeIcons.cloudArrowUp,
                             'Sync across devices',
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 10),
                           _buildAccountBenefit(
                             context,
                             FontAwesomeIcons.shieldHalved,
                             'Backup your history',
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 10),
                           _buildAccountBenefit(
                             context,
                             FontAwesomeIcons.chartLine,
@@ -626,7 +740,7 @@ class _ProfileViewState extends State<ProfileView>
                         ],
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 16),
                     const GoogleSignInButton(
                       isFullWidth: true,
                     ),
@@ -634,14 +748,13 @@ class _ProfileViewState extends State<ProfileView>
                 ],
               ),
             ),
-          ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
           // Subscription Section
-          Card(
-            elevation: 4,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
+          _buildGlassmorphicCard(
+            context: context,
+            padding: const EdgeInsets.all(16),
+            child: Material(
+              color: Colors.transparent,
             child: InkWell(
               onTap: () {
                 NavigationService.navigateToSubscription(
@@ -649,11 +762,11 @@ class _ProfileViewState extends State<ProfileView>
               },
               borderRadius: BorderRadius.circular(16),
               child: Padding(
-                padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(2),
                 child: Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
                           begin: Alignment.topLeft,
@@ -668,28 +781,28 @@ class _ProfileViewState extends State<ProfileView>
                       child: const FaIcon(
                         FontAwesomeIcons.crown,
                         color: Colors.white,
-                        size: 24,
+                          size: 18,
                       ),
                     ),
-                    const SizedBox(width: 16),
+                      const SizedBox(width: 14),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             'Subscription',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
+                              style: GoogleFonts.poppins(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
                               color: colorScheme.onSurface,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                            const SizedBox(height: 2),
                           Text(
                             'Manage your plan & usage',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: colorScheme.onSurface.withOpacity(0.7),
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                color: colorScheme.onSurface.withOpacity(0.65),
                             ),
                           ),
                         ],
@@ -697,53 +810,56 @@ class _ProfileViewState extends State<ProfileView>
                     ),
                     FaIcon(
                       FontAwesomeIcons.chevronRight,
-                      color: colorScheme.onSurface.withOpacity(0.3),
-                      size: 16,
+                        color: colorScheme.onSurface.withOpacity(0.35),
+                        size: 14,
                     ),
                   ],
                 ),
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          ),
+          const SizedBox(height: 14),
           // Measurement Units Section
-          Card(
-            elevation: 4,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(24),
+          _buildGlassmorphicCard(
+            context: context,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      FaIcon(
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primary.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: FaIcon(
                         FontAwesomeIcons.ruler,
                         color: colorScheme.primary,
-                        size: 24,
+                        size: 18,
+                      ),
                       ),
                       const SizedBox(width: 12),
                       Text(
                         'Measurement Units',
-                        style: TextStyle(
-                          fontSize: 24,
+                      style: GoogleFonts.poppins(
+                        fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: colorScheme.onSurface,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                const SizedBox(height: 6),
                   Text(
                     'Choose your preferred measurement system',
-                    style: TextStyle(
-                      fontSize: 16,
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
                       color: colorScheme.onSurface.withOpacity(0.7),
                     ),
                   ),
-                  const SizedBox(height: 24),
+                const SizedBox(height: 16),
                   _ProfileSettingOption<bool>(
                     value: true,
                     selectedValue: profileVM.isMetric,
@@ -774,7 +890,7 @@ class _ProfileViewState extends State<ProfileView>
                       }
                     },
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
                   _ProfileSettingOption<bool>(
                     value: false,
                     selectedValue: profileVM.isMetric,
@@ -808,46 +924,47 @@ class _ProfileViewState extends State<ProfileView>
                 ],
               ),
             ),
-          ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
           // Appearance Section
-          Card(
-            elevation: 4,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(24),
+          _buildGlassmorphicCard(
+            context: context,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      FaIcon(
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primary.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: FaIcon(
                         FontAwesomeIcons.palette,
                         color: colorScheme.primary,
-                        size: 24,
+                        size: 18,
+                      ),
                       ),
                       const SizedBox(width: 12),
                       Text(
                         'Appearance',
-                        style: TextStyle(
-                          fontSize: 24,
+                      style: GoogleFonts.poppins(
+                        fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: colorScheme.onSurface,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                const SizedBox(height: 6),
                   Text(
                     'Customize your app experience',
-                    style: TextStyle(
-                      fontSize: 16,
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
                       color: colorScheme.onSurface.withOpacity(0.7),
                     ),
                   ),
-                  const SizedBox(height: 24),
+                const SizedBox(height: 16),
                   Consumer<ThemeViewModel>(
                     builder: (context, themeVM, _) {
                       return Column(
@@ -930,49 +1047,49 @@ class _ProfileViewState extends State<ProfileView>
                 ],
               ),
             ),
-          ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
           // Notification Settings Section
-          Card(
-            elevation: 4,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(24),
+          _buildGlassmorphicCard(
+            context: context,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      FaIcon(
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primary.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: FaIcon(
                         FontAwesomeIcons.bell,
                         color: colorScheme.primary,
-                        size: 24,
+                        size: 18,
+                      ),
                       ),
                       const SizedBox(width: 12),
                       Text(
                         'Notifications',
-                        style: TextStyle(
-                          fontSize: 24,
+                      style: GoogleFonts.poppins(
+                        fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: colorScheme.onSurface,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                const SizedBox(height: 6),
                   Text(
                     'Manage your notification preferences',
-                    style: TextStyle(
-                      fontSize: 16,
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
                       color: colorScheme.onSurface.withOpacity(0.7),
                     ),
                   ),
-                  const SizedBox(height: 24),
+                const SizedBox(height: 16),
                   _buildNotificationSettings(context, authVM),
                 ],
-              ),
             ),
           ),
           const SizedBox(height: 16),
@@ -980,6 +1097,8 @@ class _ProfileViewState extends State<ProfileView>
           if (authVM.isSignedIn) ...[
             _buildDangerZoneCard(context, authVM, colorScheme),
           ],
+          // Add bottom padding to prevent content from being hidden behind bottom nav bar
+          const SizedBox(height: 100),
         ],
       ),
     );
@@ -1058,52 +1177,68 @@ class _ProfileViewState extends State<ProfileView>
     VoidCallback onTap,
   ) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return InkWell(
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(18),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150), // Faster animation
+          duration: const Duration(milliseconds: 200),
         curve: Curves.easeInOut,
-        padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected
-              ? colorScheme.primary.withOpacity(0.1)
-              : colorScheme.surface,
-          borderRadius: BorderRadius.circular(12),
+            gradient: isSelected
+                ? LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: isDark
+                        ? [
+                            colorScheme.primary.withOpacity(0.20),
+                            colorScheme.primary.withOpacity(0.10),
+                          ]
+                        : [
+                            colorScheme.primary.withOpacity(0.15),
+                            colorScheme.primary.withOpacity(0.08),
+                          ],
+                  )
+                : null,
+            color: isSelected ? null : Colors.transparent,
+            borderRadius: BorderRadius.circular(18),
           border: Border.all(
             color: isSelected
                 ? colorScheme.primary
-                : colorScheme.outline.withOpacity(0.5),
-            width: 2,
-          ),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: colorScheme.primary.withOpacity(0.2),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
-              : null,
+                  : colorScheme.outline.withOpacity(0.3),
+              width: 1.5,
+            ),
         ),
         child: Row(
           children: [
-            FaIcon(
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: isSelected 
+                      ? colorScheme.primary.withOpacity(0.15)
+                      : colorScheme.onSurface.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: FaIcon(
               icon,
-              color: isSelected ? colorScheme.primary : colorScheme.onSurface,
-              size: 32,
+                  color: isSelected ? colorScheme.primary : colorScheme.onSurface.withOpacity(0.7),
+                  size: 20,
             ),
-            const SizedBox(width: 16),
+              ),
+              const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     title,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
                       color: isSelected
                           ? colorScheme.primary
                           : colorScheme.onSurface,
@@ -1111,9 +1246,9 @@ class _ProfileViewState extends State<ProfileView>
                   ),
                   Text(
                     subtitle,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: colorScheme.onSurface.withOpacity(0.7),
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        color: colorScheme.onSurface.withOpacity(0.65),
                     ),
                   ),
                 ],
@@ -1123,9 +1258,10 @@ class _ProfileViewState extends State<ProfileView>
               FaIcon(
                 FontAwesomeIcons.circleCheck,
                 color: colorScheme.primary,
-                size: 24,
+                  size: 18,
               ),
           ],
+          ),
         ),
       ),
     );
@@ -1605,24 +1741,30 @@ class _ProfileViewState extends State<ProfileView>
 
   Widget _buildAccountBenefit(
       BuildContext context, IconData icon, String text) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Row(
       children: [
-        FaIcon(
+        Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: colorScheme.primary.withOpacity(0.10),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: FaIcon(
           icon,
-          size: 16,
-          color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+            size: 14,
+            color: colorScheme.primary,
+          ),
         ),
         const SizedBox(width: 10),
         Expanded(
           child: Text(
             text,
-            style: TextStyle(
-              fontSize: 14,
-              color: isDark
-                  ? AppColors.darkTextSecondary
-                  : AppColors.textSecondary,
+            style: GoogleFonts.inter(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: colorScheme.onSurface.withOpacity(0.7),
             ),
           ),
         ),
@@ -1634,67 +1776,56 @@ class _ProfileViewState extends State<ProfileView>
       BuildContext context, AuthViewModel authVM, ColorScheme colorScheme) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isDark
-                ? Colors.red.shade400.withOpacity(0.3)
-                : Colors.red.shade200,
-            width: 1,
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
+    return _buildGlassmorphicCard(
+      context: context,
+      margin: EdgeInsets.zero,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
-                  FaIcon(
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: isDark 
+                      ? Colors.red.shade400.withOpacity(0.15)
+                      : Colors.red.shade100.withOpacity(0.8),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: FaIcon(
                     FontAwesomeIcons.triangleExclamation,
                     color: isDark ? Colors.red.shade400 : Colors.red.shade600,
-                    size: 24,
+                  size: 18,
+                ),
                   ),
                   const SizedBox(width: 12),
                   Text(
                     'Danger Zone',
-                    style: TextStyle(
-                      fontSize: 24,
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
                       fontWeight: FontWeight.bold,
                       color: isDark ? Colors.red.shade400 : Colors.red.shade600,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
+          const SizedBox(height: 6),
               Text(
                 'Irreversible and destructive actions',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: isDark
-                      ? AppColors.darkTextSecondary
-                      : colorScheme.onSurface.withOpacity(0.7),
-                ),
-              ),
-              const SizedBox(height: 24),
+            style: GoogleFonts.inter(
+              fontSize: 13,
+              color: colorScheme.onSurface.withOpacity(0.7),
+            ),
+          ),
+          const SizedBox(height: 16),
               // Delete Account Button
               _buildDeleteAccountButton(context, authVM),
             ],
-          ),
-        ),
       ),
     );
   }
 
   Widget _buildDeleteAccountButton(BuildContext context, AuthViewModel authVM) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
@@ -1733,16 +1864,17 @@ class _ProfileViewState extends State<ProfileView>
           ),
         ),
         style: ElevatedButton.styleFrom(
-          backgroundColor: isDark ? Colors.red.shade700 : Colors.red.shade600,
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          backgroundColor: AppColors.error.withValues(alpha: 0.1),
+          foregroundColor: AppColors.error,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
+            side: BorderSide(
+              color: AppColors.error.withValues(alpha: 0.3),
+              width: 1,
+            ),
           ),
-          elevation: isDark ? 4 : 2,
-          shadowColor: isDark
-              ? Colors.red.shade400.withOpacity(0.3)
-              : Colors.red.shade600.withOpacity(0.3),
+          elevation: 0,
         ),
       ),
     );
@@ -2147,31 +2279,70 @@ class _ProfileSettingOptionState<T> extends State<_ProfileSettingOption<T>> {
   @override
   Widget build(BuildContext context) {
     final isSelected = _currentValue == widget.value;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return InkWell(
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: isSelected
+            ? [
+                BoxShadow(
+                  color: widget.colorScheme.primary.withOpacity(0.15),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ]
+            : null,
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(18),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
       onTap: _isLoading ? null : _handleSelection,
-      borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(18),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
+                  gradient: isSelected
+                      ? LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: isDark
+                              ? [
+                                  widget.colorScheme.primary.withOpacity(0.20),
+                                  widget.colorScheme.primary.withOpacity(0.10),
+                                ]
+                              : [
+                                  widget.colorScheme.primary.withOpacity(0.15),
+                                  widget.colorScheme.primary.withOpacity(0.08),
+                                ],
+                        )
+                      : null,
           color: isSelected
-              ? widget.colorScheme.primary.withOpacity(0.1)
-              : widget.colorScheme.surface,
-          borderRadius: BorderRadius.circular(12),
+                      ? null
+                      : isDark
+                          ? Colors.white.withOpacity(0.05)
+                          : Colors.white.withOpacity(0.50),
+                  borderRadius: BorderRadius.circular(18),
           border: Border.all(
             color: isSelected
                 ? widget.colorScheme.primary
-                : widget.colorScheme.outline.withOpacity(0.5),
-            width: 2,
+                        : isDark
+                            ? Colors.white.withOpacity(0.10)
+                            : Colors.white.withOpacity(0.40),
+                    width: 1.5,
           ),
         ),
         child: Row(
           children: [
             if (_isLoading && isSelected)
               SizedBox(
-                width: 32,
-                height: 32,
+                        width: 28,
+                        height: 28,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
                   valueColor: AlwaysStoppedAnimation<Color>(
@@ -2180,23 +2351,32 @@ class _ProfileSettingOptionState<T> extends State<_ProfileSettingOption<T>> {
                 ),
               )
             else
-              FaIcon(
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? widget.colorScheme.primary.withOpacity(0.15)
+                              : widget.colorScheme.onSurface.withOpacity(0.05),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: FaIcon(
                 widget.icon,
                 color: isSelected
                     ? widget.colorScheme.primary
-                    : widget.colorScheme.onSurface,
-                size: 32,
+                              : widget.colorScheme.onSurface.withOpacity(0.7),
+                          size: 20,
               ),
-            const SizedBox(width: 16),
+                      ),
+                    const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     widget.title,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                            style: GoogleFonts.inter(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
                       color: isSelected
                           ? widget.colorScheme.primary
                           : widget.colorScheme.onSurface,
@@ -2204,9 +2384,9 @@ class _ProfileSettingOptionState<T> extends State<_ProfileSettingOption<T>> {
                   ),
                   Text(
                     widget.subtitle,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: widget.colorScheme.onSurface.withOpacity(0.7),
+                            style: GoogleFonts.inter(
+                              fontSize: 11,
+                              color: widget.colorScheme.onSurface.withOpacity(0.65),
                     ),
                   ),
                 ],
@@ -2216,9 +2396,13 @@ class _ProfileSettingOptionState<T> extends State<_ProfileSettingOption<T>> {
               FaIcon(
                 FontAwesomeIcons.circleCheck,
                 color: widget.colorScheme.primary,
-                size: 24,
+                        size: 18,
               ),
           ],
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -2332,21 +2516,35 @@ class _NotificationToggleWidgetState extends State<_NotificationToggleWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: widget.colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
+        color: isDark 
+            ? Colors.white.withOpacity(0.05)
+            : Colors.white.withOpacity(0.50),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: widget.colorScheme.outline.withOpacity(0.5),
+          color: isDark 
+              ? Colors.white.withOpacity(0.10)
+              : Colors.white.withOpacity(0.40),
+          width: 1.5,
         ),
       ),
       child: Row(
         children: [
-          FaIcon(
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: widget.colorScheme.primary.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: FaIcon(
             FontAwesomeIcons.bell,
             color: widget.colorScheme.primary,
-            size: 20,
+              size: 18,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -2355,17 +2553,17 @@ class _NotificationToggleWidgetState extends State<_NotificationToggleWidget> {
               children: [
                 Text(
                   'App Notifications',
-                  style: TextStyle(
-                    fontSize: 16,
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: widget.colorScheme.onSurface,
                   ),
                 ),
                 Text(
                   'Receive notifications from Foody',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: widget.colorScheme.onSurface.withOpacity(0.7),
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    color: widget.colorScheme.onSurface.withOpacity(0.65),
                   ),
                 ),
               ],
@@ -2373,8 +2571,8 @@ class _NotificationToggleWidgetState extends State<_NotificationToggleWidget> {
           ),
           if (_isLoading)
             SizedBox(
-              width: 24,
-              height: 24,
+              width: 22,
+              height: 22,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
                 valueColor: AlwaysStoppedAnimation<Color>(
@@ -2383,10 +2581,13 @@ class _NotificationToggleWidgetState extends State<_NotificationToggleWidget> {
               ),
             )
           else
-            Switch(
+            Transform.scale(
+              scale: 0.85,
+              child: Switch(
               value: _notificationsEnabled,
               onChanged: _handleToggle,
               activeColor: widget.colorScheme.primary,
+              ),
             ),
         ],
       ),

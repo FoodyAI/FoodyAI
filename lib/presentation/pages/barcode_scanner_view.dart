@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../data/services/open_food_facts_service.dart';
 import '../../data/models/product.dart';
@@ -22,7 +23,7 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
   Product? _scannedProduct;
   bool _isLoading = false;
   String? _error;
-  final double _scanFrameSize = 250.0;
+  final double _scanFrameSize = 240.0;
 
   @override
   void initState() {
@@ -154,6 +155,7 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final scanArea = Rect.fromCenter(
       center: Offset(size.width / 2, size.height / 2),
       width: _scanFrameSize,
@@ -161,38 +163,52 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
     );
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Scan Barcode'),
-        actions: [
-          IconButton(
-            icon: ValueListenableBuilder(
-              valueListenable: controller.torchState,
-              builder: (context, state, child) {
-                switch (state) {
-                  case TorchState.off:
-                    return const Icon(Icons.flash_off);
-                  case TorchState.on:
-                    return const Icon(Icons.flash_on);
-                }
-              },
+      extendBodyBehindAppBar: true,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight),
+        child: ClipRRect(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+            child: AppBar(
+              backgroundColor: isDark
+                  ? Colors.black.withOpacity(0.4)
+                  : Colors.white.withOpacity(0.5),
+              elevation: 0,
+              leading: Container(
+                margin: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? Colors.white.withOpacity(0.1)
+                      : Colors.white.withOpacity(0.6),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: isDark
+                        ? Colors.white.withOpacity(0.2)
+                        : Colors.white.withOpacity(0.8),
+                    width: 1.5,
+                  ),
+                ),
+                child: IconButton(
+                  icon: FaIcon(
+                    FontAwesomeIcons.arrowLeft,
+                    color: isDark ? Colors.white : AppColors.textPrimary,
+                    size: 18,
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                  padding: EdgeInsets.zero,
+                ),
+              ),
+              title: Text(
+                'Scan Barcode',
+                style: TextStyle(
+                  color: isDark ? Colors.white : AppColors.textPrimary,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
             ),
-            onPressed: () => controller.toggleTorch(),
           ),
-          IconButton(
-            icon: ValueListenableBuilder(
-              valueListenable: controller.cameraFacingState,
-              builder: (context, state, child) {
-                switch (state) {
-                  case CameraFacing.front:
-                    return const Icon(Icons.camera_front);
-                  case CameraFacing.back:
-                    return const Icon(Icons.camera_rear);
-                }
-              },
-            ),
-            onPressed: () => controller.switchCamera(),
-          ),
-        ],
+        ),
       ),
       body: Stack(
         children: [
@@ -213,68 +229,134 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
             },
           ),
 
-          // Scanning Guide Overlay
+          // Dark overlay outside scan area
           if (!_isLoading && _scannedProduct == null && _error == null)
-            Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: _scanFrameSize,
-                    height: _scanFrameSize,
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: Colors.white,
-                        width: 2,
+            Container(
+              color: Colors.black.withOpacity(0.6),
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Scan frame with corner brackets and buttons
+                    Container(
+                      width: _scanFrameSize,
+                      height: _scanFrameSize,
+                      child: Stack(
+                        children: [
+                          // Corner brackets - Top Left
+                          Positioned(
+                            top: 0,
+                            left: 0,
+                            child: _buildCornerBracket(true, true),
+                          ),
+                          // Corner brackets - Top Right
+                          Positioned(
+                            top: 0,
+                            right: 0,
+                            child: _buildCornerBracket(true, false),
+                          ),
+                          // Corner brackets - Bottom Left
+                          Positioned(
+                            bottom: 0,
+                            left: 0,
+                            child: _buildCornerBracket(false, true),
+                          ),
+                          // Corner brackets - Bottom Right
+                          Positioned(
+                            bottom: 0,
+                            right: 0,
+                            child: _buildCornerBracket(false, false),
+                          ),
+                          // Bottom control buttons inside frame - Glassmorphic
+                          Positioned(
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            child: ClipRRect(
+                              borderRadius: const BorderRadius.only(
+                                bottomLeft: Radius.circular(24),
+                                bottomRight: Radius.circular(24),
+                              ),
+                              child: BackdropFilter(
+                                filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                                child: Container(
+                                  height: 55,
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                      colors: [
+                                        Colors.white.withOpacity(0.15),
+                                        Colors.white.withOpacity(0.08),
+                                      ],
+                                    ),
+                                    borderRadius: const BorderRadius.only(
+                                      bottomLeft: Radius.circular(24),
+                                      bottomRight: Radius.circular(24),
+                                    ),
+                                    border: Border(
+                                      top: BorderSide(
+                                        color: Colors.white.withOpacity(0.25),
+                                        width: 1.5,
+                                      ),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: _buildInFrameButton(
+                                          icon: FontAwesomeIcons.keyboard,
+                                          onTap: () => _showManualBarcodeInput(context),
+                                        ),
+                                      ),
+                                      Container(
+                                        width: 1.5,
+                                        height: 35,
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            begin: Alignment.topCenter,
+                                            end: Alignment.bottomCenter,
+                                            colors: [
+                                              Colors.white.withOpacity(0.0),
+                                              Colors.white.withOpacity(0.35),
+                                              Colors.white.withOpacity(0.0),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: ValueListenableBuilder(
+                                          valueListenable: controller.torchState,
+                                          builder: (context, state, child) {
+                                            return _buildInFrameButton(
+                                              icon: FontAwesomeIcons.bolt,
+                                              onTap: () => controller.toggleTorch(),
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      borderRadius: BorderRadius.circular(16),
                     ),
-                    child: Stack(
-                      children: [
-                        // Corner markers
-                        Positioned(
-                          top: 0,
-                          left: 0,
-                          child: _buildCornerMarker(true, true),
-                        ),
-                        Positioned(
-                          top: 0,
-                          right: 0,
-                          child: _buildCornerMarker(true, false),
-                        ),
-                        Positioned(
-                          bottom: 0,
-                          left: 0,
-                          child: _buildCornerMarker(false, true),
-                        ),
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: _buildCornerMarker(false, false),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 12,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.black54,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Text(
-                      'Position the barcode within the frame',
-                      style: TextStyle(
+                    const SizedBox(height: 40),
+                    // Instruction text
+                    Text(
+                      'Position barcode within the frame',
+                      style: GoogleFonts.inter(
                         color: Colors.white,
                         fontSize: 16,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.2,
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
 
@@ -285,16 +367,96 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
           // Error Message
           if (_error != null)
             Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
+              left: 16,
+              right: 16,
+              bottom: 24,
               child: Container(
-                padding: const EdgeInsets.all(16),
-                color: Colors.red.shade100,
-                child: Text(
-                  _error!,
-                  style: const TextStyle(color: Colors.red),
-                  textAlign: TextAlign.center,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.error.withOpacity(0.3),
+                      blurRadius: 16,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                    child: Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            AppColors.error.withOpacity(0.15),
+                            AppColors.error.withOpacity(0.10),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: AppColors.error.withOpacity(0.5),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: AppColors.error.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: FaIcon(
+                              FontAwesomeIcons.triangleExclamation,
+                              color: AppColors.error,
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'Error',
+                                  style: TextStyle(
+                                    color: AppColors.error,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  _error!,
+                                  style: TextStyle(
+                                    color: isDark ? Colors.white : AppColors.textPrimary,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          IconButton(
+                            icon: FaIcon(
+                              FontAwesomeIcons.xmark,
+                              color: isDark ? Colors.white : AppColors.textPrimary,
+                              size: 16,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _error = null;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -532,27 +694,205 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
     );
   }
 
-  Widget _buildCornerMarker(bool isTop, bool isLeft) {
+  Widget _buildCornerBracket(bool isTop, bool isLeft) {
     return Container(
-      width: 20,
-      height: 20,
-      decoration: BoxDecoration(
-        border: Border(
-          top: BorderSide(
+      width: 70,
+      height: 70,
+      child: CustomPaint(
+        painter: CornerBracketPainter(
+          isTop: isTop,
+          isLeft: isLeft,
+          color: Colors.white,
+          strokeWidth: 6,
+          cornerLength: 50,
+          cornerRadius: 20,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInFrameButton({
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        child: Center(
+          child: FaIcon(
+            icon,
             color: Colors.white,
-            width: isTop ? 4 : 0,
+            size: 24,
           ),
-          bottom: BorderSide(
-            color: Colors.white,
-            width: !isTop ? 4 : 0,
+        ),
+      ),
+    );
+  }
+
+  void _showManualBarcodeInput(BuildContext context) {
+    final TextEditingController barcodeController = TextEditingController();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withOpacity(0.5),
+      builder: (context) => BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+        child: Dialog(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
           ),
-          left: BorderSide(
-            color: Colors.white,
-            width: isLeft ? 4 : 0,
-          ),
-          right: BorderSide(
-            color: Colors.white,
-            width: !isLeft ? 4 : 0,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+              child: Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: isDark
+                        ? [
+                            Colors.grey[900]!.withOpacity(0.85),
+                            Colors.grey[900]!.withOpacity(0.75),
+                          ]
+                        : [
+                            Colors.white.withOpacity(0.90),
+                            Colors.white.withOpacity(0.80),
+                          ],
+                  ),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: isDark
+                        ? Colors.white.withOpacity(0.2)
+                        : Colors.white.withOpacity(0.7),
+                    width: 1.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: isDark
+                          ? Colors.black.withOpacity(0.3)
+                          : Colors.grey.withOpacity(0.12),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
+                      spreadRadius: 1,
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Enter Barcode',
+                      style: GoogleFonts.inter(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.white : Colors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    TextField(
+                      controller: barcodeController,
+                      keyboardType: TextInputType.number,
+                      autofocus: true,
+                      style: GoogleFonts.inter(
+                        color: isDark ? Colors.white : Colors.black,
+                        fontSize: 16,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: 'Enter barcode number',
+                        hintStyle: GoogleFonts.inter(
+                          color: isDark ? Colors.white54 : Colors.black54,
+                        ),
+                        filled: true,
+                        fillColor: isDark
+                            ? Colors.white.withOpacity(0.05)
+                            : Colors.black.withOpacity(0.03),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: isDark
+                                ? Colors.white.withOpacity(0.2)
+                                : Colors.grey.withOpacity(0.3),
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: isDark
+                                ? Colors.white.withOpacity(0.2)
+                                : Colors.grey.withOpacity(0.3),
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: AppColors.primary,
+                            width: 2,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 12,
+                            ),
+                          ),
+                          child: Text(
+                            'Cancel',
+                            style: GoogleFonts.inter(
+                              color: isDark ? Colors.white70 : Colors.black54,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        ElevatedButton(
+                          onPressed: () {
+                            final barcode = barcodeController.text.trim();
+                            if (barcode.isNotEmpty) {
+                              Navigator.pop(context);
+                              _fetchProductDetails(barcode);
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 12,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: Text(
+                            'Search',
+                            style: GoogleFonts.inter(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
         ),
       ),
@@ -749,4 +1089,81 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
             ),
     );
   }
+}
+
+// Custom painter for corner brackets (L-shaped corners with rounded edges)
+class CornerBracketPainter extends CustomPainter {
+  final bool isTop;
+  final bool isLeft;
+  final Color color;
+  final double strokeWidth;
+  final double cornerLength;
+  final double cornerRadius;
+
+  CornerBracketPainter({
+    required this.isTop,
+    required this.isLeft,
+    required this.color,
+    required this.strokeWidth,
+    required this.cornerLength,
+    this.cornerRadius = 8,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round
+      ..style = PaintingStyle.stroke;
+
+    final path = Path();
+
+    if (isTop && isLeft) {
+      // Top-left corner with rounded inner corner
+      path.moveTo(cornerLength, 0);
+      path.lineTo(cornerRadius, 0);
+      path.arcToPoint(
+        Offset(0, cornerRadius),
+        radius: Radius.circular(cornerRadius),
+        clockwise: false,
+      );
+      path.lineTo(0, cornerLength);
+    } else if (isTop && !isLeft) {
+      // Top-right corner with rounded inner corner
+      path.moveTo(size.width - cornerLength, 0);
+      path.lineTo(size.width - cornerRadius, 0);
+      path.arcToPoint(
+        Offset(size.width, cornerRadius),
+        radius: Radius.circular(cornerRadius),
+        clockwise: true,
+      );
+      path.lineTo(size.width, cornerLength);
+    } else if (!isTop && isLeft) {
+      // Bottom-left corner with rounded inner corner
+      path.moveTo(0, size.height - cornerLength);
+      path.lineTo(0, size.height - cornerRadius);
+      path.arcToPoint(
+        Offset(cornerRadius, size.height),
+        radius: Radius.circular(cornerRadius),
+        clockwise: false,
+      );
+      path.lineTo(cornerLength, size.height);
+    } else {
+      // Bottom-right corner with rounded inner corner
+      path.moveTo(size.width, size.height - cornerLength);
+      path.lineTo(size.width, size.height - cornerRadius);
+      path.arcToPoint(
+        Offset(size.width - cornerRadius, size.height),
+        radius: Radius.circular(cornerRadius),
+        clockwise: true,
+      );
+      path.lineTo(size.width - cornerLength, size.height);
+    }
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

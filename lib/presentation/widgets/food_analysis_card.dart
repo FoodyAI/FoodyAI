@@ -26,30 +26,56 @@ class FoodAnalysisCard extends StatelessWidget {
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Card(
-      elevation: 0,
+    return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      shape: RoundedRectangleBorder(
+      decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Container(
-            decoration: BoxDecoration(
-              // Calendar-style glassmorphism
-              color: isDark
-                  ? Colors.black.withValues(alpha: 0.3)
-                  : Colors.white.withValues(alpha: 0.4),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: isDark
-                    ? Colors.white.withValues(alpha: 0.15)
-                    : AppColors.primary.withValues(alpha: 0.3),
-                width: 1.5,
-              ),
+        boxShadow: [
+          BoxShadow(
+            color: isDark
+                ? Colors.black.withOpacity(0.3)
+                : Colors.grey.withOpacity(0.20),
+            blurRadius: isDark ? 12 : 24,
+            offset: isDark ? const Offset(0, 4) : const Offset(0, 12),
+            spreadRadius: isDark ? 0 : 3,
+          ),
+          // Add second shadow layer for more depth in light mode
+          if (!isDark)
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+              spreadRadius: 0,
             ),
+        ],
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          // Solid background to prevent flickering during scroll
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: isDark
+                ? [
+                    Colors.grey[850]!.withOpacity(0.95),
+                    Colors.grey[900]!.withOpacity(0.95),
+                  ]
+                : [
+                    Colors.white.withOpacity(0.98),
+                    Colors.white.withOpacity(0.95),
+                  ],
+          ),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: isDark
+                ? Colors.white.withOpacity(0.15)
+                : Colors.white.withOpacity(0.9),
+            width: isDark ? 1.5 : 2.5,
+          ),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: Container(
             child: InkWell(
               borderRadius: BorderRadius.circular(24),
               onTap: () {
