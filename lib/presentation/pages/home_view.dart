@@ -751,6 +751,8 @@ class _HomeContentState extends State<_HomeContent> {
                   ),
                 ),
               ),
+              // Add bottom padding to prevent content from being hidden behind bottom nav bar
+              const SizedBox(height: 100),
             ],
           ),
         ),
@@ -758,85 +760,4 @@ class _HomeContentState extends State<_HomeContent> {
     );
   }
 
-  /// Build a glassmorphism option for the bottom sheet
-  Widget _buildGlassmorphismOption({
-    required BuildContext context,
-    required IconData icon,
-    required Color iconColor,
-    required String title,
-    required bool isDark,
-    required VoidCallback onTap,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(20),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: BoxDecoration(
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.05)
-                  : Colors.white.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: isDark
-                    ? Colors.white.withValues(alpha: 0.1)
-                    : Colors.white.withValues(alpha: 0.4),
-                width: 1,
-              ),
-            ),
-            child: Row(
-              children: [
-                // Icon container with glassmorphism
-                Container(
-                  width: 42,
-                  height: 42,
-                  decoration: BoxDecoration(
-                    color: iconColor.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: iconColor.withValues(alpha: 0.3),
-                      width: 1,
-                    ),
-                  ),
-                  child: Center(
-                    child: FaIcon(
-                      icon,
-                      color: iconColor,
-                      size: 20,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 14),
-                // Title
-                Expanded(
-                  child: Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: isDark
-                          ? AppColors.darkTextPrimary
-                          : AppColors.textPrimary,
-                    ),
-                  ),
-                ),
-                // Arrow icon
-                Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  size: 14,
-                  color: isDark
-                      ? AppColors.darkTextSecondary
-                      : AppColors.textSecondary,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 }
