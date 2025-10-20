@@ -294,8 +294,29 @@ class HealthInfoCard extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
     return Container(
+      padding: padding,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(28),
+        // Solid background to prevent flickering during scroll
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDark
+              ? [
+                  Colors.grey[850]!.withOpacity(0.95),
+                  Colors.grey[900]!.withOpacity(0.95),
+                ]
+              : [
+                  Colors.white.withOpacity(0.95),
+                  Colors.white.withOpacity(0.90),
+                ],
+        ),
+        border: Border.all(
+          color: isDark 
+              ? Colors.white.withOpacity(0.25) 
+              : Colors.white.withOpacity(0.8),
+          width: 2,
+        ),
         boxShadow: [
           BoxShadow(
             color: isDark 
@@ -307,38 +328,7 @@ class HealthInfoCard extends StatelessWidget {
           ),
         ],
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(28),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-          child: Container(
-            padding: padding,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: isDark
-                    ? [
-                        Colors.white.withOpacity(0.15),
-                        Colors.white.withOpacity(0.08),
-                      ]
-                    : [
-                        Colors.white.withOpacity(0.95),
-                        Colors.white.withOpacity(0.85),
-                      ],
-              ),
-              borderRadius: BorderRadius.circular(28),
-              border: Border.all(
-                color: isDark 
-                    ? Colors.white.withOpacity(0.25) 
-                    : Colors.white.withOpacity(0.8),
-                width: 2,
-              ),
-            ),
-            child: child,
-          ),
-        ),
-      ),
+      child: child,
     );
   }
 
