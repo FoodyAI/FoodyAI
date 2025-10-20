@@ -336,7 +336,10 @@ class _HomeViewState extends State<HomeView> {
         print('🏠 HomeView: StreamBuilder rebuilt with isConnected = $isConnected');
 
         return Scaffold(
+          extendBody: true,
           body: _pages[_currentIndex],
+          floatingActionButton: _currentIndex == 0 ? _buildGlassmorphismFAB(context) : null,
+          floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
           bottomNavigationBar: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
