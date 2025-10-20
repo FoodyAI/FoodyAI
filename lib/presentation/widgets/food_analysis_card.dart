@@ -26,28 +26,47 @@ class FoodAnalysisCard extends StatelessWidget {
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Card(
-      elevation: 0,
+    return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      shape: RoundedRectangleBorder(
+      decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: isDark
+                ? Colors.black.withOpacity(0.3)
+                : Colors.grey.withOpacity(0.15),
+            blurRadius: isDark ? 12 : 20,
+            offset: isDark ? const Offset(0, 4) : const Offset(0, 10),
+            spreadRadius: isDark ? 0 : 2,
+          ),
+        ],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(24),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          filter: ImageFilter.blur(sigmaX: isDark ? 10 : 16, sigmaY: isDark ? 10 : 16),
           child: Container(
             decoration: BoxDecoration(
-              // Calendar-style glassmorphism
-              color: isDark
-                  ? Colors.black.withValues(alpha: 0.3)
-                  : Colors.white.withValues(alpha: 0.4),
+              // Enhanced glassmorphism like health analysis cards
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: isDark
+                    ? [
+                        Colors.white.withOpacity(0.10),
+                        Colors.white.withOpacity(0.05),
+                      ]
+                    : [
+                        Colors.white.withOpacity(0.95),
+                        Colors.white.withOpacity(0.85),
+                      ],
+              ),
               borderRadius: BorderRadius.circular(24),
               border: Border.all(
                 color: isDark
-                    ? Colors.white.withValues(alpha: 0.15)
-                    : AppColors.primary.withValues(alpha: 0.3),
-                width: 1.5,
+                    ? Colors.white.withOpacity(0.15)
+                    : Colors.white.withOpacity(0.8),
+                width: isDark ? 1.5 : 2,
               ),
             ),
             child: InkWell(
