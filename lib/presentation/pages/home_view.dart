@@ -278,59 +278,57 @@ class _HomeContentState extends State<_HomeContent> {
           showModalBottomSheet(
             context: context,
             backgroundColor: AppColors.transparent,
+            isScrollControlled: true,
             builder: (context) {
               final isDark = Theme.of(context).brightness == Brightness.dark;
               final colorScheme = Theme.of(context).colorScheme;
 
-              return Container(
-                decoration: BoxDecoration(
-                  color: isDark ? AppColors.grey800 : AppColors.white,
-                  borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(24)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: isDark
-                          ? AppColors.withOpacity(AppColors.black, 0.4)
-                          : AppColors.withOpacity(AppColors.black, 0.1),
-                      blurRadius: 20,
-                      offset: const Offset(0, -4),
-                    ),
-                  ],
+              return Padding(
+                padding: EdgeInsets.only(
+                  left: 16,
+                  right: 16,
+                  bottom: MediaQuery.of(context).padding.bottom + 16,
                 ),
-                child: SafeArea(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const SizedBox(height: 8),
-                      Container(
-                        width: 40,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: isDark ? AppColors.grey600 : AppColors.grey300,
-                          borderRadius: BorderRadius.circular(2),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(32),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? Colors.black.withValues(alpha: 0.4)
+                            : Colors.white.withValues(alpha: 0.5),
+                        borderRadius: BorderRadius.circular(32),
+                        border: Border.all(
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.15)
+                              : Colors.white.withValues(alpha: 0.6),
+                          width: 1.5,
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      ListTile(
-                        leading: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color:
-                                AppColors.withOpacity(colorScheme.primary, 0.1),
-                            borderRadius: BorderRadius.circular(8),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const SizedBox(height: 10),
+                          // Drag handle with glassmorphism
+                          Container(
+                            width: 36,
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.3)
+                                  : Colors.black.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(2),
+                            ),
                           ),
-                          child: const FaIcon(
-                            FontAwesomeIcons.camera,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                        title: Text(
-                          'Take Picture',
-                          style: TextStyle(
-                            color: isDark ? AppColors.white : AppColors.black,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
+                          const SizedBox(height: 12),
+                      // Take Picture option with glassmorphism
+                      _buildGlassmorphismOption(
+                        context: context,
+                        icon: FontAwesomeIcons.camera,
+                        iconColor: AppColors.primary,
+                        title: 'Take Picture',
+                        isDark: isDark,
                         onTap: () {
                           Navigator.pop(context);
                           final vm = Provider.of<ImageAnalysisViewModel>(
