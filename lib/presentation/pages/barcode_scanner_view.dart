@@ -162,38 +162,118 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
     );
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Scan Barcode'),
-        actions: [
-          IconButton(
-            icon: ValueListenableBuilder(
-              valueListenable: controller.torchState,
-              builder: (context, state, child) {
-                switch (state) {
-                  case TorchState.off:
-                    return const Icon(Icons.flash_off);
-                  case TorchState.on:
-                    return const Icon(Icons.flash_on);
-                }
-              },
+      extendBodyBehindAppBar: true,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight),
+        child: ClipRRect(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+            child: AppBar(
+              backgroundColor: isDark
+                  ? Colors.black.withOpacity(0.4)
+                  : Colors.white.withOpacity(0.5),
+              elevation: 0,
+              leading: Container(
+                margin: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? Colors.white.withOpacity(0.1)
+                      : Colors.white.withOpacity(0.6),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: isDark
+                        ? Colors.white.withOpacity(0.2)
+                        : Colors.white.withOpacity(0.8),
+                    width: 1.5,
+                  ),
+                ),
+                child: IconButton(
+                  icon: FaIcon(
+                    FontAwesomeIcons.arrowLeft,
+                    color: isDark ? Colors.white : AppColors.textPrimary,
+                    size: 18,
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                  padding: EdgeInsets.zero,
+                ),
+              ),
+              title: Text(
+                'Scan Barcode',
+                style: TextStyle(
+                  color: isDark ? Colors.white : AppColors.textPrimary,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
+              actions: [
+                Container(
+                  margin: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? Colors.white.withOpacity(0.1)
+                        : Colors.white.withOpacity(0.6),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isDark
+                          ? Colors.white.withOpacity(0.2)
+                          : Colors.white.withOpacity(0.8),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: ValueListenableBuilder(
+                    valueListenable: controller.torchState,
+                    builder: (context, state, child) {
+                      return IconButton(
+                        icon: FaIcon(
+                          state == TorchState.on
+                              ? FontAwesomeIcons.lightbulb
+                              : FontAwesomeIcons.solidLightbulb,
+                          color: state == TorchState.on
+                              ? AppColors.orange
+                              : (isDark ? Colors.white : AppColors.textPrimary),
+                          size: 18,
+                        ),
+                        onPressed: () => controller.toggleTorch(),
+                        padding: EdgeInsets.zero,
+                      );
+                    },
+                  ),
+                ),
+                Container(
+                  margin: const EdgeInsets.only(right: 8, top: 8, bottom: 8),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? Colors.white.withOpacity(0.1)
+                        : Colors.white.withOpacity(0.6),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isDark
+                          ? Colors.white.withOpacity(0.2)
+                          : Colors.white.withOpacity(0.8),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: ValueListenableBuilder(
+                    valueListenable: controller.cameraFacingState,
+                    builder: (context, state, child) {
+                      return IconButton(
+                        icon: FaIcon(
+                          state == CameraFacing.front
+                              ? FontAwesomeIcons.cameraRotate
+                              : FontAwesomeIcons.camera,
+                          color: isDark ? Colors.white : AppColors.textPrimary,
+                          size: 18,
+                        ),
+                        onPressed: () => controller.switchCamera(),
+                        padding: EdgeInsets.zero,
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
-            onPressed: () => controller.toggleTorch(),
           ),
-          IconButton(
-            icon: ValueListenableBuilder(
-              valueListenable: controller.cameraFacingState,
-              builder: (context, state, child) {
-                switch (state) {
-                  case CameraFacing.front:
-                    return const Icon(Icons.camera_front);
-                  case CameraFacing.back:
-                    return const Icon(Icons.camera_rear);
-                }
-              },
-            ),
-            onPressed: () => controller.switchCamera(),
-          ),
-        ],
+        ),
       ),
       body: Stack(
         children: [
