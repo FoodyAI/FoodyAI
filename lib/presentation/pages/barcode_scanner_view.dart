@@ -801,27 +801,40 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
 
   Widget _buildCornerMarker(bool isTop, bool isLeft) {
     return Container(
-      width: 20,
-      height: 20,
+      width: 32,
+      height: 32,
       decoration: BoxDecoration(
+        borderRadius: BorderRadius.only(
+          topLeft: isTop && isLeft ? const Radius.circular(24) : Radius.zero,
+          topRight: isTop && !isLeft ? const Radius.circular(24) : Radius.zero,
+          bottomLeft: !isTop && isLeft ? const Radius.circular(24) : Radius.zero,
+          bottomRight: !isTop && !isLeft ? const Radius.circular(24) : Radius.zero,
+        ),
         border: Border(
           top: BorderSide(
-            color: Colors.white,
-            width: isTop ? 4 : 0,
+            color: AppColors.primary,
+            width: isTop ? 5 : 0,
           ),
           bottom: BorderSide(
-            color: Colors.white,
-            width: !isTop ? 4 : 0,
+            color: AppColors.primary,
+            width: !isTop ? 5 : 0,
           ),
           left: BorderSide(
-            color: Colors.white,
-            width: isLeft ? 4 : 0,
+            color: AppColors.primary,
+            width: isLeft ? 5 : 0,
           ),
           right: BorderSide(
-            color: Colors.white,
-            width: !isLeft ? 4 : 0,
+            color: AppColors.primary,
+            width: !isLeft ? 5 : 0,
           ),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withOpacity(0.5),
+            blurRadius: 8,
+            spreadRadius: 1,
+          ),
+        ],
       ),
     );
   }
