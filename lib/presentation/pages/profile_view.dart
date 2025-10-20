@@ -268,80 +268,73 @@ class _ProfileViewState extends State<ProfileView>
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          Card(
-            elevation: 4,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Personal Information',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.onSurface,
+          _buildGlassmorphicCard(
+            context: context,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Personal Information',
+                  style: GoogleFonts.poppins(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Manage your personal details and preferences',
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    color: colorScheme.onSurface.withOpacity(0.7),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                GridView.count(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 12,
+                  crossAxisSpacing: 12,
+                  childAspectRatio: 1.05,
+                  children: [
+                    _buildInfoCard(
+                      context,
+                      FontAwesomeIcons.user,
+                      'Gender',
+                      profile.gender,
+                      colorScheme.primary,
+                      () => _showGenderDialog(context, profileVM),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Manage your personal details and preferences',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: colorScheme.onSurface.withOpacity(0.7),
+                    _buildInfoCard(
+                      context,
+                      FontAwesomeIcons.cakeCandles,
+                      'Age',
+                      '${profile.age} years',
+                      colorScheme.secondary,
+                      () => _showAgeDialog(context, profileVM),
                     ),
-                  ),
-                  const SizedBox(height: 24),
-                  GridView.count(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    crossAxisCount: 2,
-                    mainAxisSpacing: 16,
-                    crossAxisSpacing: 16,
-                    childAspectRatio:
-                        1.1, // Reduced from 1.2 to 1.1 to give more height
-                    children: [
-                      _buildInfoCard(
-                        context,
-                        FontAwesomeIcons.user,
-                        'Gender',
-                        profile.gender,
-                        colorScheme.primary,
-                        () => _showGenderDialog(context, profileVM),
-                      ),
-                      _buildInfoCard(
-                        context,
-                        FontAwesomeIcons.cakeCandles,
-                        'Age',
-                        '${profile.age} years',
-                        colorScheme.secondary,
-                        () => _showAgeDialog(context, profileVM),
-                      ),
-                      _buildInfoCard(
-                        context,
-                        FontAwesomeIcons.weightScale,
-                        'Weight',
-                        '${profileVM.displayWeight.toStringAsFixed(1)} ${profileVM.weightUnit}',
-                        colorScheme.tertiary,
-                        () => _showWeightDialog(context, profileVM),
-                      ),
-                      _buildInfoCard(
-                        context,
-                        FontAwesomeIcons.rulerVertical,
-                        'Height',
-                        profileVM.isMetric
-                            ? '${profileVM.displayHeight.toStringAsFixed(1)} cm'
-                            : '${(profileVM.displayHeight / 12).floor()}′${(profileVM.displayHeight % 12).round()}″',
-                        colorScheme.error,
-                        () => _showHeightDialog(context, profileVM),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+                    _buildInfoCard(
+                      context,
+                      FontAwesomeIcons.weightScale,
+                      'Weight',
+                      '${profileVM.displayWeight.toStringAsFixed(1)} ${profileVM.weightUnit}',
+                      colorScheme.tertiary,
+                      () => _showWeightDialog(context, profileVM),
+                    ),
+                    _buildInfoCard(
+                      context,
+                      FontAwesomeIcons.rulerVertical,
+                      'Height',
+                      profileVM.isMetric
+                          ? '${profileVM.displayHeight.toStringAsFixed(1)} cm'
+                          : '${(profileVM.displayHeight / 12).floor()}′${(profileVM.displayHeight % 12).round()}″',
+                      colorScheme.error,
+                      () => _showHeightDialog(context, profileVM),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
           // Add bottom padding to prevent content from being hidden behind bottom nav bar
