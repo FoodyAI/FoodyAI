@@ -175,16 +175,18 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
             child: Align(
               alignment: Alignment.topRight,
               child: Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(20.0),
                 child: _buildSkipButton(),
               ),
             ),
           ),
 
-          // Bottom content card
-          SafeArea(
-            child: Align(
-              alignment: Alignment.bottomCenter,
+          // Bottom content card with proper spacing
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: SafeArea(
               child: _buildBottomCard(),
             ),
           ),
@@ -267,7 +269,7 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
               : _buildImageBackground(page),
         ),
 
-        // Dark overlay for better contrast
+        // Dark gradient overlay for better contrast
         Positioned.fill(
           child: Container(
             decoration: BoxDecoration(
@@ -275,10 +277,10 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Colors.black.withOpacity(0.3),
-                  Colors.black.withOpacity(0.7),
+                  Colors.black.withOpacity(0.2),
+                  Colors.black.withOpacity(0.6),
                 ],
-                stops: const [0.3, 1.0],
+                stops: const [0.4, 1.0],
               ),
             ),
           ),
@@ -334,51 +336,40 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
     );
   }
 
-  /// Build scanning frame overlay (Page 1)
+  /// Build scanning frame overlay (Page 1) - positioned higher
   Widget _buildScanningOverlay() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const SizedBox(height: 60),
-          const Text(
-            'Scanning...',
-            style: TextStyle(
+    return Positioned(
+      top: MediaQuery.of(context).size.height * 0.2,
+      left: 0,
+      right: 0,
+      child: Center(
+        child: Container(
+          width: 280,
+          height: 280,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(32),
+            border: Border.all(
               color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.w500,
-              letterSpacing: 0.5,
+              width: 3,
             ),
           ),
-          const SizedBox(height: 40),
-          // Scanning frame
-          Container(
-            width: 280,
-            height: 280,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(32),
-              border: Border.all(
-                color: Colors.white,
-                width: 3,
-              ),
-            ),
-            child: Stack(
-              children: [
-                // Corner brackets
-                _buildCornerBracket(Alignment.topLeft, true, true),
-                _buildCornerBracket(Alignment.topRight, true, false),
-                _buildCornerBracket(Alignment.bottomLeft, false, true),
-                _buildCornerBracket(Alignment.bottomRight, false, false),
-              ],
-            ),
+          child: Stack(
+            children: [
+              // Corner brackets
+              _buildCornerBracket(Alignment.topLeft, true, true),
+              _buildCornerBracket(Alignment.topRight, true, false),
+              _buildCornerBracket(Alignment.bottomLeft, false, true),
+              _buildCornerBracket(Alignment.bottomRight, false, false),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 
   /// Build corner bracket for scanning frame
-  Widget _buildCornerBracket(Alignment alignment, bool isTop, bool isLeft) {
+  Widget _buildCornerBracket(
+      Alignment alignment, bool isTop, bool isLeft) {
     return Align(
       alignment: alignment,
       child: Container(
@@ -413,12 +404,12 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
     );
   }
 
-  /// Build macro nutrition cards overlay (Page 2)
+  /// Build macro nutrition cards overlay (Page 2) - positioned better
   Widget _buildMacroCardsOverlay() {
     return Positioned(
       left: 0,
       right: 0,
-      bottom: 340,
+      top: MediaQuery.of(context).size.height * 0.45,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24.0),
         child: Row(
@@ -524,101 +515,131 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
     );
   }
 
-  /// Build bottom content card
+  /// Build bottom content card with glassmorphism
   Widget _buildBottomCard() {
     final page = _config.pages[_currentPage];
     final isLastPage = _currentPage == _config.pages.length - 1;
 
     return Container(
-      margin: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      child: ClipRRect(
         borderRadius: BorderRadius.circular(32),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 20,
-            offset: const Offset(0, -5),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(32),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.4),
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.15),
+                  blurRadius: 30,
+                  spreadRadius: 5,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(28.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Page indicators
+                  _buildPageIndicators(),
+                  const SizedBox(height: 20),
+
+                  // Title
+                  Text(
+                    page.title,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      height: 1.2,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Description
+                  Text(
+                    page.description,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: Colors.white.withOpacity(0.9),
+                      height: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Next button
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _handleNext,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFF6B6B),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: Text(
+                        isLastPage ? 'Get Started' : 'Next',
+                        style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  // "Already have an account?" text (on all pages)
+                  const SizedBox(height: 12),
+                  TextButton(
+                    onPressed: _navigateToWelcome,
+                    style: TextButton.styleFrom(
+                      foregroundColor: const Color(0xFFFF6B6B),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Already have an account?',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white.withOpacity(0.9),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Text(
+                          'Sign in',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFFFF6B6B),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(32.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Page indicators
-            _buildPageIndicators(),
-            const SizedBox(height: 24),
-
-            // Title
-            Text(
-              page.title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-                height: 1.2,
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Description
-            Text(
-              page.description,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[600],
-                height: 1.5,
-              ),
-            ),
-            const SizedBox(height: 32),
-
-            // Next button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _handleNext,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFF6B6B),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 18),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  elevation: 0,
-                ),
-                child: Text(
-                  isLastPage ? 'Get Started' : 'Next',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ),
-            ),
-
-            // "Already signed in?" text (only on last page)
-            if (isLastPage) ...[
-              const SizedBox(height: 16),
-              TextButton(
-                onPressed: _navigateToWelcome,
-                style: TextButton.styleFrom(
-                  foregroundColor: Colors.grey[600],
-                ),
-                child: const Text(
-                  'Already signed in?',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-            ],
-          ],
         ),
       ),
     );
@@ -638,7 +659,7 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
           decoration: BoxDecoration(
             color: index == _currentPage
                 ? const Color(0xFFFF6B6B)
-                : Colors.grey[300],
+                : Colors.white.withOpacity(0.4),
             borderRadius: BorderRadius.circular(4),
           ),
         ),
