@@ -23,7 +23,7 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
   Product? _scannedProduct;
   bool _isLoading = false;
   String? _error;
-  final double _scanFrameSize = 250.0;
+  final double _scanFrameSize = 240.0;
 
   @override
   void initState() {
