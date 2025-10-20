@@ -52,14 +52,11 @@ class _ProfileViewState extends State<ProfileView>
     if (profile == null) {
       final authVM = Provider.of<AuthViewModel>(context, listen: false);
 
-      // If user is not signed in (after deletion), redirect to welcome page
+      // NOTE: Don't navigate here - AuthViewModel already handles navigation during sign-out
+      // This prevents duplicate navigation calls
+
+      // If user is not signed in (after deletion), just show loading
       if (!authVM.isSignedIn) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (context) => const WelcomeScreen()),
-            (route) => false,
-          );
-        });
         return const Scaffold(
           appBar: CustomAppBar(
             title: 'Profile',
