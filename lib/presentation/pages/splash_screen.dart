@@ -110,12 +110,14 @@ class _SplashScreenState extends State<SplashScreen>
 
     // Give extra time if we have a signed-in user but profile isn't loaded yet
     if (authVM.isSignedIn && userProfileVM.profile == null) {
-      print('⏳ SplashScreen: User signed in but profile loading, waiting extra 2s...');
+      print(
+          '⏳ SplashScreen: User signed in but profile loading, waiting extra 2s...');
       await Future.delayed(const Duration(seconds: 2));
     }
 
     final elapsed = DateTime.now().difference(startTime);
-    print('✅ SplashScreen: Initialization complete (${elapsed.inMilliseconds}ms)');
+    print(
+        '✅ SplashScreen: Initialization complete (${elapsed.inMilliseconds}ms)');
     print('   - Auth state: ${authVM.authState}');
     print('   - Auth signed in: ${authVM.isSignedIn}');
     print('   - Has profile: ${userProfileVM.profile != null}');
@@ -136,9 +138,9 @@ class _SplashScreenState extends State<SplashScreen>
       print('🔀 SplashScreen: Routing to intro (first time user)');
       NavigationService.pushNamedAndRemoveUntil(AppRoutes.intro);
     } else if (!authVM.isSignedIn) {
-      // Seen intro but not signed in -> Welcome screen
-      print('🔀 SplashScreen: Routing to welcome (not signed in)');
-      NavigationService.pushNamedAndRemoveUntil(AppRoutes.welcome);
+      // Seen intro but not signed in -> Intro onboarding
+      print('🔀 SplashScreen: Routing to intro (not signed in)');
+      NavigationService.pushNamedAndRemoveUntil(AppRoutes.intro);
     } else if (!userProfileVM.hasCompletedOnboarding) {
       // Signed in but no profile -> Onboarding
       print('🔀 SplashScreen: Routing to onboarding (incomplete profile)');
