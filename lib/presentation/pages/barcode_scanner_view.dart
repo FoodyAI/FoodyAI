@@ -472,16 +472,96 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
           // Error Message
           if (_error != null)
             Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
+              left: 16,
+              right: 16,
+              bottom: 24,
               child: Container(
-                padding: const EdgeInsets.all(16),
-                color: Colors.red.shade100,
-                child: Text(
-                  _error!,
-                  style: const TextStyle(color: Colors.red),
-                  textAlign: TextAlign.center,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.error.withOpacity(0.3),
+                      blurRadius: 16,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                    child: Container(
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            AppColors.error.withOpacity(0.15),
+                            AppColors.error.withOpacity(0.10),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: AppColors.error.withOpacity(0.5),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: AppColors.error.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: FaIcon(
+                              FontAwesomeIcons.triangleExclamation,
+                              color: AppColors.error,
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'Error',
+                                  style: TextStyle(
+                                    color: AppColors.error,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  _error!,
+                                  style: TextStyle(
+                                    color: isDark ? Colors.white : AppColors.textPrimary,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          IconButton(
+                            icon: FaIcon(
+                              FontAwesomeIcons.xmark,
+                              color: isDark ? Colors.white : AppColors.textPrimary,
+                              size: 16,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _error = null;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),
