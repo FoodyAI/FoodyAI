@@ -196,7 +196,9 @@ class _WelcomeScreenContent extends StatelessWidget {
                     );
                   },
                   child: Container(
-                    margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    margin: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+                    constraints: const BoxConstraints(
+                        maxHeight: 300), // Max height with constraints
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(32),
                       child: BackdropFilter(
@@ -219,9 +221,10 @@ class _WelcomeScreenContent extends StatelessWidget {
                             ],
                           ),
                           child: Padding(
-                            padding: const EdgeInsets.all(28.0),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 24.0, vertical: 24.0),
                             child: Column(
-                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 // Welcome text
                                 const Text(
@@ -233,7 +236,7 @@ class _WelcomeScreenContent extends StatelessWidget {
                                     color: Colors.white,
                                   ),
                                 ),
-                                const SizedBox(height: 10),
+                                const SizedBox(height: 8),
 
                                 // Description
                                 Text(

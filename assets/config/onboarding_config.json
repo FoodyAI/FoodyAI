@@ -28,8 +28,8 @@
     },
     {
       "id": "page_2",
-      "title": "Effortless calorie tracking",
-      "description": "Snap your meal, and we'll handle the rest—calorie tracking!",
+      "title": "Track your whole day calories",
+      "description": "Monitor your nutrition throughout the day with detailed macro breakdown and insights.",
       "background_image": "assets/images/bg_bmi.jpg",
       "background_image_url": "https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=1080&h=1920&fit=crop",
       "background_video_url": "assets/videos/second.webm",

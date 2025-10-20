@@ -289,6 +289,7 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
         // Optional overlay content (like scanning frame, macro cards, etc.)
         if (index == 0) _buildScanningOverlay(),
         if (index == 1) _buildMacroCardsOverlay(),
+        if (index == 2) _buildDailyCalorieOverlay(),
       ],
     );
   }
@@ -336,13 +337,11 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
     );
   }
 
-  /// Build scanning frame overlay (Page 1) - positioned higher
+  /// Build scanning frame overlay (Page 1) - centered with bottom margin
   Widget _buildScanningOverlay() {
-    return Positioned(
-      top: MediaQuery.of(context).size.height * 0.2,
-      left: 0,
-      right: 0,
-      child: Center(
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 80), // Add bottom margin
         child: Container(
           width: 280,
           height: 280,
@@ -368,8 +367,7 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
   }
 
   /// Build corner bracket for scanning frame
-  Widget _buildCornerBracket(
-      Alignment alignment, bool isTop, bool isLeft) {
+  Widget _buildCornerBracket(Alignment alignment, bool isTop, bool isLeft) {
     return Align(
       alignment: alignment,
       child: Container(
@@ -415,11 +413,11 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _buildMacroCard('Protein', '35g', const Color(0xFFB8A0FF)),
+            _buildMacroCard('Protein', '45g', const Color(0xFFB8A0FF), 0.75),
             const SizedBox(width: 12),
-            _buildMacroCard('Carbs', '35g', const Color(0xFFC4E17F)),
+            _buildMacroCard('Carbs', '120g', const Color(0xFFC4E17F), 0.60),
             const SizedBox(width: 12),
-            _buildMacroCard('Fat', '35g', const Color(0xFFFFC876)),
+            _buildMacroCard('Fat', '28g', const Color(0xFFFFC876), 0.85),
           ],
         ),
       ),
@@ -427,7 +425,8 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
   }
 
   /// Build individual macro card
-  Widget _buildMacroCard(String label, String value, Color color) {
+  Widget _buildMacroCard(
+      String label, String value, Color color, double progress) {
     return Container(
       width: 100,
       height: 120,
@@ -458,7 +457,7 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
                     width: 50,
                     height: 50,
                     child: CircularProgressIndicator(
-                      value: 0.75,
+                      value: progress,
                       strokeWidth: 4,
                       backgroundColor: Colors.white.withOpacity(0.3),
                       valueColor: const AlwaysStoppedAnimation<Color>(
@@ -481,6 +480,84 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  /// Build daily calorie goal overlay (Page 3) - glassmorphism card design
+  Widget _buildDailyCalorieOverlay() {
+    return Positioned(
+      left: 0,
+      right: 0,
+      top: MediaQuery.of(context).size.height * 0.45,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.3),
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Text content
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Daily Calorie',
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.9),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      const Text(
+                        '2000',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 38,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  // Fire icon on the right
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.3),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.local_fire_department,
+                      color: Colors.white,
+                      size: 30,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -515,13 +592,15 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
     );
   }
 
-  /// Build bottom content card with glassmorphism
+  /// Build bottom content card with glassmorphism - FIXED HEIGHT
   Widget _buildBottomCard() {
     final page = _config.pages[_currentPage];
     final isLastPage = _currentPage == _config.pages.length - 1;
 
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+      constraints:
+          const BoxConstraints(maxHeight: 300), // Max height with constraints
       child: ClipRRect(
         borderRadius: BorderRadius.circular(32),
         child: BackdropFilter(
@@ -544,97 +623,121 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
               ],
             ),
             child: Padding(
-              padding: const EdgeInsets.all(28.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
               child: Column(
-                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Page indicators
-                  _buildPageIndicators(),
-                  const SizedBox(height: 20),
+                  Column(
+                    children: [
+                      // Page indicators
+                      _buildPageIndicators(),
+                      const SizedBox(height: 16),
 
-                  // Title
-                  Text(
-                    page.title,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      height: 1.2,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Description
-                  Text(
-                    page.description,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: Colors.white.withOpacity(0.9),
-                      height: 1.5,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Next button
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _handleNext,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFFF6B6B),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: Text(
-                        isLastPage ? 'Get Started' : 'Next',
-                        style: const TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  // "Already have an account?" text (on all pages)
-                  const SizedBox(height: 12),
-                  TextButton(
-                    onPressed: _navigateToWelcome,
-                    style: TextButton.styleFrom(
-                      foregroundColor: const Color(0xFFFF6B6B),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'Already have an account?',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.white.withOpacity(0.9),
+                      // Title - fixed height
+                      SizedBox(
+                        height: 58,
+                        child: Center(
+                          child: Text(
+                            page.title,
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              height: 1.2,
+                            ),
                           ),
                         ),
-                        const SizedBox(width: 4),
-                        const Text(
-                          'Sign in',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFFFF6B6B),
+                      ),
+                      const SizedBox(height: 8),
+
+                      // Description - fixed height
+                      SizedBox(
+                        height: 42,
+                        child: Center(
+                          child: Text(
+                            page.description,
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.white.withOpacity(0.9),
+                              height: 1.4,
+                            ),
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
+                  ),
+
+                  // Bottom section with button and link
+                  Column(
+                    children: [
+                      // Next button
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _handleNext,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFFF6B6B),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 15),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: Text(
+                            isLastPage ? 'Get Started' : 'Next',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      // "Already have an account?" text (on all pages)
+                      const SizedBox(height: 4),
+                      TextButton(
+                        onPressed: _navigateToWelcome,
+                        style: TextButton.styleFrom(
+                          foregroundColor: const Color(0xFFFF6B6B),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 4,
+                          ),
+                          minimumSize: const Size(0, 32),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Already have an account?',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white.withOpacity(0.9),
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            const Text(
+                              'Sign in',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFFFF6B6B),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
