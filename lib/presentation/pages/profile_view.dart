@@ -459,69 +459,63 @@ class _ProfileViewState extends State<ProfileView>
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          Card(
-            elevation: 4,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Activity Level',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.onSurface,
-                    ),
+          _buildGlassmorphicCard(
+            context: context,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Activity Level',
+                  style: GoogleFonts.poppins(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onSurface,
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'How active are you in your daily life?',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: colorScheme.onSurface.withOpacity(0.7),
-                    ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'How active are you in your daily life?',
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    color: colorScheme.onSurface.withOpacity(0.7),
                   ),
-                  const SizedBox(height: 32),
-                  ...ActivityLevel.values.map((level) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: _ProfileSettingOption<ActivityLevel>(
-                        value: level,
-                        selectedValue: profile.activityLevel,
-                        colorScheme: colorScheme,
-                        icon: _getActivityIcon(level),
-                        title: level.displayName,
-                        subtitle: _getActivityDescription(level),
-                        categoryName: 'Activity Level',
-                        onSelect: (selectedLevel) async {
-                          try {
-                            await profileVM.saveProfile(
-                              gender: profile.gender,
-                              age: profile.age,
-                              weight: profileVM.displayWeight,
-                              weightUnit: profileVM.weightUnit,
-                              height: profileVM.displayHeight,
-                              heightUnit: profileVM.heightUnit,
-                              activityLevel: selectedLevel,
-                              isMetric: profileVM.isMetric,
-                              weightGoal: profile.weightGoal,
-                              aiProvider: profile.aiProvider,
-                            );
-                            return true;
-                          } catch (e) {
-                            print('Error saving activity level: $e');
-                            return false;
-                          }
-                        },
-                      ),
-                    );
-                  }).toList(),
-                ],
-              ),
+                ),
+                const SizedBox(height: 20),
+                ...ActivityLevel.values.map((level) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: _ProfileSettingOption<ActivityLevel>(
+                      value: level,
+                      selectedValue: profile.activityLevel,
+                      colorScheme: colorScheme,
+                      icon: _getActivityIcon(level),
+                      title: level.displayName,
+                      subtitle: _getActivityDescription(level),
+                      categoryName: 'Activity Level',
+                      onSelect: (selectedLevel) async {
+                        try {
+                          await profileVM.saveProfile(
+                            gender: profile.gender,
+                            age: profile.age,
+                            weight: profileVM.displayWeight,
+                            weightUnit: profileVM.weightUnit,
+                            height: profileVM.displayHeight,
+                            heightUnit: profileVM.heightUnit,
+                            activityLevel: selectedLevel,
+                            isMetric: profileVM.isMetric,
+                            weightGoal: profile.weightGoal,
+                            aiProvider: profile.aiProvider,
+                          );
+                          return true;
+                        } catch (e) {
+                          print('Error saving activity level: $e');
+                          return false;
+                        }
+                      },
+                    ),
+                  );
+                }).toList(),
+              ],
             ),
           ),
           // Add bottom padding to prevent content from being hidden behind bottom nav bar
