@@ -131,7 +131,8 @@ class SignOutButtonWithAuth extends StatelessWidget {
         AuthLoadingOverlay.hideLoading(context);
 
         // Sign out failed - show error message
-        final errorMessage = authVM.errorMessage ?? 'Sign out failed. Please try again.';
+        final errorMessage =
+            authVM.errorMessage ?? 'Sign out failed. Please try again.';
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(errorMessage),

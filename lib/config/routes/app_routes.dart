@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../presentation/pages/splash_screen.dart';
-import '../../presentation/pages/welcome_view.dart';
 import '../../presentation/pages/onboarding_view.dart';
+import '../../presentation/pages/intro/intro_onboarding_screen.dart';
 import '../../presentation/pages/home_view.dart';
 import '../../presentation/pages/analyze_view.dart';
 import '../../presentation/pages/profile_view.dart';
@@ -12,7 +12,7 @@ import '../../presentation/pages/subscription_view.dart';
 class AppRoutes {
   // Route names
   static const String splash = '/';
-  static const String welcome = '/welcome';
+  static const String intro = '/intro';
   static const String onboarding = '/onboarding';
   static const String home = '/home';
   static const String analyze = '/analyze';
@@ -29,7 +29,7 @@ class AppRoutes {
   static Map<String, WidgetBuilder> getRoutes() {
     return {
       splash: (context) => const SplashScreen(),
-      welcome: (context) => const WelcomeScreen(),
+      intro: (context) => const IntroOnboardingScreen(),
       onboarding: (context) {
         final args =
             ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;

@@ -103,7 +103,8 @@ class _HomeViewState extends State<HomeView> {
     super.initState();
 
     // Listen to connection changes and trigger sync when coming back online
-    _connectionSubscription = _connectionService.connectionStream.listen((isConnected) {
+    _connectionSubscription =
+        _connectionService.connectionStream.listen((isConnected) {
       print('🌐 HomeView: Connection changed to: $isConnected');
 
       // If transitioning from offline to online, trigger sync
@@ -333,7 +334,8 @@ class _HomeViewState extends State<HomeView> {
       initialData: _connectionService.isConnected,
       builder: (context, snapshot) {
         final isConnected = snapshot.data ?? true;
-        print('🏠 HomeView: StreamBuilder rebuilt with isConnected = $isConnected');
+        print(
+            '🏠 HomeView: StreamBuilder rebuilt with isConnected = $isConnected');
 
         return Scaffold(
           extendBody: true,
@@ -389,7 +391,8 @@ class _HomeContentState extends State<_HomeContent> {
         if (analysisVM.savedAnalyses.isEmpty) {
           Future.delayed(const Duration(milliseconds: 500), () {
             if (mounted) {
-              print('🏠 HomeView: No data found, forcing refresh from SQLite...');
+              print(
+                  '🏠 HomeView: No data found, forcing refresh from SQLite...');
               analysisVM.forceRefresh();
             }
           });
@@ -552,14 +555,11 @@ class _HomeContentState extends State<_HomeContent> {
 
     // Handle case where profile is null
     if (profile == null) {
-      // If user is not signed in, redirect to welcome page
-      if (!authVM.isSignedIn && !_hasNavigated) {
-        _hasNavigated = true;
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            NavigationService.navigateToWelcome();
-          }
-        });
+      // NOTE: Don't navigate here - AuthViewModel already handles navigation during sign-out
+      // This prevents duplicate navigation calls
+
+      // Just show loading screen - the app will be navigated away by AuthViewModel
+      if (!authVM.isSignedIn) {
         return const Scaffold(
           body: Center(
             child: CircularProgressIndicator(),
@@ -573,7 +573,7 @@ class _HomeContentState extends State<_HomeContent> {
         WidgetsBinding.instance.addPostFrameCallback((_) async {
           final shouldRedirect = await authVM.shouldRedirectToWelcome();
           if (context.mounted && shouldRedirect) {
-            NavigationService.navigateToWelcome();
+            NavigationService.navigateToIntro();
           }
         });
       }
@@ -727,7 +727,8 @@ class _HomeContentState extends State<_HomeContent> {
                                         backgroundColor: Colors.red[700],
                                         behavior: SnackBarBehavior.floating,
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
                                         ),
                                         margin: const EdgeInsets.all(16),
                                         padding: const EdgeInsets.symmetric(
@@ -837,5 +838,4 @@ class _HomeContentState extends State<_HomeContent> {
       ),
     );
   }
-
 }

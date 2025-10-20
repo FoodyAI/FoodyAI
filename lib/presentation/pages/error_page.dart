@@ -120,7 +120,7 @@ class ErrorPage extends StatelessWidget {
                         if (Navigator.canPop(context)) {
                           Navigator.pop(context);
                         } else {
-                          NavigationService.navigateToWelcome();
+                          NavigationService.navigateToIntro();
                         }
                       },
                       icon: const FaIcon(FontAwesomeIcons.arrowLeft),
