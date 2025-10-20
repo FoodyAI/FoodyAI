@@ -39,10 +39,64 @@ class _HomeViewState extends State<HomeView> {
   bool _wasOffline = false;
 
   final List<Widget> _pages = [
-    const _HomeContent(),
-    const AnalyzeView(),
-    const ProfileView(),
+    const _HomeContent(),      // Index 0: Home
+    const AnalyzeView(),       // Index 1: Analyze
+    const ProfileView(),       // Index 2: Settings/Profile
   ];
+
+  Widget _buildGlassmorphismFAB(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              // Exact same glassmorphism as calendar
+              color: isDark
+                  ? Colors.black.withValues(alpha: 0.3)
+                  : Colors.white.withValues(alpha: 0.4),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.15)
+                    : Colors.white.withValues(alpha: 0.6),
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: isDark
+                      ? Colors.black.withValues(alpha: 0.2)
+                      : Colors.black.withValues(alpha: 0.08),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => _showAddOptionsBottomSheet(context),
+                borderRadius: BorderRadius.circular(16),
+                child: Center(
+                  child: FaIcon(
+                    FontAwesomeIcons.plus,
+                    color: isDark ? Colors.white : AppColors.textPrimary,
+                    size: 20,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   void initState() {
