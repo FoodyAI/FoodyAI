@@ -24,6 +24,7 @@ class _WelcomeScreenContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<WelcomeViewModel>();
+    final screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
       body: Stack(
@@ -61,7 +62,8 @@ class _WelcomeScreenContent extends StatelessWidget {
           SafeArea(
             child: Column(
               children: [
-                const Spacer(flex: 2),
+                // Top section with logo - positioned higher
+                SizedBox(height: screenHeight * 0.12),
 
                 // Logo and title section
                 Padding(
@@ -178,9 +180,9 @@ class _WelcomeScreenContent extends StatelessWidget {
                   ),
                 ),
 
-                const Spacer(flex: 3),
+                const Spacer(),
 
-                // Bottom card with sign-in button
+                // Bottom card with sign-in button - proper spacing from bottom
                 TweenAnimationBuilder(
                   tween: Tween<double>(begin: 0, end: 1),
                   duration: const Duration(milliseconds: 1200),
@@ -194,71 +196,82 @@ class _WelcomeScreenContent extends StatelessWidget {
                     );
                   },
                   child: Container(
-                    margin: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
+                    margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    child: ClipRRect(
                       borderRadius: BorderRadius.circular(32),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
-                          blurRadius: 20,
-                          offset: const Offset(0, -5),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(32),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.4),
+                              width: 1.5,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.15),
+                                blurRadius: 30,
+                                spreadRadius: 5,
+                                offset: const Offset(0, 10),
+                              ),
+                            ],
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(28.0),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                // Welcome text
+                                const Text(
+                                  'Welcome to Foody',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+
+                                // Description
+                                Text(
+                                  'Track your nutrition and calories with the power of AI',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.white.withOpacity(0.9),
+                                    height: 1.4,
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+
+                                // Google Sign-in button
+                                GoogleSignInButton(
+                                  isLoading: viewModel.isGoogleLoading,
+                                ),
+
+                                const SizedBox(height: 12),
+
+                                // Terms text
+                                Text(
+                                  'By signing in, you agree to our\nTerms of Service and Privacy Policy',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.white.withOpacity(0.7),
+                                    height: 1.4,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
-                      ],
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(32.0),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Welcome text
-                          const Text(
-                            'Welcome to Foody',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-
-                          // Description
-                          Text(
-                            'Track your nutrition and calories with the power of AI',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 15,
-                              color: Colors.grey[600],
-                              height: 1.4,
-                            ),
-                          ),
-                          const SizedBox(height: 32),
-
-                          // Google Sign-in button
-                          GoogleSignInButton(
-                            isLoading: viewModel.isGoogleLoading,
-                          ),
-
-                          const SizedBox(height: 16),
-
-                          // Terms text
-                          Text(
-                            'By signing in, you agree to our\nTerms of Service and Privacy Policy',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[500],
-                              height: 1.4,
-                            ),
-                          ),
-                        ],
                       ),
                     ),
                   ),
                 ),
-
-                const SizedBox(height: 16),
               ],
             ),
           ),
