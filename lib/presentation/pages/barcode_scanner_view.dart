@@ -308,8 +308,11 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
                       borderRadius: BorderRadius.circular(24),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.primary.withOpacity(0.3),
-                          blurRadius: 24,
+                          color: isDark
+                              ? Colors.black.withOpacity(0.3)
+                              : Colors.grey.withOpacity(0.15),
+                          blurRadius: 20,
+                          offset: const Offset(0, 8),
                           spreadRadius: 2,
                         ),
                       ],
@@ -317,21 +320,28 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(24),
                       child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                        filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
                         child: Container(
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
-                              colors: [
-                                AppColors.primary.withOpacity(0.15),
-                                AppColors.primary.withOpacity(0.05),
-                              ],
+                              colors: isDark
+                                  ? [
+                                      Colors.white.withOpacity(0.12),
+                                      Colors.white.withOpacity(0.06),
+                                    ]
+                                  : [
+                                      Colors.white.withOpacity(0.90),
+                                      Colors.white.withOpacity(0.80),
+                                    ],
                             ),
                             borderRadius: BorderRadius.circular(24),
                             border: Border.all(
-                              color: AppColors.primary.withOpacity(0.8),
-                              width: 3,
+                              color: isDark
+                                  ? Colors.white.withOpacity(0.20)
+                                  : Colors.white.withOpacity(0.70),
+                              width: 1.5,
                             ),
                           ),
                           child: Stack(
@@ -365,13 +375,17 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
                                     Container(
                                       padding: const EdgeInsets.all(16),
                                       decoration: BoxDecoration(
-                                        color: AppColors.primary.withOpacity(0.2),
+                                        color: isDark
+                                            ? Colors.white.withOpacity(0.15)
+                                            : Colors.grey.withOpacity(0.20),
                                         shape: BoxShape.circle,
                                       ),
                                       child: FaIcon(
                                         FontAwesomeIcons.barcode,
                                         size: 48,
-                                        color: AppColors.primary,
+                                        color: isDark
+                                            ? Colors.white.withOpacity(0.7)
+                                            : Colors.grey.shade700,
                                       ),
                                     ),
                                   ],
@@ -800,6 +814,8 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
   }
 
   Widget _buildCornerMarker(bool isTop, bool isLeft) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Container(
       width: 32,
       height: 32,
@@ -812,25 +828,27 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
         ),
         border: Border(
           top: BorderSide(
-            color: AppColors.primary,
-            width: isTop ? 5 : 0,
+            color: isDark ? Colors.white : Colors.white.withOpacity(0.9),
+            width: isTop ? 4 : 0,
           ),
           bottom: BorderSide(
-            color: AppColors.primary,
-            width: !isTop ? 5 : 0,
+            color: isDark ? Colors.white : Colors.white.withOpacity(0.9),
+            width: !isTop ? 4 : 0,
           ),
           left: BorderSide(
-            color: AppColors.primary,
-            width: isLeft ? 5 : 0,
+            color: isDark ? Colors.white : Colors.white.withOpacity(0.9),
+            width: isLeft ? 4 : 0,
           ),
           right: BorderSide(
-            color: AppColors.primary,
-            width: !isLeft ? 5 : 0,
+            color: isDark ? Colors.white : Colors.white.withOpacity(0.9),
+            width: !isLeft ? 4 : 0,
           ),
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.5),
+            color: isDark
+                ? Colors.white.withOpacity(0.3)
+                : Colors.grey.withOpacity(0.3),
             blurRadius: 8,
             spreadRadius: 1,
           ),
