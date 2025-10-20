@@ -1090,3 +1090,80 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
     );
   }
 }
+
+// Custom painter for corner brackets (L-shaped corners with rounded edges)
+class CornerBracketPainter extends CustomPainter {
+  final bool isTop;
+  final bool isLeft;
+  final Color color;
+  final double strokeWidth;
+  final double cornerLength;
+  final double cornerRadius;
+
+  CornerBracketPainter({
+    required this.isTop,
+    required this.isLeft,
+    required this.color,
+    required this.strokeWidth,
+    required this.cornerLength,
+    this.cornerRadius = 8,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round
+      ..style = PaintingStyle.stroke;
+
+    final path = Path();
+
+    if (isTop && isLeft) {
+      // Top-left corner with rounded inner corner
+      path.moveTo(cornerLength, 0);
+      path.lineTo(cornerRadius, 0);
+      path.arcToPoint(
+        Offset(0, cornerRadius),
+        radius: Radius.circular(cornerRadius),
+        clockwise: false,
+      );
+      path.lineTo(0, cornerLength);
+    } else if (isTop && !isLeft) {
+      // Top-right corner with rounded inner corner
+      path.moveTo(size.width - cornerLength, 0);
+      path.lineTo(size.width - cornerRadius, 0);
+      path.arcToPoint(
+        Offset(size.width, cornerRadius),
+        radius: Radius.circular(cornerRadius),
+        clockwise: true,
+      );
+      path.lineTo(size.width, cornerLength);
+    } else if (!isTop && isLeft) {
+      // Bottom-left corner with rounded inner corner
+      path.moveTo(0, size.height - cornerLength);
+      path.lineTo(0, size.height - cornerRadius);
+      path.arcToPoint(
+        Offset(cornerRadius, size.height),
+        radius: Radius.circular(cornerRadius),
+        clockwise: false,
+      );
+      path.lineTo(cornerLength, size.height);
+    } else {
+      // Bottom-right corner with rounded inner corner
+      path.moveTo(size.width, size.height - cornerLength);
+      path.lineTo(size.width, size.height - cornerRadius);
+      path.arcToPoint(
+        Offset(size.width - cornerRadius, size.height),
+        radius: Radius.circular(cornerRadius),
+        clockwise: true,
+      );
+      path.lineTo(size.width - cornerLength, size.height);
+    }
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
