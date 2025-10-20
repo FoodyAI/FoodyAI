@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../services/auth_service.dart';
 import '../../services/sync_service.dart' as old_sync;
 import '../../core/services/sync_service.dart';
@@ -10,6 +11,8 @@ import '../../services/notification_service.dart';
 import '../../data/repositories/user_profile_repository_impl.dart';
 import '../../data/services/sqlite_service.dart';
 import '../../core/events/profile_update_event.dart';
+import '../../config/routes/navigation_service.dart';
+import '../../core/constants/app_colors.dart';
 import 'image_analysis_viewmodel.dart';
 
 enum AuthState {
@@ -35,6 +38,8 @@ class AuthViewModel extends ChangeNotifier {
   String? _errorMessage;
   bool _isLoading = false;
   bool _isDataLoading = false; // Flag to prevent duplicate data loading
+  bool _isManuallyNavigating =
+      false; // Flag to prevent auto-navigation during manual sign out/delete
 
   // Getters
   User? get user => _user;
@@ -58,17 +63,20 @@ class AuthViewModel extends ChangeNotifier {
     // First check (may be null if Firebase hasn't restored yet)
     _user = _authService.currentUser;
     if (_user != null) {
-      print('✅ AuthViewModel: Found persisted user immediately: ${_user!.email}');
+      print(
+          '✅ AuthViewModel: Found persisted user immediately: ${_user!.email}');
       _setAuthState(AuthState.authenticated);
     } else {
-      print('⏳ AuthViewModel: No user found immediately, waiting for Firebase to restore session...');
+      print(
+          '⏳ AuthViewModel: No user found immediately, waiting for Firebase to restore session...');
       _setAuthState(AuthState.initial); // Keep initial state while waiting
 
       // Give Firebase time to restore session (especially important offline)
       Future.delayed(const Duration(milliseconds: 500), () {
         _user = _authService.currentUser;
         if (_user != null) {
-          print('✅ AuthViewModel: Found persisted user after delay: ${_user!.email}');
+          print(
+              '✅ AuthViewModel: Found persisted user after delay: ${_user!.email}');
           _setAuthState(AuthState.authenticated);
           notifyListeners();
         } else {
@@ -81,9 +89,17 @@ class AuthViewModel extends ChangeNotifier {
 
     // Listen to Firebase Auth state changes for future updates
     _authService.authStateChanges.listen((User? user) {
+      // Skip state changes if we're manually navigating during sign out/delete
+      if (_isManuallyNavigating) {
+        print(
+            '🔕 AuthViewModel: Skipping auth state change during manual navigation');
+        return;
+      }
+
       _user = user;
       if (user != null) {
-        print('✅ AuthViewModel: Auth state changed - user signed in: ${user.email}');
+        print(
+            '✅ AuthViewModel: Auth state changed - user signed in: ${user.email}');
         _setAuthState(AuthState.authenticated);
       } else {
         print('ℹ️ AuthViewModel: Auth state changed - user signed out');
@@ -284,20 +300,45 @@ class AuthViewModel extends ChangeNotifier {
 
       // Clear local data
       await SQLiteService().clearAllData();
+
+      // Clear intro completion flag from SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('intro_completed');
+      print('✅ AuthViewModel: Intro completion flag cleared (sign out)');
+
       ProfileUpdateEvent.notifyUpdate();
 
-      // Sign out from Firebase
+      // Set flag to prevent auth state listener from interfering
+      _isManuallyNavigating = true;
+
+      // Navigate to intro screen BEFORE Firebase sign out to avoid flicker
+      print('🔄 AuthViewModel: Navigating to intro after sign out...');
+      NavigationService.navigateToIntro();
+      print('✅ AuthViewModel: Navigation to intro initiated');
+
+      // Sign out from Firebase (this will trigger state changes but we've already navigated)
       await _authService.signOut();
       _user = null;
       _setAuthState(AuthState.unauthenticated);
 
-      // Navigate to welcome with success message
+      // Reset flag after a delay to allow navigation to complete
+      Future.delayed(const Duration(seconds: 1), () {
+        _isManuallyNavigating = false;
+      });
+
+      // Show success message if context is available
       if (context != null && context.mounted) {
-        await _authFlow.handlePostLogoutNavigation(
-          context,
-          message: 'Signed out successfully',
-          isAccountDeletion: false,
-        );
+        await Future.delayed(const Duration(milliseconds: 500));
+        final newContext = NavigationService.currentContext;
+        if (newContext != null && newContext.mounted) {
+          ScaffoldMessenger.of(newContext).showSnackBar(
+            SnackBar(
+              content: const Text('Signed out successfully'),
+              backgroundColor: AppColors.primary,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
       }
 
       return true;
@@ -345,20 +386,45 @@ class AuthViewModel extends ChangeNotifier {
 
       // Clear local data
       await SQLiteService().clearAllData();
+
+      // Clear intro completion flag from SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('intro_completed');
+      print('✅ AuthViewModel: Intro completion flag cleared');
+
       ProfileUpdateEvent.notifyUpdate();
+
+      // Set flag to prevent auth state listener from interfering
+      _isManuallyNavigating = true;
+
+      // Navigate to intro screen BEFORE Firebase deletion to avoid flicker
+      print('🔄 AuthViewModel: Navigating to intro after account deletion...');
+      NavigationService.navigateToIntro();
+      print('✅ AuthViewModel: Navigation to intro initiated');
 
       // Delete from Firebase (with automatic re-authentication if needed)
       await _authService.deleteUserWithReauth();
       _user = null;
       _setAuthState(AuthState.unauthenticated);
 
-      // Navigate to welcome with success message
+      // Reset flag after a delay to allow navigation to complete
+      Future.delayed(const Duration(seconds: 1), () {
+        _isManuallyNavigating = false;
+      });
+
+      // Show success message if context is available
       if (context != null && context.mounted) {
-        await _authFlow.handlePostLogoutNavigation(
-          context,
-          message: 'Account deleted successfully',
-          isAccountDeletion: true,
-        );
+        await Future.delayed(const Duration(milliseconds: 500));
+        final newContext = NavigationService.currentContext;
+        if (newContext != null && newContext.mounted) {
+          ScaffoldMessenger.of(newContext).showSnackBar(
+            SnackBar(
+              content: const Text('Account deleted successfully'),
+              backgroundColor: AppColors.success,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
       }
 
       return true;
@@ -404,20 +470,46 @@ class AuthViewModel extends ChangeNotifier {
 
       // Clear local data (in case it wasn't cleared in first attempt)
       await SQLiteService().clearAllData();
+
+      // Clear intro completion flag from SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('intro_completed');
+      print('✅ AuthViewModel: Intro completion flag cleared (reauth)');
+
       ProfileUpdateEvent.notifyUpdate();
+
+      // Set flag to prevent auth state listener from interfering
+      _isManuallyNavigating = true;
+
+      // Navigate to intro screen BEFORE Firebase deletion to avoid flicker
+      print(
+          '🔄 AuthViewModel: Navigating to intro after account deletion (reauth)...');
+      NavigationService.navigateToIntro();
+      print('✅ AuthViewModel: Navigation to intro initiated (reauth)');
 
       // Delete from Firebase with reauthentication
       await _authService.deleteUserAfterReauth();
       _user = null;
       _setAuthState(AuthState.unauthenticated);
 
-      // Navigate to welcome with success message
+      // Reset flag after a delay to allow navigation to complete
+      Future.delayed(const Duration(seconds: 1), () {
+        _isManuallyNavigating = false;
+      });
+
+      // Show success message if context is available
       if (context != null && context.mounted) {
-        await _authFlow.handlePostLogoutNavigation(
-          context,
-          message: 'Account deleted successfully',
-          isAccountDeletion: true,
-        );
+        await Future.delayed(const Duration(milliseconds: 500));
+        final newContext = NavigationService.currentContext;
+        if (newContext != null && newContext.mounted) {
+          ScaffoldMessenger.of(newContext).showSnackBar(
+            SnackBar(
+              content: const Text('Account deleted successfully'),
+              backgroundColor: AppColors.success,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
       }
 
       return true;
