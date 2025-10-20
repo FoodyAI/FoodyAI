@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:video_player/video_player.dart';
 import '../../../config/onboarding/onboarding_config.dart';
 import '../../../config/onboarding/onboarding_page_model.dart';
+import '../../widgets/google_signin_button.dart';
 import 'dart:ui';
 
 /// Modern full-screen onboarding with immersive design
@@ -103,42 +103,25 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
     }
   }
 
-  /// Skip the onboarding
-  Future<void> _skipOnboarding() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('intro_completed', true);
-
-    if (!mounted) return;
-
-    Navigator.of(context).pushReplacementNamed(_config.navigation.onSkipRoute);
+  /// Skip to welcome page (last slide)
+  void _skipOnboarding() {
+    _pageController.animateToPage(
+      _config.pages.length, // Jump to welcome page (last page)
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+    );
   }
 
-  /// Complete the onboarding
-  Future<void> _completeOnboarding() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('intro_completed', true);
-
-    if (!mounted) return;
-
-    Navigator.of(context)
-        .pushReplacementNamed(_config.navigation.onCompleteRoute);
-  }
-
-  /// Navigate to next page or complete
+  /// Navigate to next page (total pages includes welcome page)
   void _handleNext() {
-    if (_currentPage < _config.pages.length - 1) {
+    // Total pages = config pages + welcome page
+    if (_currentPage < _config.pages.length) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
-    } else {
-      _completeOnboarding();
     }
-  }
-
-  /// Navigate to welcome page
-  void _navigateToWelcome() {
-    Navigator.of(context).pushReplacementNamed('/welcome');
+    // Welcome page is the last page, no completion action needed
   }
 
   @override
@@ -155,7 +138,7 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // PageView with full-screen pages
+          // PageView with full-screen pages (includes welcome page as last page)
           PageView.builder(
             controller: _pageController,
             onPageChanged: (index) {
@@ -164,32 +147,26 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
               });
               _initializeVideoForPage(index);
             },
-            itemCount: _config.pages.length,
+            itemCount: _config.pages.length + 1, // +1 for welcome page
             itemBuilder: (context, index) {
+              // Last page is the welcome/login page
+              if (index == _config.pages.length) {
+                return _buildWelcomePage();
+              }
               return _buildPage(_config.pages[index], index);
             },
           ),
 
-          // Skip button (top right)
-          SafeArea(
-            child: Align(
-              alignment: Alignment.topRight,
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: _buildSkipButton(),
+          // Bottom content card with proper spacing - hide on welcome page
+          if (_currentPage < _config.pages.length)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: SafeArea(
+                child: _buildBottomCard(),
               ),
             ),
-          ),
-
-          // Bottom content card with proper spacing
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: SafeArea(
-              child: _buildBottomCard(),
-            ),
-          ),
         ],
       ),
     );
@@ -561,39 +538,14 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
       ),
     );
   }
-
-  /// Build skip button
-  Widget _buildSkipButton() {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: _skipOnboarding,
-        borderRadius: BorderRadius.circular(25),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.4),
-            borderRadius: BorderRadius.circular(25),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.2),
-              width: 1,
-            ),
-          ),
-          child: const Text(
-            'Skip',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
+ 
   /// Build bottom content card with glassmorphism - FIXED HEIGHT
   Widget _buildBottomCard() {
+    // Safety check to prevent index out of range
+    if (_currentPage >= _config.pages.length) {
+      return const SizedBox.shrink();
+    }
+
     final page = _config.pages[_currentPage];
     final isLastPage = _currentPage == _config.pages.length - 1;
 
@@ -705,7 +657,7 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
                       // "Already have an account?" text (on all pages)
                       const SizedBox(height: 4),
                       TextButton(
-                        onPressed: _navigateToWelcome,
+                        onPressed: _skipOnboarding,
                         style: TextButton.styleFrom(
                           foregroundColor: const Color(0xFFFF6B6B),
                           padding: const EdgeInsets.symmetric(
@@ -748,12 +700,12 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
     );
   }
 
-  /// Build page indicators (dots)
+  /// Build page indicators (dots) - includes welcome page
   Widget _buildPageIndicators() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(
-        _config.pages.length,
+        _config.pages.length + 1, // +1 for welcome page
         (index) => AnimatedContainer(
           duration: const Duration(milliseconds: 300),
           margin: const EdgeInsets.symmetric(horizontal: 4),
@@ -767,6 +719,242 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  /// Build welcome/login page (last slide)
+  Widget _buildWelcomePage() {
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    return Stack(
+      children: [
+        // Full-screen background image with blur
+        Positioned.fill(
+          child: Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: NetworkImage(
+                  'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=1080&h=1920&fit=crop',
+                ),
+                fit: BoxFit.cover,
+              ),
+            ),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.black.withOpacity(0.4),
+                      Colors.black.withOpacity(0.7),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+
+        // Main content
+        SafeArea(
+          child: Column(
+            children: [
+              // Top section with logo - positioned higher
+              SizedBox(height: screenHeight * 0.12),
+
+              // Logo and title section
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Column(
+                  children: [
+                    // App icon
+                    TweenAnimationBuilder(
+                      tween: Tween<double>(begin: 0, end: 1),
+                      duration: const Duration(milliseconds: 800),
+                      builder: (context, double value, child) {
+                        return Transform.scale(
+                          scale: value,
+                          child: Opacity(
+                            opacity: value,
+                            child: child,
+                          ),
+                        );
+                      },
+                      child: Container(
+                        width: 100,
+                        height: 100,
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              Color(0xFFFF6B6B),
+                              Color(0xFFFF8E8E),
+                            ],
+                          ),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFFFF6B6B).withOpacity(0.4),
+                              blurRadius: 20,
+                              spreadRadius: 3,
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.restaurant_menu,
+                          size: 50,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // App name
+                    TweenAnimationBuilder(
+                      tween: Tween<double>(begin: 0, end: 1),
+                      duration: const Duration(milliseconds: 800),
+                      builder: (context, double value, child) {
+                        return Opacity(
+                          opacity: value,
+                          child: Transform.translate(
+                            offset: Offset(0, 20 * (1 - value)),
+                            child: child,
+                          ),
+                        );
+                      },
+                      child: const Text(
+                        'Foody',
+                        style: TextStyle(
+                          fontSize: 42,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Tagline
+                    TweenAnimationBuilder(
+                      tween: Tween<double>(begin: 0, end: 1),
+                      duration: const Duration(milliseconds: 1000),
+                      builder: (context, double value, child) {
+                        return Opacity(
+                          opacity: value,
+                          child: Transform.translate(
+                            offset: Offset(0, 20 * (1 - value)),
+                            child: child,
+                          ),
+                        );
+                      },
+                      child: Text(
+                        'Your Personal Nutrition Companion',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.white.withOpacity(0.8),
+                          letterSpacing: 0.5,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const Spacer(),
+
+              // Bottom white card with sign-in button - exact match with other pages
+              Padding(
+                padding: const EdgeInsets.only(bottom: 20.0),
+                child: Container(
+                  margin: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                  constraints: const BoxConstraints(maxHeight: 300),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(32),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(32),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.4),
+                            width: 1.5,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.15),
+                              blurRadius: 30,
+                              spreadRadius: 5,
+                              offset: const Offset(0, 10),
+                            ),
+                          ],
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 24.0, vertical: 20.0),
+                          child: Column(
+                            children: [
+                              // Page indicators
+                              _buildPageIndicators(),
+                              const SizedBox(height: 16),
+
+                              // Title - fixed height
+                              const SizedBox(
+                                height: 58,
+                                child: Center(
+                                  child: Text(
+                                    'Ready to start your journey?',
+                                    textAlign: TextAlign.center,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                      height: 1.2,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+
+                              // Description - fixed height
+                              SizedBox(
+                                height: 42,
+                                child: Center(
+                                  child: Text(
+                                    'Sign in to track your nutrition and achieve your goals',
+                                    textAlign: TextAlign.center,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      color: Colors.white.withOpacity(0.9),
+                                      height: 1.4,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+
+                              // Google Sign-In Button
+                              const GoogleSignInButton(isFullWidth: true),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
