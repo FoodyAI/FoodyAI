@@ -98,11 +98,6 @@ class NavigationService {
     );
   }
 
-  /// Navigate to welcome screen
-  static Future<void> navigateToWelcome() {
-    return pushNamedAndRemoveUntil(AppRoutes.welcome);
-  }
-
   /// Navigate to intro screen
   static Future<void> navigateToIntro() {
     return pushNamedAndRemoveUntil(AppRoutes.intro);
