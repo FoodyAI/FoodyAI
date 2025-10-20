@@ -103,6 +103,11 @@ class NavigationService {
     return pushNamedAndRemoveUntil(AppRoutes.welcome);
   }
 
+  /// Navigate to intro screen
+  static Future<void> navigateToIntro() {
+    return pushNamedAndRemoveUntil(AppRoutes.intro);
+  }
+
   /// Navigate to profile
   static Future<void> navigateToProfile() {
     return pushNamed(AppRoutes.profile);

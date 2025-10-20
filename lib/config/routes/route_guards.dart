@@ -33,7 +33,7 @@ class RouteGuards {
     final profileVM = Provider.of<UserProfileViewModel>(context, listen: false);
 
     if (!authVM.isSignedIn) {
-      return AppRoutes.welcome;
+      return AppRoutes.intro;
     }
 
     if (!profileVM.hasCompletedOnboarding) {
