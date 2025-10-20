@@ -131,6 +131,201 @@ class _HomeViewState extends State<HomeView> {
     super.dispose();
   }
 
+  void _showAddOptionsBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.transparent,
+      isScrollControlled: true,
+      builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        final colorScheme = Theme.of(context).colorScheme;
+
+        return Padding(
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            bottom: MediaQuery.of(context).padding.bottom + 16,
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(32),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? Colors.black.withValues(alpha: 0.4)
+                      : Colors.white.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(32),
+                  border: Border.all(
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.15)
+                        : Colors.white.withValues(alpha: 0.6),
+                    width: 1.5,
+                  ),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(height: 10),
+                    // Drag handle with glassmorphism
+                    Container(
+                      width: 36,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.3)
+                            : Colors.black.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    _buildGlassmorphismOption(
+                      context: context,
+                      icon: FontAwesomeIcons.camera,
+                      iconColor: AppColors.primary,
+                      title: 'Take Picture',
+                      isDark: isDark,
+                      onTap: () {
+                        Navigator.pop(context);
+                        final vm = Provider.of<ImageAnalysisViewModel>(
+                            context,
+                            listen: false);
+                        vm.pickImage(ImageSource.camera, context);
+                      },
+                    ),
+                    _buildGlassmorphismOption(
+                      context: context,
+                      icon: FontAwesomeIcons.images,
+                      iconColor: colorScheme.secondary,
+                      title: 'Upload from Gallery',
+                      isDark: isDark,
+                      onTap: () {
+                        Navigator.pop(context);
+                        final vm = Provider.of<ImageAnalysisViewModel>(
+                            context,
+                            listen: false);
+                        vm.pickImage(ImageSource.gallery, context);
+                      },
+                    ),
+                    _buildGlassmorphismOption(
+                      context: context,
+                      icon: FontAwesomeIcons.barcode,
+                      iconColor: colorScheme.tertiary,
+                      title: 'Scan Barcode',
+                      isDark: isDark,
+                      onTap: () {
+                        Navigator.pop(context);
+
+                        final connectionService = ConnectionService();
+                        if (!connectionService.isConnected) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Row(
+                                children: const [
+                                  Icon(Icons.wifi_off, color: Colors.white),
+                                  SizedBox(width: 12),
+                                  Text('No internet connection'),
+                                ],
+                              ),
+                              backgroundColor: Colors.red[700],
+                              duration: const Duration(seconds: 3),
+                            ),
+                          );
+                          return;
+                        }
+
+                        NavigationService.navigateToBarcodeScanner();
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildGlassmorphismOption({
+    required BuildContext context,
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required bool isDark,
+    required VoidCallback onTap,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(20),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.05)
+                  : Colors.white.withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.1)
+                    : Colors.white.withValues(alpha: 0.4),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: iconColor.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: iconColor.withValues(alpha: 0.3),
+                      width: 1,
+                    ),
+                  ),
+                  child: Center(
+                    child: FaIcon(
+                      icon,
+                      color: iconColor,
+                      size: 20,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: isDark
+                          ? AppColors.darkTextPrimary
+                          : AppColors.textPrimary,
+                    ),
+                  ),
+                ),
+                Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 14,
+                  color: isDark
+                      ? AppColors.darkTextSecondary
+                      : AppColors.textSecondary,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<bool>(
