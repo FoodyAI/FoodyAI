@@ -4,14 +4,15 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:async';
+import 'dart:ui';
 import '../../data/services/sqlite_service.dart';
 import '../viewmodels/image_analysis_viewmodel.dart';
 import '../viewmodels/user_profile_viewmodel.dart';
 import '../viewmodels/auth_viewmodel.dart';
+import '../../domain/entities/user_profile.dart';
 import '../widgets/food_analysis_card.dart';
 import '../widgets/calorie_tracking_card.dart';
 import '../widgets/bottom_navigation.dart';
-import '../widgets/custom_app_bar.dart';
 import '../widgets/guest_signin_banner.dart';
 import '../widgets/connection_banner.dart';
 import '../../data/models/food_analysis.dart';
@@ -38,10 +39,64 @@ class _HomeViewState extends State<HomeView> {
   bool _wasOffline = false;
 
   final List<Widget> _pages = [
-    const _HomeContent(),
-    const AnalyzeView(),
-    const ProfileView(),
+    const _HomeContent(),      // Index 0: Home
+    const AnalyzeView(),       // Index 1: Analyze
+    const ProfileView(),       // Index 2: Settings/Profile
   ];
+
+  Widget _buildGlassmorphismFAB(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              // Exact same glassmorphism as calendar
+              color: isDark
+                  ? Colors.black.withValues(alpha: 0.3)
+                  : Colors.white.withValues(alpha: 0.4),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.15)
+                    : Colors.white.withValues(alpha: 0.6),
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: isDark
+                      ? Colors.black.withValues(alpha: 0.2)
+                      : Colors.black.withValues(alpha: 0.08),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => _showAddOptionsBottomSheet(context),
+                borderRadius: BorderRadius.circular(16),
+                child: Center(
+                  child: FaIcon(
+                    FontAwesomeIcons.plus,
+                    color: isDark ? Colors.white : AppColors.textPrimary,
+                    size: 20,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   void initState() {
@@ -76,6 +131,201 @@ class _HomeViewState extends State<HomeView> {
     super.dispose();
   }
 
+  void _showAddOptionsBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.transparent,
+      isScrollControlled: true,
+      builder: (context) {
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        final colorScheme = Theme.of(context).colorScheme;
+
+        return Padding(
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            bottom: MediaQuery.of(context).padding.bottom + 16,
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(32),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? Colors.black.withValues(alpha: 0.4)
+                      : Colors.white.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(32),
+                  border: Border.all(
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.15)
+                        : Colors.white.withValues(alpha: 0.6),
+                    width: 1.5,
+                  ),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(height: 10),
+                    // Drag handle with glassmorphism
+                    Container(
+                      width: 36,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.3)
+                            : Colors.black.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    _buildGlassmorphismOption(
+                      context: context,
+                      icon: FontAwesomeIcons.camera,
+                      iconColor: AppColors.primary,
+                      title: 'Take Picture',
+                      isDark: isDark,
+                      onTap: () {
+                        Navigator.pop(context);
+                        final vm = Provider.of<ImageAnalysisViewModel>(
+                            context,
+                            listen: false);
+                        vm.pickImage(ImageSource.camera, context);
+                      },
+                    ),
+                    _buildGlassmorphismOption(
+                      context: context,
+                      icon: FontAwesomeIcons.images,
+                      iconColor: colorScheme.secondary,
+                      title: 'Upload from Gallery',
+                      isDark: isDark,
+                      onTap: () {
+                        Navigator.pop(context);
+                        final vm = Provider.of<ImageAnalysisViewModel>(
+                            context,
+                            listen: false);
+                        vm.pickImage(ImageSource.gallery, context);
+                      },
+                    ),
+                    _buildGlassmorphismOption(
+                      context: context,
+                      icon: FontAwesomeIcons.barcode,
+                      iconColor: colorScheme.tertiary,
+                      title: 'Scan Barcode',
+                      isDark: isDark,
+                      onTap: () {
+                        Navigator.pop(context);
+
+                        final connectionService = ConnectionService();
+                        if (!connectionService.isConnected) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Row(
+                                children: const [
+                                  Icon(Icons.wifi_off, color: Colors.white),
+                                  SizedBox(width: 12),
+                                  Text('No internet connection'),
+                                ],
+                              ),
+                              backgroundColor: Colors.red[700],
+                              duration: const Duration(seconds: 3),
+                            ),
+                          );
+                          return;
+                        }
+
+                        NavigationService.navigateToBarcodeScanner();
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildGlassmorphismOption({
+    required BuildContext context,
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required bool isDark,
+    required VoidCallback onTap,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(20),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.05)
+                  : Colors.white.withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.1)
+                    : Colors.white.withValues(alpha: 0.4),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: iconColor.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: iconColor.withValues(alpha: 0.3),
+                      width: 1,
+                    ),
+                  ),
+                  child: Center(
+                    child: FaIcon(
+                      icon,
+                      color: iconColor,
+                      size: 20,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: isDark
+                          ? AppColors.darkTextPrimary
+                          : AppColors.textPrimary,
+                    ),
+                  ),
+                ),
+                Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 14,
+                  color: isDark
+                      ? AppColors.darkTextSecondary
+                      : AppColors.textSecondary,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<bool>(
@@ -86,7 +336,10 @@ class _HomeViewState extends State<HomeView> {
         print('🏠 HomeView: StreamBuilder rebuilt with isConnected = $isConnected');
 
         return Scaffold(
+          extendBody: true,
           body: _pages[_currentIndex],
+          floatingActionButton: _currentIndex == 0 ? _buildGlassmorphismFAB(context) : null,
+          floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
           bottomNavigationBar: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -206,6 +459,88 @@ class _HomeContentState extends State<_HomeContent> {
     }
   }
 
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) {
+      return 'Good Morning,';
+    } else if (hour < 17) {
+      return 'Good Afternoon,';
+    } else if (hour < 21) {
+      return 'Good Evening,';
+    } else {
+      return 'Good Night,';
+    }
+  }
+
+  PreferredSizeWidget _buildCustomAppBar(
+    BuildContext context,
+    AuthViewModel authVM,
+    UserProfile profile,
+  ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return AppBar(
+      automaticallyImplyLeading: false,
+      backgroundColor: isDark ? AppColors.darkBackground : Colors.white,
+      surfaceTintColor: Colors.transparent,
+      scrolledUnderElevation: 0,
+      elevation: 0,
+      toolbarHeight: 64,
+      flexibleSpace: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 4),
+          child: Row(
+            children: [
+              // Profile Picture with Gender-based Avatar
+              CircleAvatar(
+                radius: 22,
+                backgroundImage: (authVM.userPhotoURL != null && authVM.userPhotoURL!.isNotEmpty)
+                    ? NetworkImage(authVM.userPhotoURL!)
+                    : null,
+                backgroundColor: AppColors.primary.withOpacity(0.1),
+                child: (authVM.userPhotoURL == null || authVM.userPhotoURL!.isEmpty)
+                    ? FaIcon(
+                        profile.gender.toLowerCase() == 'male' 
+                            ? FontAwesomeIcons.person
+                            : FontAwesomeIcons.personDress,
+                        size: 20,
+                        color: AppColors.primary,
+                      )
+                    : null,
+              ),
+              const SizedBox(width: 12),
+              // Greeting and Name
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Hi ${authVM.userDisplayName?.split(' ').first ?? profile.gender}',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      _getGreeting(),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final profileVM = Provider.of<UserProfileViewModel>(context);
@@ -267,162 +602,7 @@ class _HomeContentState extends State<_HomeContent> {
     final recommendedCalories = profile.dailyCalories;
 
     return Scaffold(
-      appBar: const CustomAppBar(
-        title: 'Home',
-        icon: FontAwesomeIcons.house,
-        showInfoButton: false,
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          showModalBottomSheet(
-            context: context,
-            backgroundColor: AppColors.transparent,
-            builder: (context) {
-              final isDark = Theme.of(context).brightness == Brightness.dark;
-              final colorScheme = Theme.of(context).colorScheme;
-
-              return Container(
-                decoration: BoxDecoration(
-                  color: isDark ? AppColors.grey800 : AppColors.white,
-                  borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(24)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: isDark
-                          ? AppColors.withOpacity(AppColors.black, 0.4)
-                          : AppColors.withOpacity(AppColors.black, 0.1),
-                      blurRadius: 20,
-                      offset: const Offset(0, -4),
-                    ),
-                  ],
-                ),
-                child: SafeArea(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const SizedBox(height: 8),
-                      Container(
-                        width: 40,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: isDark ? AppColors.grey600 : AppColors.grey300,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      ListTile(
-                        leading: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color:
-                                AppColors.withOpacity(colorScheme.primary, 0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const FaIcon(
-                            FontAwesomeIcons.camera,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                        title: Text(
-                          'Take Picture',
-                          style: TextStyle(
-                            color: isDark ? AppColors.white : AppColors.black,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        onTap: () {
-                          Navigator.pop(context);
-                          final vm = Provider.of<ImageAnalysisViewModel>(
-                              context,
-                              listen: false);
-                          vm.pickImage(ImageSource.camera, context);
-                        },
-                      ),
-                      ListTile(
-                        leading: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: AppColors.withOpacity(
-                                colorScheme.secondary, 0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: FaIcon(
-                            FontAwesomeIcons.images,
-                            color: colorScheme.secondary,
-                          ),
-                        ),
-                        title: Text(
-                          'Upload from Gallery',
-                          style: TextStyle(
-                            color: isDark ? AppColors.white : AppColors.black,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        onTap: () {
-                          Navigator.pop(context);
-                          final vm = Provider.of<ImageAnalysisViewModel>(
-                              context,
-                              listen: false);
-                          vm.pickImage(ImageSource.gallery, context);
-                        },
-                      ),
-                      ListTile(
-                        leading: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: AppColors.withOpacity(
-                                colorScheme.tertiary, 0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: FaIcon(
-                            FontAwesomeIcons.barcode,
-                            color: colorScheme.tertiary,
-                          ),
-                        ),
-                        title: Text(
-                          'Scan Barcode',
-                          style: TextStyle(
-                            color: isDark ? AppColors.white : AppColors.black,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        onTap: () {
-                          Navigator.pop(context);
-
-                          // Check network connection BEFORE opening barcode scanner
-                          final connectionService = ConnectionService();
-                          if (!connectionService.isConnected) {
-                            // Show network error snackbar
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Row(
-                                  children: const [
-                                    Icon(Icons.wifi_off, color: Colors.white),
-                                    SizedBox(width: 12),
-                                    Text('No internet connection'),
-                                  ],
-                                ),
-                                backgroundColor: Colors.red[700],
-                                duration: const Duration(seconds: 3),
-                              ),
-                            );
-                            return; // Block barcode scanner
-                          }
-
-                          // Network available, proceed to barcode scanner
-                          NavigationService.navigateToBarcodeScanner();
-                        },
-                      ),
-                      const SizedBox(height: 16),
-                    ],
-                  ),
-                ),
-              );
-            },
-          );
-        },
-        child: const FaIcon(FontAwesomeIcons.plus),
-      ),
+      appBar: _buildCustomAppBar(context, authVM, profile),
       body: RefreshIndicator(
         onRefresh: () async {
           // Force refresh the food analyses when user pulls to refresh
@@ -649,6 +829,8 @@ class _HomeContentState extends State<_HomeContent> {
                   ),
                 ),
               ),
+              // Add bottom padding to prevent content from being hidden behind bottom nav bar
+              const SizedBox(height: 100),
             ],
           ),
         ),
