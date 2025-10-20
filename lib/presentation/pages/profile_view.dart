@@ -616,47 +616,49 @@ class _ProfileViewState extends State<ProfileView>
       child: Column(
         children: [
           // Account Section
-          Card(
-            elevation: 4,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      FaIcon(
+          _buildGlassmorphicCard(
+            context: context,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primary.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: FaIcon(
                         FontAwesomeIcons.user,
                         color: colorScheme.primary,
-                        size: 24,
+                        size: 18,
                       ),
-                      const SizedBox(width: 12),
-                      Text(
-                        'Account',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.onSurface,
-                        ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Account',
+                      style: GoogleFonts.poppins(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface,
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
 
                   // Show user details if signed in, otherwise show guest benefits
                   if (authVM.isSignedIn) ...[
                     // User Details Section
                     Container(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: AppColors.withOpacity(colorScheme.primary, 0.05),
-                        borderRadius: BorderRadius.circular(12),
+                        color: colorScheme.primary.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color:
-                              AppColors.withOpacity(colorScheme.primary, 0.2),
+                          color: colorScheme.primary.withOpacity(0.20),
+                          width: 1.2,
                         ),
                       ),
                       child: Column(
@@ -665,58 +667,52 @@ class _ProfileViewState extends State<ProfileView>
                           Row(
                             children: [
                               CircleAvatar(
-                                radius: 30,
+                                radius: 28,
                                 backgroundImage: authVM.userPhotoURL != null
                                     ? NetworkImage(authVM.userPhotoURL!)
                                     : null,
+                                backgroundColor: colorScheme.primary.withOpacity(0.12),
                                 child: authVM.userPhotoURL == null
                                     ? FaIcon(
                                         FontAwesomeIcons.user,
-                                        size: 24,
+                                        size: 20,
                                         color: colorScheme.primary,
                                       )
                                     : null,
                               ),
-                              const SizedBox(width: 16),
+                              const SizedBox(width: 14),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     // User Name - Dynamic text size to fit content
-                                    FittedBox(
-                                      fit: BoxFit.scaleDown,
-                                      alignment: Alignment.centerLeft,
-                                      child: Text(
-                                        authVM.userDisplayName ?? 'User',
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                          color: colorScheme.onSurface,
-                                        ),
-                                        maxLines: 1,
+                                    Text(
+                                      authVM.userDisplayName ?? 'User',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        color: colorScheme.onSurface,
                                       ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                    const SizedBox(height: 6),
+                                    const SizedBox(height: 3),
                                     // User Email - Dynamic text size to fit content
-                                    FittedBox(
-                                      fit: BoxFit.scaleDown,
-                                      alignment: Alignment.centerLeft,
-                                      child: Text(
-                                        authVM.userEmail ?? '',
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color: colorScheme.onSurface
-                                              .withOpacity(0.7),
-                                        ),
-                                        maxLines: 1,
+                                    Text(
+                                      authVM.userEmail ?? '',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 12,
+                                        color: colorScheme.onSurface.withOpacity(0.7),
                                       ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
                                   ],
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 14),
                           // Sign Out Button
                           const SignOutButtonWithAuth(
                             isFullWidth: true,
@@ -727,13 +723,13 @@ class _ProfileViewState extends State<ProfileView>
                   ] else ...[
                     // Guest Benefits Section
                     Container(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: AppColors.withOpacity(colorScheme.primary, 0.05),
-                        borderRadius: BorderRadius.circular(12),
+                        color: colorScheme.primary.withOpacity(0.08),
+                        borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color:
-                              AppColors.withOpacity(colorScheme.primary, 0.2),
+                          color: colorScheme.primary.withOpacity(0.20),
+                          width: 1.2,
                         ),
                       ),
                       child: Column(
@@ -743,13 +739,13 @@ class _ProfileViewState extends State<ProfileView>
                             FontAwesomeIcons.cloudArrowUp,
                             'Sync across devices',
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 10),
                           _buildAccountBenefit(
                             context,
                             FontAwesomeIcons.shieldHalved,
                             'Backup your history',
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 10),
                           _buildAccountBenefit(
                             context,
                             FontAwesomeIcons.chartLine,
@@ -758,7 +754,7 @@ class _ProfileViewState extends State<ProfileView>
                         ],
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 16),
                     const GoogleSignInButton(
                       isFullWidth: true,
                     ),
@@ -766,116 +762,118 @@ class _ProfileViewState extends State<ProfileView>
                 ],
               ),
             ),
-          ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
           // Subscription Section
-          Card(
-            elevation: 4,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: InkWell(
-              onTap: () {
-                NavigationService.navigateToSubscription(
-                    returnRoute: '/profile');
-              },
-              borderRadius: BorderRadius.circular(16),
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            AppColors.primary,
-                            AppColors.primaryDark,
+          _buildGlassmorphicCard(
+            context: context,
+            padding: const EdgeInsets.all(16),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () {
+                  NavigationService.navigateToSubscription(
+                      returnRoute: '/profile');
+                },
+                borderRadius: BorderRadius.circular(16),
+                child: Padding(
+                  padding: const EdgeInsets.all(2),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              AppColors.primary,
+                              AppColors.primaryDark,
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const FaIcon(
+                          FontAwesomeIcons.crown,
+                          color: Colors.white,
+                          size: 18,
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Subscription',
+                              style: GoogleFonts.poppins(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: colorScheme.onSurface,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Manage your plan & usage',
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                color: colorScheme.onSurface.withOpacity(0.65),
+                              ),
+                            ),
                           ],
                         ),
-                        borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const FaIcon(
-                        FontAwesomeIcons.crown,
-                        color: Colors.white,
-                        size: 24,
+                      FaIcon(
+                        FontAwesomeIcons.chevronRight,
+                        color: colorScheme.onSurface.withOpacity(0.35),
+                        size: 14,
                       ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Subscription',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: colorScheme.onSurface,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Manage your plan & usage',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: colorScheme.onSurface.withOpacity(0.7),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    FaIcon(
-                      FontAwesomeIcons.chevronRight,
-                      color: colorScheme.onSurface.withOpacity(0.3),
-                      size: 16,
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
           // Measurement Units Section
-          Card(
-            elevation: 4,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      FaIcon(
+          _buildGlassmorphicCard(
+            context: context,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primary.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: FaIcon(
                         FontAwesomeIcons.ruler,
                         color: colorScheme.primary,
-                        size: 24,
+                        size: 18,
                       ),
-                      const SizedBox(width: 12),
-                      Text(
-                        'Measurement Units',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.onSurface,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Choose your preferred measurement system',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: colorScheme.onSurface.withOpacity(0.7),
                     ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Measurement Units',
+                      style: GoogleFonts.poppins(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Choose your preferred measurement system',
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    color: colorScheme.onSurface.withOpacity(0.7),
                   ),
-                  const SizedBox(height: 24),
+                ),
+                const SizedBox(height: 16),
                   _ProfileSettingOption<bool>(
                     value: true,
                     selectedValue: profileVM.isMetric,
@@ -906,7 +904,7 @@ class _ProfileViewState extends State<ProfileView>
                       }
                     },
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
                   _ProfileSettingOption<bool>(
                     value: false,
                     selectedValue: profileVM.isMetric,
@@ -940,46 +938,47 @@ class _ProfileViewState extends State<ProfileView>
                 ],
               ),
             ),
-          ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
           // Appearance Section
-          Card(
-            elevation: 4,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      FaIcon(
+          _buildGlassmorphicCard(
+            context: context,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primary.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: FaIcon(
                         FontAwesomeIcons.palette,
                         color: colorScheme.primary,
-                        size: 24,
+                        size: 18,
                       ),
-                      const SizedBox(width: 12),
-                      Text(
-                        'Appearance',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.onSurface,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Customize your app experience',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: colorScheme.onSurface.withOpacity(0.7),
                     ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Appearance',
+                      style: GoogleFonts.poppins(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Customize your app experience',
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    color: colorScheme.onSurface.withOpacity(0.7),
                   ),
-                  const SizedBox(height: 24),
+                ),
+                const SizedBox(height: 16),
                   Consumer<ThemeViewModel>(
                     builder: (context, themeVM, _) {
                       return Column(
@@ -1062,49 +1061,49 @@ class _ProfileViewState extends State<ProfileView>
                 ],
               ),
             ),
-          ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
           // Notification Settings Section
-          Card(
-            elevation: 4,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      FaIcon(
+          _buildGlassmorphicCard(
+            context: context,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primary.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: FaIcon(
                         FontAwesomeIcons.bell,
                         color: colorScheme.primary,
-                        size: 24,
+                        size: 18,
                       ),
-                      const SizedBox(width: 12),
-                      Text(
-                        'Notifications',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.onSurface,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Manage your notification preferences',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: colorScheme.onSurface.withOpacity(0.7),
                     ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Notifications',
+                      style: GoogleFonts.poppins(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Manage your notification preferences',
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    color: colorScheme.onSurface.withOpacity(0.7),
                   ),
-                  const SizedBox(height: 24),
-                  _buildNotificationSettings(context, authVM),
-                ],
-              ),
+                ),
+                const SizedBox(height: 16),
+                _buildNotificationSettings(context, authVM),
+              ],
             ),
           ),
           const SizedBox(height: 16),
@@ -1192,74 +1191,91 @@ class _ProfileViewState extends State<ProfileView>
     VoidCallback onTap,
   ) {
     final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150), // Faster animation
-        curve: Curves.easeInOut,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? colorScheme.primary.withOpacity(0.1)
-              : colorScheme.surface,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isSelected
-                ? colorScheme.primary
-                : colorScheme.outline.withOpacity(0.5),
-            width: 2,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(18),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeInOut,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            gradient: isSelected
+                ? LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: isDark
+                        ? [
+                            colorScheme.primary.withOpacity(0.20),
+                            colorScheme.primary.withOpacity(0.10),
+                          ]
+                        : [
+                            colorScheme.primary.withOpacity(0.15),
+                            colorScheme.primary.withOpacity(0.08),
+                          ],
+                  )
+                : null,
+            color: isSelected ? null : Colors.transparent,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: isSelected
+                  ? colorScheme.primary
+                  : colorScheme.outline.withOpacity(0.3),
+              width: 1.5,
+            ),
           ),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: colorScheme.primary.withOpacity(0.2),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
-              : null,
-        ),
-        child: Row(
-          children: [
-            FaIcon(
-              icon,
-              color: isSelected ? colorScheme.primary : colorScheme.onSurface,
-              size: 32,
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: isSelected
-                          ? colorScheme.primary
-                          : colorScheme.onSurface,
-                    ),
-                  ),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: colorScheme.onSurface.withOpacity(0.7),
-                    ),
-                  ),
-                ],
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: isSelected 
+                      ? colorScheme.primary.withOpacity(0.15)
+                      : colorScheme.onSurface.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: FaIcon(
+                  icon,
+                  color: isSelected ? colorScheme.primary : colorScheme.onSurface.withOpacity(0.7),
+                  size: 20,
+                ),
               ),
-            ),
-            if (isSelected)
-              FaIcon(
-                FontAwesomeIcons.circleCheck,
-                color: colorScheme.primary,
-                size: 24,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: isSelected
+                            ? colorScheme.primary
+                            : colorScheme.onSurface,
+                      ),
+                    ),
+                    Text(
+                      subtitle,
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        color: colorScheme.onSurface.withOpacity(0.65),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-          ],
+              if (isSelected)
+                FaIcon(
+                  FontAwesomeIcons.circleCheck,
+                  color: colorScheme.primary,
+                  size: 18,
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -1739,24 +1755,30 @@ class _ProfileViewState extends State<ProfileView>
 
   Widget _buildAccountBenefit(
       BuildContext context, IconData icon, String text) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Row(
       children: [
-        FaIcon(
-          icon,
-          size: 16,
-          color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+        Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: colorScheme.primary.withOpacity(0.10),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: FaIcon(
+            icon,
+            size: 14,
+            color: colorScheme.primary,
+          ),
         ),
         const SizedBox(width: 10),
         Expanded(
           child: Text(
             text,
-            style: TextStyle(
-              fontSize: 14,
-              color: isDark
-                  ? AppColors.darkTextSecondary
-                  : AppColors.textSecondary,
+            style: GoogleFonts.inter(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: colorScheme.onSurface.withOpacity(0.7),
             ),
           ),
         ),
@@ -1768,67 +1790,56 @@ class _ProfileViewState extends State<ProfileView>
       BuildContext context, AuthViewModel authVM, ColorScheme colorScheme) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isDark
-                ? Colors.red.shade400.withOpacity(0.3)
-                : Colors.red.shade200,
-            width: 1,
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return _buildGlassmorphicCard(
+      context: context,
+      margin: EdgeInsets.zero,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
-                  FaIcon(
-                    FontAwesomeIcons.triangleExclamation,
-                    color: isDark ? Colors.red.shade400 : Colors.red.shade600,
-                    size: 24,
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    'Danger Zone',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.red.shade400 : Colors.red.shade600,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Irreversible and destructive actions',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: isDark
-                      ? AppColors.darkTextSecondary
-                      : colorScheme.onSurface.withOpacity(0.7),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: isDark 
+                      ? Colors.red.shade400.withOpacity(0.15)
+                      : Colors.red.shade100.withOpacity(0.8),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: FaIcon(
+                  FontAwesomeIcons.triangleExclamation,
+                  color: isDark ? Colors.red.shade400 : Colors.red.shade600,
+                  size: 18,
                 ),
               ),
-              const SizedBox(height: 24),
-              // Delete Account Button
-              _buildDeleteAccountButton(context, authVM),
+              const SizedBox(width: 12),
+              Text(
+                'Danger Zone',
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.red.shade400 : Colors.red.shade600,
+                ),
+              ),
             ],
           ),
-        ),
+          const SizedBox(height: 6),
+          Text(
+            'Irreversible and destructive actions',
+            style: GoogleFonts.inter(
+              fontSize: 13,
+              color: colorScheme.onSurface.withOpacity(0.7),
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Delete Account Button
+          _buildDeleteAccountButton(context, authVM),
+        ],
       ),
     );
   }
 
   Widget _buildDeleteAccountButton(BuildContext context, AuthViewModel authVM) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton.icon(
@@ -1867,16 +1878,17 @@ class _ProfileViewState extends State<ProfileView>
           ),
         ),
         style: ElevatedButton.styleFrom(
-          backgroundColor: isDark ? Colors.red.shade700 : Colors.red.shade600,
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          backgroundColor: AppColors.error.withValues(alpha: 0.1),
+          foregroundColor: AppColors.error,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
+            side: BorderSide(
+              color: AppColors.error.withValues(alpha: 0.3),
+              width: 1,
+            ),
           ),
-          elevation: isDark ? 4 : 2,
-          shadowColor: isDark
-              ? Colors.red.shade400.withOpacity(0.3)
-              : Colors.red.shade600.withOpacity(0.3),
+          elevation: 0,
         ),
       ),
     );
@@ -2281,78 +2293,130 @@ class _ProfileSettingOptionState<T> extends State<_ProfileSettingOption<T>> {
   @override
   Widget build(BuildContext context) {
     final isSelected = _currentValue == widget.value;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return InkWell(
-      onTap: _isLoading ? null : _handleSelection,
-      borderRadius: BorderRadius.circular(12),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? widget.colorScheme.primary.withOpacity(0.1)
-              : widget.colorScheme.surface,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isSelected
-                ? widget.colorScheme.primary
-                : widget.colorScheme.outline.withOpacity(0.5),
-            width: 2,
-          ),
-        ),
-        child: Row(
-          children: [
-            if (_isLoading && isSelected)
-              SizedBox(
-                width: 32,
-                height: 32,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    widget.colorScheme.primary,
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: isSelected
+            ? [
+                BoxShadow(
+                  color: widget.colorScheme.primary.withOpacity(0.15),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ]
+            : null,
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(18),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: _isLoading ? null : _handleSelection,
+              borderRadius: BorderRadius.circular(18),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                decoration: BoxDecoration(
+                  gradient: isSelected
+                      ? LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: isDark
+                              ? [
+                                  widget.colorScheme.primary.withOpacity(0.20),
+                                  widget.colorScheme.primary.withOpacity(0.10),
+                                ]
+                              : [
+                                  widget.colorScheme.primary.withOpacity(0.15),
+                                  widget.colorScheme.primary.withOpacity(0.08),
+                                ],
+                        )
+                      : null,
+                  color: isSelected
+                      ? null
+                      : isDark
+                          ? Colors.white.withOpacity(0.05)
+                          : Colors.white.withOpacity(0.50),
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(
+                    color: isSelected
+                        ? widget.colorScheme.primary
+                        : isDark
+                            ? Colors.white.withOpacity(0.10)
+                            : Colors.white.withOpacity(0.40),
+                    width: 1.5,
                   ),
                 ),
-              )
-            else
-              FaIcon(
-                widget.icon,
-                color: isSelected
-                    ? widget.colorScheme.primary
-                    : widget.colorScheme.onSurface,
-                size: 32,
-              ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.title,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: isSelected
-                          ? widget.colorScheme.primary
-                          : widget.colorScheme.onSurface,
+                child: Row(
+                  children: [
+                    if (_isLoading && isSelected)
+                      SizedBox(
+                        width: 28,
+                        height: 28,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            widget.colorScheme.primary,
+                          ),
+                        ),
+                      )
+                    else
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? widget.colorScheme.primary.withOpacity(0.15)
+                              : widget.colorScheme.onSurface.withOpacity(0.05),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: FaIcon(
+                          widget.icon,
+                          color: isSelected
+                              ? widget.colorScheme.primary
+                              : widget.colorScheme.onSurface.withOpacity(0.7),
+                          size: 20,
+                        ),
+                      ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.title,
+                            style: GoogleFonts.inter(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: isSelected
+                                  ? widget.colorScheme.primary
+                                  : widget.colorScheme.onSurface,
+                            ),
+                          ),
+                          Text(
+                            widget.subtitle,
+                            style: GoogleFonts.inter(
+                              fontSize: 11,
+                              color: widget.colorScheme.onSurface.withOpacity(0.65),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  Text(
-                    widget.subtitle,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: widget.colorScheme.onSurface.withOpacity(0.7),
-                    ),
-                  ),
-                ],
+                    if (isSelected && !_isLoading)
+                      FaIcon(
+                        FontAwesomeIcons.circleCheck,
+                        color: widget.colorScheme.primary,
+                        size: 18,
+                      ),
+                  ],
+                ),
               ),
             ),
-            if (isSelected && !_isLoading)
-              FaIcon(
-                FontAwesomeIcons.circleCheck,
-                color: widget.colorScheme.primary,
-                size: 24,
-              ),
-          ],
+          ),
         ),
       ),
     );
@@ -2466,21 +2530,35 @@ class _NotificationToggleWidgetState extends State<_NotificationToggleWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: widget.colorScheme.surface,
-        borderRadius: BorderRadius.circular(12),
+        color: isDark 
+            ? Colors.white.withOpacity(0.05)
+            : Colors.white.withOpacity(0.50),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: widget.colorScheme.outline.withOpacity(0.5),
+          color: isDark 
+              ? Colors.white.withOpacity(0.10)
+              : Colors.white.withOpacity(0.40),
+          width: 1.5,
         ),
       ),
       child: Row(
         children: [
-          FaIcon(
-            FontAwesomeIcons.bell,
-            color: widget.colorScheme.primary,
-            size: 20,
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: widget.colorScheme.primary.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: FaIcon(
+              FontAwesomeIcons.bell,
+              color: widget.colorScheme.primary,
+              size: 18,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -2489,17 +2567,17 @@ class _NotificationToggleWidgetState extends State<_NotificationToggleWidget> {
               children: [
                 Text(
                   'App Notifications',
-                  style: TextStyle(
-                    fontSize: 16,
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
                     fontWeight: FontWeight.w600,
                     color: widget.colorScheme.onSurface,
                   ),
                 ),
                 Text(
                   'Receive notifications from Foody',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: widget.colorScheme.onSurface.withOpacity(0.7),
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    color: widget.colorScheme.onSurface.withOpacity(0.65),
                   ),
                 ),
               ],
@@ -2507,8 +2585,8 @@ class _NotificationToggleWidgetState extends State<_NotificationToggleWidget> {
           ),
           if (_isLoading)
             SizedBox(
-              width: 24,
-              height: 24,
+              width: 22,
+              height: 22,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
                 valueColor: AlwaysStoppedAnimation<Color>(
@@ -2517,10 +2595,13 @@ class _NotificationToggleWidgetState extends State<_NotificationToggleWidget> {
               ),
             )
           else
-            Switch(
-              value: _notificationsEnabled,
-              onChanged: _handleToggle,
-              activeColor: widget.colorScheme.primary,
+            Transform.scale(
+              scale: 0.85,
+              child: Switch(
+                value: _notificationsEnabled,
+                onChanged: _handleToggle,
+                activeColor: widget.colorScheme.primary,
+              ),
             ),
         ],
       ),
