@@ -300,58 +300,164 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  // Animated Scan Frame with Glassmorphism
                   Container(
                     width: _scanFrameSize,
                     height: _scanFrameSize,
                     decoration: BoxDecoration(
-                      border: Border.all(
-                        color: Colors.white,
-                        width: 2,
-                      ),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Stack(
-                      children: [
-                        // Corner markers
-                        Positioned(
-                          top: 0,
-                          left: 0,
-                          child: _buildCornerMarker(true, true),
-                        ),
-                        Positioned(
-                          top: 0,
-                          right: 0,
-                          child: _buildCornerMarker(true, false),
-                        ),
-                        Positioned(
-                          bottom: 0,
-                          left: 0,
-                          child: _buildCornerMarker(false, true),
-                        ),
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: _buildCornerMarker(false, false),
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withOpacity(0.3),
+                          blurRadius: 24,
+                          spreadRadius: 2,
                         ),
                       ],
                     ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(24),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                AppColors.primary.withOpacity(0.15),
+                                AppColors.primary.withOpacity(0.05),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(24),
+                            border: Border.all(
+                              color: AppColors.primary.withOpacity(0.8),
+                              width: 3,
+                            ),
+                          ),
+                          child: Stack(
+                            children: [
+                              // Corner markers with enhanced design
+                              Positioned(
+                                top: -2,
+                                left: -2,
+                                child: _buildCornerMarker(true, true),
+                              ),
+                              Positioned(
+                                top: -2,
+                                right: -2,
+                                child: _buildCornerMarker(true, false),
+                              ),
+                              Positioned(
+                                bottom: -2,
+                                left: -2,
+                                child: _buildCornerMarker(false, true),
+                              ),
+                              Positioned(
+                                bottom: -2,
+                                right: -2,
+                                child: _buildCornerMarker(false, false),
+                              ),
+                              // Center Icon
+                              Center(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(16),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.primary.withOpacity(0.2),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: FaIcon(
+                                        FontAwesomeIcons.barcode,
+                                        size: 48,
+                                        color: AppColors.primary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 32),
+                  // Glassmorphic Instruction Card
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 12,
-                    ),
+                    margin: const EdgeInsets.symmetric(horizontal: 32),
                     decoration: BoxDecoration(
-                      color: Colors.black54,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 16,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                    child: const Text(
-                      'Position the barcode within the frame',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(20),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 16,
+                          ),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: isDark
+                                  ? [
+                                      Colors.white.withOpacity(0.15),
+                                      Colors.white.withOpacity(0.08),
+                                    ]
+                                  : [
+                                      Colors.white.withOpacity(0.9),
+                                      Colors.white.withOpacity(0.8),
+                                    ],
+                            ),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: isDark
+                                  ? Colors.white.withOpacity(0.3)
+                                  : Colors.white.withOpacity(0.8),
+                              width: 1.5,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary.withOpacity(0.15),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: FaIcon(
+                                  FontAwesomeIcons.circleInfo,
+                                  size: 18,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Flexible(
+                                child: Text(
+                                  'Position barcode within the frame',
+                                  style: TextStyle(
+                                    color: isDark ? Colors.white : AppColors.textPrimary,
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
                   ),
