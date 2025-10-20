@@ -694,46 +694,207 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
     );
   }
 
-  Widget _buildCornerMarker(bool isTop, bool isLeft) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+  Widget _buildCornerBracket(bool isTop, bool isLeft) {
     return Container(
-      width: 32,
-      height: 32,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.only(
-          topLeft: isTop && isLeft ? const Radius.circular(24) : Radius.zero,
-          topRight: isTop && !isLeft ? const Radius.circular(24) : Radius.zero,
-          bottomLeft: !isTop && isLeft ? const Radius.circular(24) : Radius.zero,
-          bottomRight: !isTop && !isLeft ? const Radius.circular(24) : Radius.zero,
+      width: 70,
+      height: 70,
+      child: CustomPaint(
+        painter: CornerBracketPainter(
+          isTop: isTop,
+          isLeft: isLeft,
+          color: Colors.white,
+          strokeWidth: 6,
+          cornerLength: 50,
+          cornerRadius: 20,
         ),
-        border: Border(
-          top: BorderSide(
-            color: isDark ? Colors.white : Colors.white.withOpacity(0.9),
-            width: isTop ? 4 : 0,
-          ),
-          bottom: BorderSide(
-            color: isDark ? Colors.white : Colors.white.withOpacity(0.9),
-            width: !isTop ? 4 : 0,
-          ),
-          left: BorderSide(
-            color: isDark ? Colors.white : Colors.white.withOpacity(0.9),
-            width: isLeft ? 4 : 0,
-          ),
-          right: BorderSide(
-            color: isDark ? Colors.white : Colors.white.withOpacity(0.9),
-            width: !isLeft ? 4 : 0,
+      ),
+    );
+  }
+
+  Widget _buildInFrameButton({
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        child: Center(
+          child: FaIcon(
+            icon,
+            color: Colors.white,
+            size: 24,
           ),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: isDark
-                ? Colors.white.withOpacity(0.3)
-                : Colors.grey.withOpacity(0.3),
-            blurRadius: 8,
-            spreadRadius: 1,
+      ),
+    );
+  }
+
+  void _showManualBarcodeInput(BuildContext context) {
+    final TextEditingController barcodeController = TextEditingController();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withOpacity(0.5),
+      builder: (context) => BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+        child: Dialog(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
           ),
-        ],
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+              child: Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: isDark
+                        ? [
+                            Colors.grey[900]!.withOpacity(0.85),
+                            Colors.grey[900]!.withOpacity(0.75),
+                          ]
+                        : [
+                            Colors.white.withOpacity(0.90),
+                            Colors.white.withOpacity(0.80),
+                          ],
+                  ),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: isDark
+                        ? Colors.white.withOpacity(0.2)
+                        : Colors.white.withOpacity(0.7),
+                    width: 1.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: isDark
+                          ? Colors.black.withOpacity(0.3)
+                          : Colors.grey.withOpacity(0.12),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
+                      spreadRadius: 1,
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Enter Barcode',
+                      style: GoogleFonts.inter(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.white : Colors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    TextField(
+                      controller: barcodeController,
+                      keyboardType: TextInputType.number,
+                      autofocus: true,
+                      style: GoogleFonts.inter(
+                        color: isDark ? Colors.white : Colors.black,
+                        fontSize: 16,
+                      ),
+                      decoration: InputDecoration(
+                        hintText: 'Enter barcode number',
+                        hintStyle: GoogleFonts.inter(
+                          color: isDark ? Colors.white54 : Colors.black54,
+                        ),
+                        filled: true,
+                        fillColor: isDark
+                            ? Colors.white.withOpacity(0.05)
+                            : Colors.black.withOpacity(0.03),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: isDark
+                                ? Colors.white.withOpacity(0.2)
+                                : Colors.grey.withOpacity(0.3),
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: isDark
+                                ? Colors.white.withOpacity(0.2)
+                                : Colors.grey.withOpacity(0.3),
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: AppColors.primary,
+                            width: 2,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 12,
+                            ),
+                          ),
+                          child: Text(
+                            'Cancel',
+                            style: GoogleFonts.inter(
+                              color: isDark ? Colors.white70 : Colors.black54,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        ElevatedButton(
+                          onPressed: () {
+                            final barcode = barcodeController.text.trim();
+                            if (barcode.isNotEmpty) {
+                              Navigator.pop(context);
+                              _fetchProductDetails(barcode);
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 12,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 0,
+                          ),
+                          child: Text(
+                            'Search',
+                            style: GoogleFonts.inter(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
