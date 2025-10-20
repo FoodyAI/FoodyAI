@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/welcome_viewmodel.dart';
 import '../widgets/google_signin_button.dart';
-import 'dart:math' as math;
-import 'dart:math';
-import '../../../core/constants/app_colors.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'dart:ui';
 
+/// Modern welcome/login screen with immersive design
+/// Matches the onboarding design language
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});
 
@@ -25,58 +24,94 @@ class _WelcomeScreenContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final viewModel = context.watch<WelcomeViewModel>();
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: isDarkMode ? AppColors.black : AppColors.white,
-        elevation: 0,
-      ),
       body: Stack(
         children: [
-          // Animated Background
-          AnimatedBackground(isDarkMode: isDarkMode),
+          // Full-screen background image with blur
+          Positioned.fill(
+            child: Container(
+              decoration: const BoxDecoration(
+                image: DecorationImage(
+                  image: NetworkImage(
+                    'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=1080&h=1920&fit=crop',
+                  ),
+                  fit: BoxFit.cover,
+                ),
+              ),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.black.withOpacity(0.4),
+                        Colors.black.withOpacity(0.7),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
 
-          // Content
+          // Main content
           SafeArea(
-            child: Center(
-              child: SingleChildScrollView(
-                child: Padding(
+            child: Column(
+              children: [
+                const Spacer(flex: 2),
+
+                // Logo and title section
+                Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24.0),
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // App Logo with Animation
+                      // App icon
                       TweenAnimationBuilder(
                         tween: Tween<double>(begin: 0, end: 1),
                         duration: const Duration(milliseconds: 800),
                         builder: (context, double value, child) {
                           return Transform.scale(
                             scale: value,
-                            child: child,
+                            child: Opacity(
+                              opacity: value,
+                              child: child,
+                            ),
                           );
                         },
                         child: Container(
-                          padding: const EdgeInsets.all(16),
+                          width: 100,
+                          height: 100,
                           decoration: BoxDecoration(
-                            color: isDarkMode
-                                ? AppColors.withOpacity(AppColors.black, 0.1)
-                                : AppColors.withOpacity(AppColors.white, 0.1),
+                            gradient: const LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                Color(0xFFFF6B6B),
+                                Color(0xFFFF8E8E),
+                              ],
+                            ),
                             shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFFFF6B6B).withOpacity(0.4),
+                                blurRadius: 20,
+                                spreadRadius: 3,
+                              ),
+                            ],
                           ),
-                          child: FaIcon(
-                            FontAwesomeIcons.utensils,
-                            size: 80,
-                            color: isDarkMode
-                                ? AppColors.green
-                                : AppColors.textPrimary,
+                          child: const Icon(
+                            Icons.restaurant_menu,
+                            size: 50,
+                            color: Colors.white,
                           ),
                         ),
                       ),
-                      const SizedBox(height: 40),
+                      const SizedBox(height: 24),
 
-                      // Welcome Text with Animation
+                      // App name
                       TweenAnimationBuilder(
                         tween: Tween<double>(begin: 0, end: 1),
                         duration: const Duration(milliseconds: 800),
@@ -89,50 +124,22 @@ class _WelcomeScreenContent extends StatelessWidget {
                             ),
                           );
                         },
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            Text(
-                              'Foody',
-                              textAlign: TextAlign.center,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .headlineMedium
-                                  ?.copyWith(
-                                    color: isDarkMode
-                                        ? AppColors.white
-                                        : AppColors.textPrimary,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 32,
-                                  ),
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'AI-Powered Food Analysis\nTrack Your Nutrition & Calories',
-                              textAlign: TextAlign.center,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyLarge
-                                  ?.copyWith(
-                                    color: isDarkMode
-                                        ? AppColors.withOpacity(
-                                            AppColors.white, 0.9)
-                                        : AppColors.withOpacity(
-                                            AppColors.textPrimary, 0.9),
-                                    fontSize: 18,
-                                    height: 1.5,
-                                  ),
-                            ),
-                          ],
+                        child: const Text(
+                          'Foody',
+                          style: TextStyle(
+                            fontSize: 42,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            letterSpacing: 1.2,
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 60),
+                      const SizedBox(height: 12),
 
-                      // Sign In Button with Animation
+                      // Tagline
                       TweenAnimationBuilder(
                         tween: Tween<double>(begin: 0, end: 1),
-                        duration: const Duration(milliseconds: 800),
+                        duration: const Duration(milliseconds: 1000),
                         builder: (context, double value, child) {
                           return Opacity(
                             opacity: value,
@@ -142,135 +149,121 @@ class _WelcomeScreenContent extends StatelessWidget {
                             ),
                           );
                         },
-                        child: Center(
-                          child: GoogleSignInButton(
-                            isLoading: viewModel.isGoogleLoading,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.2),
+                              width: 1,
+                            ),
+                          ),
+                          child: const Text(
+                            'AI-Powered Food Analysis',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.white70,
+                              letterSpacing: 0.5,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ),
                       ),
                     ],
                   ),
                 ),
-              ),
+
+                const Spacer(flex: 3),
+
+                // Bottom card with sign-in button
+                TweenAnimationBuilder(
+                  tween: Tween<double>(begin: 0, end: 1),
+                  duration: const Duration(milliseconds: 1200),
+                  builder: (context, double value, child) {
+                    return Opacity(
+                      opacity: value,
+                      child: Transform.translate(
+                        offset: Offset(0, 50 * (1 - value)),
+                        child: child,
+                      ),
+                    );
+                  },
+                  child: Container(
+                    margin: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(32),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 20,
+                          offset: const Offset(0, -5),
+                        ),
+                      ],
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(32.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Welcome text
+                          const Text(
+                            'Welcome to Foody',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+
+                          // Description
+                          Text(
+                            'Track your nutrition and calories with the power of AI',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: Colors.grey[600],
+                              height: 1.4,
+                            ),
+                          ),
+                          const SizedBox(height: 32),
+
+                          // Google Sign-in button
+                          GoogleSignInButton(
+                            isLoading: viewModel.isGoogleLoading,
+                          ),
+
+                          const SizedBox(height: 16),
+
+                          // Terms text
+                          Text(
+                            'By signing in, you agree to our\nTerms of Service and Privacy Policy',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[500],
+                              height: 1.4,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+              ],
             ),
           ),
         ],
       ),
     );
   }
-}
-
-class AnimatedBackground extends StatefulWidget {
-  final bool isDarkMode;
-  const AnimatedBackground({super.key, required this.isDarkMode});
-
-  @override
-  State<AnimatedBackground> createState() => _AnimatedBackgroundState();
-}
-
-class _AnimatedBackgroundState extends State<AnimatedBackground>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  final List<FloatingIcon> _icons = [];
-  final Random _random = Random();
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 20),
-    )..repeat();
-
-    // Initialize floating icons
-    for (int i = 0; i < 15; i++) {
-      _icons.add(FloatingIcon(
-        icon: _getRandomFoodIcon(),
-        x: _random.nextDouble(),
-        y: _random.nextDouble(),
-        size: _random.nextDouble() * 30 + 20,
-        speed: _random.nextDouble() * 0.5 + 0.2,
-        rotation: _random.nextDouble() * 360,
-      ));
-    }
-  }
-
-  IconData _getRandomFoodIcon() {
-    final icons = [
-      FontAwesomeIcons.utensils,
-      FontAwesomeIcons.pizzaSlice,
-      FontAwesomeIcons.iceCream,
-      FontAwesomeIcons.mugHot,
-      FontAwesomeIcons.burger,
-      FontAwesomeIcons.drumstickBite,
-      FontAwesomeIcons.cakeCandles,
-      FontAwesomeIcons.wineGlass,
-      FontAwesomeIcons.martiniGlass,
-      FontAwesomeIcons.bottleWater,
-    ];
-    return icons[_random.nextInt(icons.length)];
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: widget.isDarkMode ? AppColors.black : AppColors.white,
-      ),
-      child: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, child) {
-          return Stack(
-            children: _icons.map((icon) {
-              final x = icon.x +
-                  math.sin(_controller.value * 2 * math.pi * icon.speed) * 0.1;
-              final y = icon.y +
-                  math.cos(_controller.value * 2 * math.pi * icon.speed) * 0.1;
-              final rotation =
-                  icon.rotation + _controller.value * 360 * icon.speed;
-
-              return Positioned(
-                left: x * MediaQuery.of(context).size.width,
-                top: y * MediaQuery.of(context).size.height,
-                child: Transform.rotate(
-                  angle: rotation * math.pi / 180,
-                  child: FaIcon(
-                    icon.icon,
-                    size: icon.size,
-                    color: widget.isDarkMode
-                        ? AppColors.withOpacity(AppColors.green, 0.3)
-                        : AppColors.withOpacity(AppColors.green, 0.3),
-                  ),
-                ),
-              );
-            }).toList(),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class FloatingIcon {
-  final IconData icon;
-  final double x;
-  final double y;
-  final double size;
-  final double speed;
-  final double rotation;
-
-  FloatingIcon({
-    required this.icon,
-    required this.x,
-    required this.y,
-    required this.size,
-    required this.speed,
-    required this.rotation,
-  });
 }
