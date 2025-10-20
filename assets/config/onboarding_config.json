@@ -32,7 +32,7 @@
       "description": "Get accurate nutrition insights and personalized health guidance tailored to your wellness goals.",
       "background_image": "assets/images/bg_bmi.jpg",
       "background_image_url": "https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=1080&h=1920&fit=crop",
-      "background_video_url": "assets/videos/second.mp4",
+      "background_video_url": "assets/videos/second.webm",
       "use_video": true,
       "icon": "calculator",
       "primary_color_override": null
