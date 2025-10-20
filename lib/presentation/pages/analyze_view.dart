@@ -25,6 +25,8 @@ class AnalyzeView extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   HealthInfoCard(profile: profile, isMetric: isMetric),
+                  // Add bottom padding to prevent content from being hidden behind bottom nav bar
+                  const SizedBox(height: 100),
                 ],
               ),
             ),

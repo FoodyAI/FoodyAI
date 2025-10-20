@@ -42,6 +42,7 @@ dependencies:
   crypto: ^3.0.3
   video_player: ^2.8.1
   animated_text_kit: ^4.2.2
+  percent_indicator: ^4.2.3
 
 dev_dependencies:
   flutter_test:
