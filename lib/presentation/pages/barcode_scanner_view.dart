@@ -405,20 +405,30 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
-                          blurRadius: 16,
-                          offset: const Offset(0, 4),
+                          color: isDark
+                              ? Colors.black.withOpacity(0.4)
+                              : Colors.black.withOpacity(0.25),
+                          blurRadius: isDark ? 16 : 24,
+                          offset: const Offset(0, 6),
+                          spreadRadius: isDark ? 0 : 2,
                         ),
+                        // Add second shadow layer for more depth
+                        if (!isDark)
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.15),
+                            blurRadius: 12,
+                            offset: const Offset(0, 3),
+                          ),
                       ],
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(20),
                       child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                        filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
                         child: Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 24,
-                            vertical: 16,
+                            vertical: 18,
                           ),
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
@@ -426,45 +436,52 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
                               end: Alignment.bottomRight,
                               colors: isDark
                                   ? [
-                                      Colors.white.withOpacity(0.15),
-                                      Colors.white.withOpacity(0.08),
+                                      Colors.white.withOpacity(0.20),
+                                      Colors.white.withOpacity(0.12),
                                     ]
                                   : [
-                                      Colors.white.withOpacity(0.9),
-                                      Colors.white.withOpacity(0.8),
+                                      Colors.white.withOpacity(0.98),
+                                      Colors.white.withOpacity(0.92),
                                     ],
                             ),
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
                               color: isDark
-                                  ? Colors.white.withOpacity(0.3)
-                                  : Colors.white.withOpacity(0.8),
-                              width: 1.5,
+                                  ? Colors.white.withOpacity(0.35)
+                                  : Colors.white.withOpacity(0.90),
+                              width: isDark ? 1.5 : 2,
                             ),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Container(
-                                padding: const EdgeInsets.all(8),
+                                padding: const EdgeInsets.all(10),
                                 decoration: BoxDecoration(
-                                  color: AppColors.primary.withOpacity(0.15),
-                                  borderRadius: BorderRadius.circular(10),
+                                  color: AppColors.primary.withOpacity(0.18),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: AppColors.primary.withOpacity(0.3),
+                                    width: 1,
+                                  ),
                                 ),
                                 child: FaIcon(
                                   FontAwesomeIcons.circleInfo,
-                                  size: 18,
+                                  size: 20,
                                   color: AppColors.primary,
                                 ),
                               ),
-                              const SizedBox(width: 12),
+                              const SizedBox(width: 14),
                               Flexible(
                                 child: Text(
                                   'Position barcode within the frame',
                                   style: TextStyle(
-                                    color: isDark ? Colors.white : AppColors.textPrimary,
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w600,
+                                    color: isDark 
+                                        ? Colors.white
+                                        : AppColors.textPrimary,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 0.2,
                                   ),
                                   textAlign: TextAlign.center,
                                 ),
