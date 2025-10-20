@@ -533,68 +533,62 @@ class _ProfileViewState extends State<ProfileView>
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          Card(
-            elevation: 4,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Weight Goal',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.onSurface,
-                    ),
+          _buildGlassmorphicCard(
+            context: context,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Weight Goal',
+                  style: GoogleFonts.poppins(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onSurface,
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'What would you like to achieve?',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: colorScheme.onSurface.withOpacity(0.7),
-                    ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'What would you like to achieve?',
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    color: colorScheme.onSurface.withOpacity(0.7),
                   ),
-                  const SizedBox(height: 32),
-                  ...WeightGoal.values.map((goal) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: _ProfileSettingOption<WeightGoal>(
-                        value: goal,
-                        selectedValue: profile.weightGoal,
-                        colorScheme: colorScheme,
-                        icon: _getWeightGoalIcon(goal),
-                        title: goal.displayName,
-                        subtitle: _getWeightGoalDescription(goal),
-                        categoryName: 'Weight Goal',
-                        onSelect: (selectedGoal) async {
-                          try {
-                            await profileVM.saveProfile(
-                              gender: profile.gender,
-                              age: profile.age,
-                              weight: profileVM.displayWeight,
-                              weightUnit: profileVM.weightUnit,
-                              height: profileVM.displayHeight,
-                              heightUnit: profileVM.heightUnit,
-                              activityLevel: profile.activityLevel,
-                              isMetric: profileVM.isMetric,
-                              weightGoal: selectedGoal,
-                              aiProvider: profile.aiProvider,
-                            );
-                            return true;
-                          } catch (e) {
-                            return false;
-                          }
-                        },
-                      ),
-                    );
-                  }).toList(),
-                ],
-              ),
+                ),
+                const SizedBox(height: 20),
+                ...WeightGoal.values.map((goal) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: _ProfileSettingOption<WeightGoal>(
+                      value: goal,
+                      selectedValue: profile.weightGoal,
+                      colorScheme: colorScheme,
+                      icon: _getWeightGoalIcon(goal),
+                      title: goal.displayName,
+                      subtitle: _getWeightGoalDescription(goal),
+                      categoryName: 'Weight Goal',
+                      onSelect: (selectedGoal) async {
+                        try {
+                          await profileVM.saveProfile(
+                            gender: profile.gender,
+                            age: profile.age,
+                            weight: profileVM.displayWeight,
+                            weightUnit: profileVM.weightUnit,
+                            height: profileVM.displayHeight,
+                            heightUnit: profileVM.heightUnit,
+                            activityLevel: profile.activityLevel,
+                            isMetric: profileVM.isMetric,
+                            weightGoal: selectedGoal,
+                            aiProvider: profile.aiProvider,
+                          );
+                          return true;
+                        } catch (e) {
+                          return false;
+                        }
+                      },
+                    ),
+                  );
+                }).toList(),
+              ],
             ),
           ),
           // Add bottom padding to prevent content from being hidden behind bottom nav bar
