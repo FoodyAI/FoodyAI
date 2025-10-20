@@ -4,10 +4,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:video_player/video_player.dart';
 import '../../../config/onboarding/onboarding_config.dart';
 import '../../../config/onboarding/onboarding_page_model.dart';
-import '../../widgets/onboarding/animated_page_indicator.dart';
+import 'dart:ui';
 
-/// Beautiful full-screen onboarding with immersive images
-/// Displays introduction pages before the main app onboarding
+/// Modern full-screen onboarding with immersive design
+/// Based on reference designs with bottom card layout
 class IntroOnboardingScreen extends StatefulWidget {
   final String configPath;
 
@@ -27,10 +27,9 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
   bool _isLoading = true;
   String? _errorMessage;
 
-  // Video player controller for page 2
+  // Video player controller
   VideoPlayerController? _videoController;
   bool _isVideoInitialized = false;
-  bool _isVideoPlaying = false;
 
   @override
   void initState() {
@@ -42,7 +41,6 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
   @override
   void dispose() {
     _pageController.dispose();
-    _videoController?.removeListener(_videoListener);
     _videoController?.dispose();
     super.dispose();
   }
@@ -50,20 +48,15 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
   /// Load the onboarding configuration from JSON
   Future<void> _loadConfiguration() async {
     try {
-      print('🎬 IntroOnboardingScreen: Loading configuration...');
       final config = await OnboardingConfig.loadFromAssets(widget.configPath);
-      print('🎬 IntroOnboardingScreen: Configuration loaded successfully');
-      print(
-          '🎬 IntroOnboardingScreen: Number of pages: ${config.pages.length}');
       setState(() {
         _config = config;
         _isLoading = false;
       });
 
-      // Initialize video for page 2 if needed
+      // Initialize video for first page if needed
       _initializeVideoForPage(0);
     } catch (e) {
-      print('❌ IntroOnboardingScreen: Failed to load configuration: $e');
       setState(() {
         _errorMessage = 'Failed to load onboarding configuration: $e';
         _isLoading = false;
@@ -92,132 +85,74 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
           if (mounted) {
             setState(() {
               _isVideoInitialized = true;
-              _isVideoPlaying = false;
             });
-            // Set video to loop
             _videoController!.setLooping(true);
-            // Add listener to track video state
-            _videoController!.addListener(_videoListener);
-            // Auto-play the video immediately with a small delay for smooth playback
-            Future.delayed(const Duration(milliseconds: 100), () {
+            // Auto-play video with small delay
+            Future.delayed(const Duration(milliseconds: 300), () {
               if (mounted && _videoController != null) {
                 _videoController!.play();
-                setState(() {
-                  _isVideoPlaying = true;
-                });
               }
-            });
-          }
-        }).catchError((error) {
-          print('Video initialization error: $error');
-          if (mounted) {
-            setState(() {
-              _isVideoInitialized = false;
             });
           }
         });
       } else {
-        _videoController?.removeListener(_videoListener);
         _videoController?.dispose();
         _videoController = null;
         _isVideoInitialized = false;
-        _isVideoPlaying = false;
       }
     }
   }
 
-  /// Listener to track video playing state
-  void _videoListener() {
-    if (_videoController != null && mounted) {
-      final isPlaying = _videoController!.value.isPlaying;
-      if (isPlaying != _isVideoPlaying) {
-        setState(() {
-          _isVideoPlaying = isPlaying;
-        });
-      }
-    }
+  /// Skip the onboarding
+  Future<void> _skipOnboarding() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('intro_completed', true);
+
+    if (!mounted) return;
+
+    Navigator.of(context).pushReplacementNamed(_config.navigation.onSkipRoute);
   }
 
-  /// Navigate to the next page
-  void _nextPage() {
+  /// Complete the onboarding
+  Future<void> _completeOnboarding() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('intro_completed', true);
+
+    if (!mounted) return;
+
+    Navigator.of(context)
+        .pushReplacementNamed(_config.navigation.onCompleteRoute);
+  }
+
+  /// Navigate to next page or complete
+  void _handleNext() {
     if (_currentPage < _config.pages.length - 1) {
-      _pageController.animateToPage(
-        _currentPage + 1,
-        duration:
-            Duration(milliseconds: _config.animations.pageTransitionDurationMs),
-        curve: _config.animations.getCurve(),
+      _pageController.nextPage(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
       );
     } else {
       _completeOnboarding();
     }
   }
 
-  /// Navigate to the previous page
-  void _previousPage() {
-    if (_currentPage > 0) {
-      _pageController.animateToPage(
-        _currentPage - 1,
-        duration:
-            Duration(milliseconds: _config.animations.pageTransitionDurationMs),
-        curve: _config.animations.getCurve(),
-      );
-    }
-  }
-
-  /// Skip the onboarding
-  Future<void> _skipOnboarding() async {
-    print('🚨 IntroOnboardingScreen: _skipOnboarding() called!');
-    print('🚨 IntroOnboardingScreen: Stack trace:');
-    print(StackTrace.current);
-
-    // Mark intro as completed
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('intro_completed', true);
-
-    if (!mounted) return;
-
-    // Navigate to welcome/sign-in screen
-    Navigator.of(context).pushReplacementNamed(_config.navigation.onSkipRoute);
-  }
-
-  /// Complete the onboarding
-  Future<void> _completeOnboarding() async {
-    print('🚨 IntroOnboardingScreen: _completeOnboarding() called!');
-    print('🚨 IntroOnboardingScreen: Stack trace:');
-    print(StackTrace.current);
-
-    // Mark intro as completed
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('intro_completed', true);
-
-    if (!mounted) return;
-
-    // Navigate to welcome/sign-in screen
-    Navigator.of(context)
-        .pushReplacementNamed(_config.navigation.onCompleteRoute);
+  /// Navigate to welcome page
+  void _navigateToWelcome() {
+    Navigator.of(context).pushReplacementNamed('/welcome');
   }
 
   @override
   Widget build(BuildContext context) {
-    print(
-        '🎬 IntroOnboardingScreen: build() called - Loading: $_isLoading, Error: $_errorMessage');
-    print('🎬 IntroOnboardingScreen: RENDERING INTRO SCREEN');
-    print('🎬 IntroOnboardingScreen: Stack trace:');
-    print(StackTrace.current);
-
     if (_isLoading) {
-      print('🎬 IntroOnboardingScreen: Showing loading screen');
       return _buildLoadingScreen();
     }
 
     if (_errorMessage != null) {
-      print('🎬 IntroOnboardingScreen: Showing error screen');
       return _buildErrorScreen();
     }
 
-    print(
-        '🎬 IntroOnboardingScreen: Showing main content - Current page: $_currentPage');
     return Scaffold(
+      backgroundColor: Colors.black,
       body: Stack(
         children: [
           // PageView with full-screen pages
@@ -227,20 +162,30 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
               setState(() {
                 _currentPage = index;
               });
-              // Initialize video for the new page
               _initializeVideoForPage(index);
             },
             itemCount: _config.pages.length,
             itemBuilder: (context, index) {
-              return _buildPage(_config.pages[index]);
+              return _buildPage(_config.pages[index], index);
             },
           ),
 
-          // Bottom section with indicators and buttons
+          // Skip button (top right)
+          SafeArea(
+            child: Align(
+              alignment: Alignment.topRight,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: _buildSkipButton(),
+              ),
+            ),
+          ),
+
+          // Bottom content card
           SafeArea(
             child: Align(
               alignment: Alignment.bottomCenter,
-              child: _buildBottomSection(),
+              child: _buildBottomCard(),
             ),
           ),
         ],
@@ -251,23 +196,10 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
   /// Build loading screen
   Widget _buildLoadingScreen() {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0E27),
+      backgroundColor: Colors.black,
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            CircularProgressIndicator(
-              color: const Color(0xFFFF1744),
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              'Loading...',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-              ),
-            ),
-          ],
+        child: CircularProgressIndicator(
+          color: const Color(0xFFFF6B6B),
         ),
       ),
     );
@@ -276,7 +208,7 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
   /// Build error screen
   Widget _buildErrorScreen() {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0E27),
+      backgroundColor: Colors.black,
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -286,7 +218,7 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
               const Icon(
                 Icons.error_outline,
                 size: 64,
-                color: Color(0xFFFF1744),
+                color: Color(0xFFFF6B6B),
               ),
               const SizedBox(height: 24),
               Text(
@@ -307,7 +239,13 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
                   _loadConfiguration();
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFF1744),
+                  backgroundColor: const Color(0xFFFF6B6B),
+                  foregroundColor: Colors.white,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
                 ),
                 child: const Text('Retry'),
               ),
@@ -318,19 +256,54 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
     );
   }
 
+  /// Build a single onboarding page
+  Widget _buildPage(OnboardingPageModel page, int index) {
+    return Stack(
+      children: [
+        // Full-screen background (video or image)
+        Positioned.fill(
+          child: page.useVideo && page.backgroundVideoUrl != null
+              ? _buildVideoBackground(page)
+              : _buildImageBackground(page),
+        ),
+
+        // Dark overlay for better contrast
+        Positioned.fill(
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.black.withOpacity(0.3),
+                  Colors.black.withOpacity(0.7),
+                ],
+                stops: const [0.3, 1.0],
+              ),
+            ),
+          ),
+        ),
+
+        // Optional overlay content (like scanning frame, macro cards, etc.)
+        if (index == 0) _buildScanningOverlay(),
+        if (index == 1) _buildMacroCardsOverlay(),
+      ],
+    );
+  }
+
   /// Build image background
   Widget _buildImageBackground(OnboardingPageModel page) {
     return CachedNetworkImage(
       imageUrl: page.backgroundImageUrl,
       fit: BoxFit.cover,
       placeholder: (context, url) => Container(
-        color: _config.theme.backgroundDark,
+        color: Colors.black,
         child: const Center(
           child: CircularProgressIndicator(color: Colors.white),
         ),
       ),
       errorWidget: (context, url, error) => Container(
-        color: _config.theme.backgroundDark,
+        color: Colors.black,
         child: const Center(
           child: Icon(Icons.error, color: Colors.white, size: 48),
         ),
@@ -338,11 +311,11 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
     );
   }
 
-  /// Build video background with auto-play
+  /// Build video background
   Widget _buildVideoBackground(OnboardingPageModel page) {
     if (_videoController == null || !_isVideoInitialized) {
       return Container(
-        color: _config.theme.backgroundDark,
+        color: Colors.black,
         child: const Center(
           child: CircularProgressIndicator(color: Colors.white),
         ),
@@ -361,275 +334,315 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
     );
   }
 
-  /// Build a single onboarding page
-  Widget _buildPage(OnboardingPageModel page) {
-    return Stack(
-      children: [
-        // Full-screen background (video or image)
-        Positioned.fill(
-          child: page.useVideo && page.backgroundVideoUrl != null
-              ? _buildVideoBackground(page)
-              : _buildImageBackground(page),
-        ),
-
-        // Dark gradient overlay from top
-        Positioned(
-          top: 0,
-          left: 0,
-          right: 0,
-          height: 150,
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.black.withOpacity(0.6),
-                  Colors.black.withOpacity(0.0),
-                ],
-              ),
-            ),
-          ),
-        ),
-
-        // Extended bottom gradient for better text visibility
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: 0,
-          height: 400,
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.black.withOpacity(0.0),
-                  Colors.black.withOpacity(0.4),
-                  Colors.black.withOpacity(0.85),
-                  Colors.black.withOpacity(0.95),
-                ],
-              ),
-            ),
-          ),
-        ),
-
-        // Bottom text content (moved up to avoid button overlap)
-        Positioned(
-          left: 0,
-          right: 0,
-          bottom: 140,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Title
-                Text(
-                  page.title,
-                  style: const TextStyle(
-                    fontSize: 38,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                    height: 1.2,
-                    letterSpacing: -0.5,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                // Description
-                Text(
-                  page.description,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w300,
-                    color: Colors.white.withOpacity(0.88),
-                    height: 1.55,
-                    letterSpacing: 0.1,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-
-        // Skip button at top right (moved down to avoid overflow)
-        if (_config.uiElements.skipButton.show)
-          Positioned(
-            top: 50,
-            right: 20,
-            child: TextButton(
-              onPressed: _skipOnboarding,
-              style: TextButton.styleFrom(
-                backgroundColor: Colors.black.withOpacity(0.25),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 22, vertical: 10),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(25),
-                ),
-              ),
-              child: Text(
-                _config.uiElements.skipButton.text,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w500,
-                  letterSpacing: 0.2,
-                ),
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-
-  /// Build bottom section with page indicators and navigation buttons
-  Widget _buildBottomSection() {
-    final isFirstPage = _currentPage == 0;
-    final isLastPage = _currentPage == _config.pages.length - 1;
-
-    return Container(
-      padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+  /// Build scanning frame overlay (Page 1)
+  Widget _buildScanningOverlay() {
+    return Center(
       child: Column(
-        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Page indicators
-          PageIndicatorFactory.create(
-            pageCount: _config.pages.length,
-            currentPage: _currentPage,
-            config: _config.uiElements.pageIndicators,
+          const SizedBox(height: 60),
+          const Text(
+            'Scanning...',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.w500,
+              letterSpacing: 0.5,
+            ),
           ),
-
-          const SizedBox(height: 24),
-
-          // Navigation buttons
-          Row(
-            children: [
-              // Back button (only show if not first page)
-              if (!isFirstPage && _config.navigation.allowBackNavigation) ...[
-                Expanded(
-                  child: _buildBackButton(),
-                ),
-                const SizedBox(width: 16),
-              ],
-
-              // Continue/Get Started button (wider on first page)
-              Expanded(
-                flex: isFirstPage ? 1 : 2,
-                child: isLastPage
-                    ? _buildGetStartedButton()
-                    : _buildContinueButton(),
+          const SizedBox(height: 40),
+          // Scanning frame
+          Container(
+            width: 280,
+            height: 280,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(32),
+              border: Border.all(
+                color: Colors.white,
+                width: 3,
               ),
-            ],
+            ),
+            child: Stack(
+              children: [
+                // Corner brackets
+                _buildCornerBracket(Alignment.topLeft, true, true),
+                _buildCornerBracket(Alignment.topRight, true, false),
+                _buildCornerBracket(Alignment.bottomLeft, false, true),
+                _buildCornerBracket(Alignment.bottomRight, false, false),
+              ],
+            ),
           ),
-
-          // Already signed in text (show on all pages)
-          const SizedBox(height: 16),
-          _buildAlreadySignedInText(),
         ],
       ),
     );
   }
 
-  /// Build back button
-  Widget _buildBackButton() {
-    return ElevatedButton(
-      onPressed: _previousPage,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.white.withOpacity(0.2),
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-      ),
-      child: Text(
-        _config.uiElements.backButton.text,
-        style: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
-          letterSpacing: 0.2,
-        ),
-      ),
-    );
-  }
-
-  /// Build continue button
-  Widget _buildContinueButton() {
-    return ElevatedButton(
-      onPressed: _nextPage,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: _config.theme.primaryColor,
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-      ),
-      child: Text(
-        _config.uiElements.continueButton.text,
-        style: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-          letterSpacing: 0.3,
-        ),
-      ),
-    );
-  }
-
-  /// Build get started button
-  Widget _buildGetStartedButton() {
-    return ElevatedButton(
-      onPressed: _completeOnboarding,
-      style: ElevatedButton.styleFrom(
-        backgroundColor: _config.theme.primaryColor,
-        foregroundColor: Colors.white,
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-      ),
-      child: Text(
-        _config.uiElements.getStartedButton.text,
-        style: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
-          letterSpacing: 0.3,
-        ),
-      ),
-    );
-  }
-
-  /// Build already signed in text
-  Widget _buildAlreadySignedInText() {
-    return Center(
-      child: TextButton(
-        onPressed: _navigateToWelcome,
-        style: TextButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        ),
-        child: Text(
-          'Already signed in?',
-          style: TextStyle(
-            color: Colors.white.withOpacity(0.8),
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-            decoration: TextDecoration.underline,
-            decorationColor: Colors.white.withOpacity(0.6),
+  /// Build corner bracket for scanning frame
+  Widget _buildCornerBracket(Alignment alignment, bool isTop, bool isLeft) {
+    return Align(
+      alignment: alignment,
+      child: Container(
+        width: 50,
+        height: 50,
+        decoration: BoxDecoration(
+          border: Border(
+            top: isTop
+                ? const BorderSide(color: Colors.white, width: 4)
+                : BorderSide.none,
+            bottom: !isTop
+                ? const BorderSide(color: Colors.white, width: 4)
+                : BorderSide.none,
+            left: isLeft
+                ? const BorderSide(color: Colors.white, width: 4)
+                : BorderSide.none,
+            right: !isLeft
+                ? const BorderSide(color: Colors.white, width: 4)
+                : BorderSide.none,
+          ),
+          borderRadius: BorderRadius.only(
+            topLeft: isTop && isLeft ? const Radius.circular(32) : Radius.zero,
+            topRight:
+                isTop && !isLeft ? const Radius.circular(32) : Radius.zero,
+            bottomLeft:
+                !isTop && isLeft ? const Radius.circular(32) : Radius.zero,
+            bottomRight:
+                !isTop && !isLeft ? const Radius.circular(32) : Radius.zero,
           ),
         ),
       ),
     );
   }
 
-  /// Navigate to welcome page
-  void _navigateToWelcome() {
-    print('🚨 IntroOnboardingScreen: _navigateToWelcome() called!');
-    print('🚨 IntroOnboardingScreen: Stack trace:');
-    print(StackTrace.current);
-    Navigator.of(context).pushReplacementNamed('/welcome');
+  /// Build macro nutrition cards overlay (Page 2)
+  Widget _buildMacroCardsOverlay() {
+    return Positioned(
+      left: 0,
+      right: 0,
+      bottom: 340,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _buildMacroCard('Protein', '35g', const Color(0xFFB8A0FF)),
+            const SizedBox(width: 12),
+            _buildMacroCard('Carbs', '35g', const Color(0xFFC4E17F)),
+            const SizedBox(width: 12),
+            _buildMacroCard('Fat', '35g', const Color(0xFFFFC876)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Build individual macro card
+  Widget _buildMacroCard(String label, String value, Color color) {
+    return Container(
+      width: 100,
+      height: 120,
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.9),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              color: Colors.black.withOpacity(0.7),
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 8),
+          // Circular progress indicator
+          SizedBox(
+            width: 50,
+            height: 50,
+            child: Stack(
+              children: [
+                Center(
+                  child: SizedBox(
+                    width: 50,
+                    height: 50,
+                    child: CircularProgressIndicator(
+                      value: 0.75,
+                      strokeWidth: 4,
+                      backgroundColor: Colors.white.withOpacity(0.3),
+                      valueColor: const AlwaysStoppedAnimation<Color>(
+                        Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+                Center(
+                  child: Text(
+                    value,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Build skip button
+  Widget _buildSkipButton() {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: _skipOnboarding,
+        borderRadius: BorderRadius.circular(25),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.4),
+            borderRadius: BorderRadius.circular(25),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.2),
+              width: 1,
+            ),
+          ),
+          child: const Text(
+            'Skip',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Build bottom content card
+  Widget _buildBottomCard() {
+    final page = _config.pages[_currentPage];
+    final isLastPage = _currentPage == _config.pages.length - 1;
+
+    return Container(
+      margin: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(32),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.2),
+            blurRadius: 20,
+            offset: const Offset(0, -5),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(32.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Page indicators
+            _buildPageIndicators(),
+            const SizedBox(height: 24),
+
+            // Title
+            Text(
+              page.title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+                height: 1.2,
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Description
+            Text(
+              page.description,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey[600],
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 32),
+
+            // Next button
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _handleNext,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFF6B6B),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 18),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  elevation: 0,
+                ),
+                child: Text(
+                  isLastPage ? 'Get Started' : 'Next',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+            ),
+
+            // "Already signed in?" text (only on last page)
+            if (isLastPage) ...[
+              const SizedBox(height: 16),
+              TextButton(
+                onPressed: _navigateToWelcome,
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.grey[600],
+                ),
+                child: const Text(
+                  'Already signed in?',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Build page indicators (dots)
+  Widget _buildPageIndicators() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(
+        _config.pages.length,
+        (index) => AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          margin: const EdgeInsets.symmetric(horizontal: 4),
+          width: index == _currentPage ? 8 : 8,
+          height: 8,
+          decoration: BoxDecoration(
+            color: index == _currentPage
+                ? const Color(0xFFFF6B6B)
+                : Colors.grey[300],
+            borderRadius: BorderRadius.circular(4),
+          ),
+        ),
+      ),
+    );
   }
 }
