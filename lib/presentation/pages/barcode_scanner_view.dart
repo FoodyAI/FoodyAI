@@ -154,6 +154,7 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final scanArea = Rect.fromCenter(
       center: Offset(size.width / 2, size.height / 2),
       width: _scanFrameSize,
