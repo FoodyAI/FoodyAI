@@ -4,23 +4,23 @@
     "tagline": "Your Personal Nutrition Companion"
   },
   "theme": {
-    "primary_color": "#FF1744",
-    "secondary_color": "#FF4081",
-    "accent_color": "#FF80AB",
-    "background_dark": "#0A0E27",
-    "background_darker": "#06080F",
+    "primary_color": "#FF6B6B",
+    "secondary_color": "#FF8E8E",
+    "accent_color": "#FFB5B5",
+    "background_dark": "#000000",
+    "background_darker": "#000000",
     "text_primary": "#FFFFFF",
     "text_secondary": "#B0B0B0",
     "button_gradient": {
-      "start_color": "#FF1744",
-      "end_color": "#FF4081"
+      "start_color": "#FF6B6B",
+      "end_color": "#FF8E8E"
     }
   },
   "onboarding_pages": [
     {
       "id": "page_1",
-      "title": "Discover\nDelicious Food",
-      "description": "Experience the finest culinary creations with our intelligent food tracking and nutrition analysis.",
+      "title": "Effortless calorie tracking",
+      "description": "Snap your meal, and we'll handle the rest—calorie tracking!",
       "background_image": "assets/images/bg_nutrition.jpg",
       "background_image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=1080&h=1920&fit=crop",
       "icon": "nutrition",
@@ -28,8 +28,8 @@
     },
     {
       "id": "page_2",
-      "title": "Track Your\nNutrition",
-      "description": "Get accurate nutrition insights and personalized health guidance tailored to your wellness goals.",
+      "title": "Effortless calorie tracking",
+      "description": "Snap your meal, and we'll handle the rest—calorie tracking!",
       "background_image": "assets/images/bg_bmi.jpg",
       "background_image_url": "https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=1080&h=1920&fit=crop",
       "background_video_url": "assets/videos/second.webm",
@@ -39,8 +39,8 @@
     },
     {
       "id": "page_3",
-      "title": "Achieve Your\nHealth Goals",
-      "description": "Monitor your progress, discover healthy recipes, and maintain a balanced lifestyle with ease.",
+      "title": "Transform your body",
+      "description": "Today is the best time to start working toward your dream body",
       "background_image": "assets/images/bg_activity.jpg",
       "background_image_url": "https://images.unsplash.com/photo-1490818387583-1baba5e638af?w=1080&h=1920&fit=crop",
       "icon": "activity",
@@ -59,39 +59,39 @@
       "style": "outlined"
     },
     "continue_button": {
-      "text": "Continue",
+      "text": "Next",
       "style": "filled"
     },
     "get_started_button": {
       "text": "Get Started",
       "show_on_last_page": true,
-      "style": "filled_gradient"
+      "style": "filled"
     },
     "page_indicators": {
-      "type": "expanding_dots",
-      "active_width": 28,
+      "type": "dots",
+      "active_width": 8,
       "inactive_width": 8,
       "height": 8,
-      "spacing": 6,
-      "active_color": "#FFFFFF",
-      "inactive_color": "#FFFFFF40",
+      "spacing": 8,
+      "active_color": "#FF6B6B",
+      "inactive_color": "#E0E0E0",
       "animation_duration_ms": 300
     }
   },
   "phone_mockup": {
-    "show": true,
-    "style": "iphone_pro",
-    "border_width": 8,
-    "border_color": "#FFFFFF20",
-    "corner_radius": 40,
-    "notch_width": 120,
-    "notch_height": 25,
+    "show": false,
+    "style": "none",
+    "border_width": 0,
+    "border_color": "#FFFFFF00",
+    "corner_radius": 0,
+    "notch_width": 0,
+    "notch_height": 0,
     "shadow": {
-      "color": "#FF174450",
-      "blur_radius": 40,
-      "spread_radius": 5
+      "color": "#00000000",
+      "blur_radius": 0,
+      "spread_radius": 0
     },
-    "content_padding": 32
+    "content_padding": 0
   },
   "animations": {
     "page_transition_duration_ms": 300,
