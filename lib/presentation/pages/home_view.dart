@@ -337,26 +337,13 @@ class _HomeContentState extends State<_HomeContent> {
                           vm.pickImage(ImageSource.camera, context);
                         },
                       ),
-                      ListTile(
-                        leading: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: AppColors.withOpacity(
-                                colorScheme.secondary, 0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: FaIcon(
-                            FontAwesomeIcons.images,
-                            color: colorScheme.secondary,
-                          ),
-                        ),
-                        title: Text(
-                          'Upload from Gallery',
-                          style: TextStyle(
-                            color: isDark ? AppColors.white : AppColors.black,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
+                      // Upload from Gallery option with glassmorphism
+                      _buildGlassmorphismOption(
+                        context: context,
+                        icon: FontAwesomeIcons.images,
+                        iconColor: colorScheme.secondary,
+                        title: 'Upload from Gallery',
+                        isDark: isDark,
                         onTap: () {
                           Navigator.pop(context);
                           final vm = Provider.of<ImageAnalysisViewModel>(
