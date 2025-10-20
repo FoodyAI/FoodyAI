@@ -352,26 +352,13 @@ class _HomeContentState extends State<_HomeContent> {
                           vm.pickImage(ImageSource.gallery, context);
                         },
                       ),
-                      ListTile(
-                        leading: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: AppColors.withOpacity(
-                                colorScheme.tertiary, 0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: FaIcon(
-                            FontAwesomeIcons.barcode,
-                            color: colorScheme.tertiary,
-                          ),
-                        ),
-                        title: Text(
-                          'Scan Barcode',
-                          style: TextStyle(
-                            color: isDark ? AppColors.white : AppColors.black,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
+                      // Scan Barcode option with glassmorphism
+                      _buildGlassmorphismOption(
+                        context: context,
+                        icon: FontAwesomeIcons.barcode,
+                        iconColor: colorScheme.tertiary,
+                        title: 'Scan Barcode',
+                        isDark: isDark,
                         onTap: () {
                           Navigator.pop(context);
 
