@@ -56,5 +56,6 @@ flutter:
     - .env
     - assets/
     - assets/animations/
+    - assets/animations/auth/
     - assets/config/
     - assets/images/
