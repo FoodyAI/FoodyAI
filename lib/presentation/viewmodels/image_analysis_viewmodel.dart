@@ -616,9 +616,6 @@ class ImageAnalysisViewModel extends ChangeNotifier {
       await _syncService.saveFoodAnalysisToAWS(analysis);
       print('✅ ImageAnalysisViewModel: AWS sync completed');
 
-      // Check if it's a good time to show the rating dialog
-      await _checkAndShowRating();
-
       print('✅ ImageAnalysisViewModel: Barcode analysis added successfully');
     } catch (e) {
       print('❌ ImageAnalysisViewModel: Error adding barcode analysis: $e');
