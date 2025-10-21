@@ -384,7 +384,7 @@ class _CalorieTrackingCardState extends State<CalorieTrackingCard>
                       color: Theme.of(context)
                           .colorScheme
                           .onSurface
-                          .withOpacity(0.7),
+                          .withValues(alpha: 0.7),
                       fontSize: 14,
                     ),
                   ),
