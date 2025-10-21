@@ -8,6 +8,8 @@ import '../../presentation/pages/profile_view.dart';
 import '../../presentation/pages/barcode_scanner_view.dart';
 import '../../presentation/pages/analysis_loading_view.dart';
 import '../../presentation/pages/subscription_view.dart';
+import '../../presentation/pages/legal/privacy_policy_page.dart';
+import '../../presentation/pages/legal/terms_of_service_page.dart';
 
 class AppRoutes {
   // Route names
@@ -20,6 +22,8 @@ class AppRoutes {
   static const String barcodeScanner = '/barcode-scanner';
   static const String analysisLoading = '/analysis-loading';
   static const String subscription = '/subscription';
+  static const String privacyPolicy = '/privacy-policy';
+  static const String termsOfService = '/terms-of-service';
 
   // Route arguments
   static const String isFirstTimeUser = 'isFirstTimeUser';
@@ -49,6 +53,8 @@ class AppRoutes {
           returnRoute: args?['returnRoute'],
         );
       },
+      privacyPolicy: (context) => const PrivacyPolicyPage(),
+      termsOfService: (context) => const TermsOfServicePage(),
     };
   }
 
