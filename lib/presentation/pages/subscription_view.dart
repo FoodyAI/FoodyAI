@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:provider/provider.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'dart:ui';
 import '../../domain/entities/subscription_tier.dart';
 import '../../core/constants/app_colors.dart';
 import '../widgets/custom_app_bar.dart';
-import '../viewmodels/auth_viewmodel.dart';
 import '../../config/routes/navigation_service.dart';
 
 class SubscriptionView extends StatefulWidget {
@@ -26,92 +25,83 @@ class _SubscriptionViewState extends State<SubscriptionView> {
 
   bool isYearly = true; // Default to yearly plan
 
+  /// Helper method to build glassmorphic cards (matching profile_view.dart style)
+  Widget _buildGlassmorphicCard({
+    required BuildContext context,
+    required Widget child,
+    EdgeInsets padding = const EdgeInsets.all(14),
+    EdgeInsets margin = const EdgeInsets.only(bottom: 10),
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      margin: margin,
+      padding: padding,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDark
+              ? [
+                  Colors.grey[850]!.withOpacity(0.95),
+                  Colors.grey[900]!.withOpacity(0.95),
+                ]
+              : [
+                  Colors.white.withOpacity(0.90),
+                  Colors.white.withOpacity(0.85),
+                ],
+        ),
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withOpacity(0.2)
+              : Colors.white.withOpacity(0.7),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: isDark
+                ? Colors.black.withOpacity(0.3)
+                : Colors.grey.withOpacity(0.12),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+            spreadRadius: 0.5,
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.darkBackground : AppColors.white,
+      backgroundColor: isDark ? AppColors.darkBackground : Colors.white,
       appBar: CustomAppBar(
         title: 'Subscription',
         icon: FontAwesomeIcons.crown,
         showInfoButton: false,
-        leadingIcon: null, // Remove back button
+        leadingIcon: null,
         actions: [
-          IconButton(
-            icon: FaIcon(
-              FontAwesomeIcons.xmark,
-              color: isDark ? AppColors.darkTextSecondary : AppColors.grey600,
+          Container(
+            margin: const EdgeInsets.only(right: 8),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? Colors.white.withOpacity(0.1)
+                  : Colors.grey.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
             ),
-            onPressed: () {
-              if (widget.returnRoute != null) {
-                // Handle specific return routes
-                switch (widget.returnRoute) {
-                  case '/profile':
-                    // From profile page - go back to profile
-                    Navigator.of(context).pushNamedAndRemoveUntil(
-                      '/profile',
-                      (route) => false,
-                    );
-                    break;
-                  case '/home':
-                    // From home page - go back to home
-                    NavigationService.navigateToHome();
-                    break;
-                  case '/analyze':
-                    // From analyze page - go to home and clear all previous pages
-                    Navigator.of(context).pushNamedAndRemoveUntil(
-                      '/home',
-                      (route) => false,
-                    );
-                    break;
-                  default:
-                    // Default behavior for other routes
-                    Navigator.of(context).pushNamedAndRemoveUntil(
-                      widget.returnRoute!,
-                      (route) => false,
-                    );
-                }
-              } else {
-                // No return route specified - check navigation stack
-                final navigator = Navigator.of(context);
-                final canPop = navigator.canPop();
-
-                if (canPop) {
-                  // Check the previous route for special handling
-                  final previousRoute = ModalRoute.of(context)?.settings.name;
-                  print('Previous route: $previousRoute'); // Debug
-
-                  switch (previousRoute) {
-                    case '/analysis-loading':
-                      // From analysis flow - go to home and clear all previous pages
-                      print('Going to home from analysis-loading'); // Debug
-                      Navigator.of(context).pushNamedAndRemoveUntil(
-                        '/home',
-                        (route) => false,
-                      );
-                      break;
-                    case '/analyze':
-                      // From analyze page - go to home and clear all previous pages
-                      print('Going to home from analyze'); // Debug
-                      Navigator.of(context).pushNamedAndRemoveUntil(
-                        '/home',
-                        (route) => false,
-                      );
-                      break;
-                    default:
-                      // From other pages - go back normally
-                      print(
-                          'Going back normally from: $previousRoute'); // Debug
-                      navigator.pop();
-                  }
-                } else {
-                  // No previous page - go to home (this happens when analysis loading was replaced)
-                  print('No previous page, going to home'); // Debug
-                  NavigationService.navigateToHome();
-                }
-              }
-            },
+            child: IconButton(
+              icon: FaIcon(
+                FontAwesomeIcons.xmark,
+                color: isDark ? AppColors.darkTextSecondary : AppColors.grey600,
+                size: 18,
+              ),
+              onPressed: () => _handleClose(context),
+            ),
           ),
         ],
       ),
@@ -119,311 +109,324 @@ class _SubscriptionViewState extends State<SubscriptionView> {
         children: [
           Expanded(
             child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  // Premium Hero Section
+                  _buildHeroSection(context, isDark, colorScheme),
+
+                  const SizedBox(height: 20),
+
+                  // Pricing Toggle
+                  _buildPricingHeader(context, isDark, colorScheme),
+
                   const SizedBox(height: 16),
 
-                  // Current Plan Card with Glassmorphism
-                  _buildCurrentPlanCard(context, isDark),
+                  // Feature Highlights
+                  _buildFeatureHighlights(context, isDark, colorScheme),
 
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 16),
 
-                  // Subscription Plans
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Center(
-                          child: Text(
-                            'Choose Your Plan',
-                            style: TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                              color: isDark
-                                  ? AppColors.darkTextPrimary
-                                  : AppColors.textPrimary,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Center(
-                          child: Text(
-                            'Unlock unlimited scans and premium features',
-                            style: TextStyle(
-                              fontSize: 15,
-                              color: isDark
-                                  ? AppColors.darkTextSecondary
-                                  : AppColors.textSecondary,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 24),
+                  // Comparison Section (Optional - can be shown/hidden)
+                  if (currentSubscription.tier == SubscriptionTier.free)
+                    _buildComparisonSection(context, isDark, colorScheme),
 
-                        // Monthly/Yearly Toggle with Glassmorphism
-                        _buildPlanToggle(context, isDark),
-
-                        const SizedBox(height: 24),
-
-                        // Pro Plan Card with Glassmorphism
-                        _buildProPlanCard(context, isDark),
-
-                        const SizedBox(height: 89), // Space for fixed button
-                      ],
-                    ),
-                  ),
+                  const SizedBox(height: 90), // Space for fixed button
                 ],
               ),
             ),
           ),
 
-          // Start Free Trial Button with Glassmorphism (Fixed at bottom)
-          _buildTrialButton(context, isDark),
+          // Start Free Trial Button (Fixed at bottom)
+          _buildTrialButton(context, isDark, colorScheme),
         ],
       ),
     );
   }
 
-  Widget _buildCurrentPlanCard(BuildContext context, bool isDark) {
-    final tier = currentSubscription.tier;
-    final scansRemaining = currentSubscription.scansRemaining;
+  void _handleClose(BuildContext context) {
+    if (widget.returnRoute != null) {
+      switch (widget.returnRoute) {
+        case '/profile':
+          Navigator.of(context)
+              .pushNamedAndRemoveUntil('/profile', (route) => false);
+          break;
+        case '/home':
+          NavigationService.navigateToHome();
+          break;
+        case '/analyze':
+          Navigator.of(context)
+              .pushNamedAndRemoveUntil('/home', (route) => false);
+          break;
+        default:
+          Navigator.of(context)
+              .pushNamedAndRemoveUntil(widget.returnRoute!, (route) => false);
+      }
+    } else {
+      final navigator = Navigator.of(context);
+      if (navigator.canPop()) {
+        navigator.pop();
+      } else {
+        NavigationService.navigateToHome();
+      }
+    }
+  }
 
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Container(
-            padding: const EdgeInsets.all(24),
+  // Premium Hero Section inspired by Apple/Calm
+  Widget _buildHeroSection(
+      BuildContext context, bool isDark, ColorScheme colorScheme) {
+    final tier = currentSubscription.tier;
+
+    return _buildGlassmorphicCard(
+      context: context,
+      margin: EdgeInsets.zero,
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        children: [
+          // Crown Icon with gradient background
+          Container(
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.05)
-                  : Colors.white.withValues(alpha: 0.6),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: AppColors.primary.withValues(alpha: 0.3),
-                width: 2,
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  AppColors.primary,
+                  AppColors.primaryDark,
+                ],
               ),
+              borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.1),
-                  blurRadius: 30,
-                  offset: const Offset(0, 10),
+                  color: AppColors.primary.withOpacity(0.3),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
                 ),
               ],
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Consumer<AuthViewModel>(
-                      builder: (context, authViewModel, child) {
-                        final photoUrl = authViewModel.userPhotoURL;
-                        return CircleAvatar(
-                          radius: 20,
-                          backgroundColor:
-                              AppColors.primary.withValues(alpha: 0.1),
-                          backgroundImage:
-                              photoUrl != null ? NetworkImage(photoUrl) : null,
-                          child: photoUrl == null
-                              ? FaIcon(
-                                  tier == SubscriptionTier.pro
-                                      ? FontAwesomeIcons.crown
-                                      : tier == SubscriptionTier.trial
-                                          ? FontAwesomeIcons.clock
-                                          : FontAwesomeIcons.user,
-                                  color: AppColors.primary,
-                                  size: 20,
-                                )
-                              : null,
-                        );
-                      },
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Current Plan',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: isDark
-                                  ? AppColors.darkTextSecondary
-                                  : AppColors.textSecondary,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            tier.displayName,
-                            style: TextStyle(
-                              fontSize: 32,
-                              fontWeight: FontWeight.bold,
-                              color: isDark
-                                  ? AppColors.darkTextPrimary
-                                  : AppColors.textPrimary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? Colors.white.withValues(alpha: 0.05)
-                            : Colors.white.withValues(alpha: 0.6),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: AppColors.primary.withValues(alpha: 0.3),
-                          width: 2,
-                        ),
-                      ),
-                      child: Column(
-                        children: [
-                          if (tier == SubscriptionTier.trial &&
-                              currentSubscription.isTrialActive)
-                            Row(
-                              children: [
-                                FaIcon(
-                                  FontAwesomeIcons.clock,
-                                  color: AppColors.primary,
-                                  size: 18,
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Text(
-                                    '${currentSubscription.daysRemainingInTrial} days left in trial',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                      color: isDark
-                                          ? AppColors.darkTextPrimary
-                                          : AppColors.textPrimary,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            )
-                          else if (tier.isUnlimited)
-                            Row(
-                              children: [
-                                const FaIcon(
-                                  FontAwesomeIcons.infinity,
-                                  color: AppColors.primary,
-                                  size: 18,
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Text(
-                                    'Unlimited scans',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                      color: isDark
-                                          ? AppColors.darkTextPrimary
-                                          : AppColors.textPrimary,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            )
-                          else
-                            Column(
-                              children: [
-                                Row(
-                                  children: [
-                                    FaIcon(
-                                      FontAwesomeIcons.chartSimple,
-                                      color: AppColors.primary,
-                                      size: 18,
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Text(
-                                        '$scansRemaining/${tier.maxScansPerMonth} scans left this month',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w600,
-                                          color: isDark
-                                              ? AppColors.darkTextPrimary
-                                              : AppColors.textPrimary,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 12),
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: LinearProgressIndicator(
-                                    value: scansRemaining != null &&
-                                            tier.maxScansPerMonth != null
-                                        ? scansRemaining /
-                                            tier.maxScansPerMonth!
-                                        : 0,
-                                    backgroundColor: isDark
-                                        ? Colors.white.withValues(alpha: 0.1)
-                                        : Colors.black.withValues(alpha: 0.1),
-                                    valueColor:
-                                        const AlwaysStoppedAnimation<Color>(
-                                      AppColors.primary,
-                                    ),
-                                    minHeight: 8,
-                                  ),
-                                ),
-                              ],
-                            ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+            child: const FaIcon(
+              FontAwesomeIcons.crown,
+              color: Colors.white,
+              size: 32,
             ),
           ),
-        ),
+          const SizedBox(height: 20),
+          Text(
+            tier == SubscriptionTier.free ? 'Upgrade to Pro' : 'You\'re a Pro!',
+            style: GoogleFonts.poppins(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: colorScheme.onSurface,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            tier == SubscriptionTier.free
+                ? 'Unlock unlimited scans and premium features'
+                : 'Enjoy unlimited access to all features',
+            style: GoogleFonts.inter(
+              fontSize: 15,
+              color: colorScheme.onSurface.withOpacity(0.7),
+              height: 1.4,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          if (tier != SubscriptionTier.free) ...[
+            const SizedBox(height: 16),
+            _buildCurrentPlanBadge(context, isDark, colorScheme),
+          ],
+        ],
       ),
     );
   }
 
-  Widget _buildPlanToggle(BuildContext context, bool isDark) {
-    return Row(
-      children: [
-        // Monthly Button (50% width)
-        Expanded(
-          child: _buildToggleOption(
-            context,
-            isDark,
-            'Monthly',
-            '€2.99/mo',
-            !isYearly,
-            () => setState(() => isYearly = false),
-            showBadge: false,
-          ),
+  Widget _buildCurrentPlanBadge(
+      BuildContext context, bool isDark, ColorScheme colorScheme) {
+    final tier = currentSubscription.tier;
+    final scansRemaining = currentSubscription.scansRemaining;
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: colorScheme.primary.withOpacity(0.10),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: colorScheme.primary.withOpacity(0.25),
+          width: 1.5,
         ),
-        const SizedBox(width: 12),
-        // Yearly Button (50% width)
-        Expanded(
-          child: _buildToggleOption(
-            context,
-            isDark,
-            'Yearly',
-            '€29.99/yr',
-            isYearly,
-            () => setState(() => isYearly = true),
-            showBadge: false,
+      ),
+      child: tier == SubscriptionTier.trial && currentSubscription.isTrialActive
+          ? Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                FaIcon(
+                  FontAwesomeIcons.clock,
+                  color: colorScheme.primary,
+                  size: 16,
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  '${currentSubscription.daysRemainingInTrial} days left in trial',
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+              ],
+            )
+          : tier.isUnlimited
+              ? Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    FaIcon(
+                      FontAwesomeIcons.infinity,
+                      color: colorScheme.primary,
+                      size: 16,
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      'Unlimited scans',
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: colorScheme.onSurface,
+                      ),
+                    ),
+                  ],
+                )
+              : Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        FaIcon(
+                          FontAwesomeIcons.chartSimple,
+                          color: colorScheme.primary,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 10),
+                        Text(
+                          '$scansRemaining/${tier.maxScansPerMonth} scans remaining',
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: colorScheme.onSurface,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: LinearProgressIndicator(
+                        value: scansRemaining != null &&
+                                tier.maxScansPerMonth != null
+                            ? scansRemaining / tier.maxScansPerMonth!
+                            : 0,
+                        backgroundColor:
+                            colorScheme.onSurface.withOpacity(0.15),
+                        valueColor:
+                            AlwaysStoppedAnimation<Color>(colorScheme.primary),
+                        minHeight: 8,
+                      ),
+                    ),
+                  ],
+                ),
+    );
+  }
+
+  // Pricing Header Section
+  Widget _buildPricingHeader(
+      BuildContext context, bool isDark, ColorScheme colorScheme) {
+    final price = isYearly ? '€29.99' : '€2.99';
+    final period = isYearly ? 'year' : 'month';
+    final savings = isYearly ? '€6/year' : null;
+
+    return Column(
+      children: [
+        // Price Display
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(
+              price,
+              style: GoogleFonts.poppins(
+                fontSize: 48,
+                fontWeight: FontWeight.bold,
+                color: colorScheme.primary,
+                height: 1,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8, left: 4),
+              child: Text(
+                '/$period',
+                style: GoogleFonts.inter(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: colorScheme.onSurface.withOpacity(0.6),
+                ),
+              ),
+            ),
+          ],
+        ),
+        if (savings != null) ...[
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: AppColors.green.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: AppColors.green.withOpacity(0.3),
+                width: 1,
+              ),
+            ),
+            child: Text(
+              'Save $savings',
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                fontWeight: FontWeight.bold,
+                color: AppColors.green,
+              ),
+            ),
+          ),
+        ],
+        const SizedBox(height: 16),
+        // Toggle Buttons
+        _buildGlassmorphicCard(
+          context: context,
+          padding: const EdgeInsets.all(6),
+          margin: EdgeInsets.zero,
+          child: Row(
+            children: [
+              Expanded(
+                child: _buildToggleOption(
+                  context,
+                  isDark,
+                  colorScheme,
+                  'Monthly',
+                  !isYearly,
+                  () => setState(() => isYearly = false),
+                ),
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: _buildToggleOption(
+                  context,
+                  isDark,
+                  colorScheme,
+                  'Yearly',
+                  isYearly,
+                  () => setState(() => isYearly = true),
+                  showBadge: true,
+                ),
+              ),
+            ],
           ),
         ),
       ],
@@ -433,8 +436,8 @@ class _SubscriptionViewState extends State<SubscriptionView> {
   Widget _buildToggleOption(
     BuildContext context,
     bool isDark,
+    ColorScheme colorScheme,
     String title,
-    String subtitle,
     bool isSelected,
     VoidCallback onTap, {
     bool showBadge = false,
@@ -443,57 +446,49 @@ class _SubscriptionViewState extends State<SubscriptionView> {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(25), // More rounded
+        borderRadius: BorderRadius.circular(14),
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
+          duration: const Duration(milliseconds: 250),
           curve: Curves.easeInOut,
-          height: 60, // Reduced height for more button-like appearance
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
           decoration: BoxDecoration(
-            color: isSelected
-                ? AppColors.primary
-                : (isDark
-                    ? Colors.white.withValues(alpha: 0.1)
-                    : Colors.white.withValues(alpha: 0.8)),
-            borderRadius: BorderRadius.circular(25), // Fully rounded buttons
+            gradient: isSelected
+                ? const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      AppColors.primary,
+                      AppColors.primaryDark,
+                    ],
+                  )
+                : null,
+            color: isSelected ? null : Colors.transparent,
+            borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color: isSelected
-                  ? AppColors.primary
-                  : (isDark
-                      ? Colors.white.withValues(alpha: 0.2)
-                      : Colors.grey.withValues(alpha: 0.3)),
-              width: isSelected ? 2 : 1,
+                  ? Colors.transparent
+                  : colorScheme.onSurface.withOpacity(0.15),
+              width: 1.5,
             ),
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.4),
+                      color: AppColors.primary.withOpacity(0.3),
                       blurRadius: 12,
-                      offset: const Offset(0, 6),
+                      offset: const Offset(0, 4),
                     ),
                   ]
-                : [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
+                : null,
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 title,
-                style: TextStyle(
-                  fontSize: 16,
+                style: GoogleFonts.inter(
+                  fontSize: 15,
                   fontWeight: FontWeight.bold,
-                  color: isSelected
-                      ? Colors.white
-                      : (isDark
-                          ? AppColors.darkTextPrimary
-                          : AppColors.textPrimary),
+                  color: isSelected ? Colors.white : colorScheme.onSurface,
                 ),
               ),
               if (showBadge) ...[
@@ -503,22 +498,16 @@ class _SubscriptionViewState extends State<SubscriptionView> {
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? Colors.white.withValues(alpha: 0.2)
-                        : AppColors.primary.withValues(alpha: 0.1),
+                        ? Colors.white.withOpacity(0.25)
+                        : AppColors.green.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: isSelected
-                          ? Colors.white.withValues(alpha: 0.3)
-                          : AppColors.primary.withValues(alpha: 0.2),
-                      width: 1,
-                    ),
                   ),
                   child: Text(
-                    'RECOMMENDED',
-                    style: TextStyle(
+                    '17% OFF',
+                    style: GoogleFonts.inter(
                       fontSize: 9,
                       fontWeight: FontWeight.bold,
-                      color: isSelected ? Colors.white : AppColors.primary,
+                      color: isSelected ? Colors.white : AppColors.green,
                     ),
                   ),
                 ),
@@ -530,23 +519,126 @@ class _SubscriptionViewState extends State<SubscriptionView> {
     );
   }
 
-  Widget _buildPlanFeature(bool isDark, String text, String emoji) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Row(
+  // Feature Highlights Section
+  Widget _buildFeatureHighlights(
+      BuildContext context, bool isDark, ColorScheme colorScheme) {
+    return _buildGlassmorphicCard(
+      context: context,
+      margin: EdgeInsets.zero,
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            emoji,
-            style: const TextStyle(fontSize: 16),
+            'Everything Included',
+            style: GoogleFonts.poppins(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: colorScheme.onSurface,
+            ),
           ),
-          const SizedBox(width: 8),
-          Text(
-            text,
-            style: TextStyle(
-              fontSize: 13,
-              color: isDark
-                  ? AppColors.darkTextSecondary
-                  : AppColors.textSecondary,
+          const SizedBox(height: 16),
+          _buildFeatureItem(
+            context,
+            icon: FontAwesomeIcons.infinity,
+            title: 'Unlimited Scans',
+            description: 'Analyze as many foods as you want',
+            color: colorScheme.primary,
+          ),
+          _buildFeatureItem(
+            context,
+            icon: FontAwesomeIcons.barcode,
+            title: 'Barcode Scanner',
+            description: 'Instant nutrition info from barcodes',
+            color: colorScheme.secondary,
+          ),
+          _buildFeatureItem(
+            context,
+            icon: FontAwesomeIcons.chartLine,
+            title: 'Advanced Insights',
+            description: 'Detailed nutrition analysis & trends',
+            color: AppColors.orange,
+          ),
+          _buildFeatureItem(
+            context,
+            icon: FontAwesomeIcons.eyeSlash,
+            title: 'Ad-Free Experience',
+            description: 'Focus on your health without distractions',
+            color: colorScheme.tertiary,
+          ),
+          _buildFeatureItem(
+            context,
+            icon: FontAwesomeIcons.headset,
+            title: 'Priority Support',
+            description: 'Get help when you need it',
+            color: AppColors.blue,
+            isLast: true,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFeatureItem(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String description,
+    required Color color,
+    bool isLast = false,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: isLast ? 0 : 16),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  color.withOpacity(0.20),
+                  color.withOpacity(0.10),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: color.withOpacity(0.25),
+                width: 1.5,
+              ),
+            ),
+            child: FaIcon(
+              icon,
+              size: 20,
+              color: color,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: GoogleFonts.inter(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  description,
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    color: colorScheme.onSurface.withOpacity(0.65),
+                    height: 1.3,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -554,224 +646,119 @@ class _SubscriptionViewState extends State<SubscriptionView> {
     );
   }
 
-  Widget _buildProPlanCard(BuildContext context, bool isDark) {
-    final price = isYearly ? '€29.99' : '€2.99';
-    final period = isYearly ? 'year' : 'month';
-
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(28),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-        child: Container(
-          padding: const EdgeInsets.all(28),
-          decoration: BoxDecoration(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.05)
-                : Colors.white.withValues(alpha: 0.6),
-            borderRadius: BorderRadius.circular(28),
-            border: Border.all(
-              color: AppColors.primary.withValues(alpha: 0.3),
-              width: 2,
+  // Comparison Section (Free vs Pro)
+  Widget _buildComparisonSection(
+      BuildContext context, bool isDark, ColorScheme colorScheme) {
+    return _buildGlassmorphicCard(
+      context: context,
+      margin: EdgeInsets.zero,
+      padding: const EdgeInsets.all(18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Free vs Pro',
+            style: GoogleFonts.poppins(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: colorScheme.onSurface,
             ),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.1),
-                blurRadius: 30,
-                offset: const Offset(0, 10),
-              ),
-            ],
           ),
-          child: Stack(
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Row(
-                                  children: [
-                                    Text(
-                                      isYearly ? 'Unlimited' : 'Power Plan',
-                                      style: TextStyle(
-                                        fontSize: 32,
-                                        fontWeight: FontWeight.bold,
-                                        color: isDark
-                                            ? AppColors.darkTextPrimary
-                                            : AppColors.textPrimary,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      isYearly ? '🚀' : '💪',
-                                      style: const TextStyle(fontSize: 24),
-                                    ),
-                                  ],
-                                ),
-                                if (isYearly) ...[
-                                  const SizedBox(width: 12),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 8, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.primary
-                                          .withValues(alpha: 0.1),
-                                      borderRadius: BorderRadius.circular(8),
-                                      border: Border.all(
-                                        color: AppColors.primary
-                                            .withValues(alpha: 0.3),
-                                        width: 1,
-                                      ),
-                                    ),
-                                    child: Text(
-                                      'RECOMMENDED',
-                                      style: TextStyle(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.bold,
-                                        color: AppColors.primary,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                Flexible(
-                                  child: Text(
-                                    'Everything you need to reach your goals',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: isDark
-                                          ? AppColors.darkTextSecondary
-                                          : AppColors.textSecondary,
-                                    ),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  '🎯',
-                                  style: const TextStyle(fontSize: 14),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  // What you get section
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'What you get:',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: isDark
-                              ? AppColors.darkTextPrimary
-                              : AppColors.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      _buildPlanFeature(isDark, 'Unlimited food scans', '∞'),
-                      _buildPlanFeature(isDark, 'Barcode scanner', '📱'),
-                      _buildPlanFeature(isDark, 'Ad-free experience', '🚫'),
-                      _buildPlanFeature(
-                          isDark, 'Advanced nutrition insights', '📊'),
-                      _buildPlanFeature(isDark, 'Priority support', '⭐'),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        price,
-                        style: TextStyle(
-                          fontSize: 28, // Reduced from 56 to 28 (50% reduction)
-                          fontWeight: FontWeight.bold,
-                          color: isDark
-                              ? AppColors.darkTextPrimary
-                              : AppColors.textPrimary,
-                          height: 1,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 5),
-                        child: Text(
-                          '/$period',
-                          style: TextStyle(
-                            fontSize:
-                                10, // Reduced from 20 to 10 (50% reduction)
-                            fontWeight: FontWeight.w500,
-                            color: isDark
-                                ? AppColors.darkTextSecondary
-                                : AppColors.textSecondary,
-                          ),
-                        ),
-                      ),
-                      if (isYearly) ...[
-                        const SizedBox(width: 12),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: AppColors.primary.withValues(alpha: 0.3),
-                              width: 1,
-                            ),
-                          ),
-                          child: Text(
-                            'Save 17%',
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.primary,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
+          const SizedBox(height: 12),
+          _buildComparisonRow(
+              context, '5 scans/month', 'Unlimited scans', colorScheme),
+          _buildComparisonRow(
+              context, 'Basic analysis', 'Advanced insights', colorScheme),
+          _buildComparisonRow(context, 'Ads', 'Ad-free', colorScheme),
+          _buildComparisonRow(
+              context, 'Standard support', 'Priority support', colorScheme),
+        ],
       ),
     );
   }
 
-  Widget _buildTrialButton(BuildContext context, bool isDark) {
+  Widget _buildComparisonRow(
+      BuildContext context, String free, String pro, ColorScheme colorScheme) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        children: [
+          Expanded(
+            child: Row(
+              children: [
+                FaIcon(
+                  FontAwesomeIcons.xmark,
+                  size: 14,
+                  color: colorScheme.onSurface.withOpacity(0.4),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    free,
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      color: colorScheme.onSurface.withOpacity(0.5),
+                      decoration: TextDecoration.lineThrough,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Row(
+              children: [
+                const FaIcon(
+                  FontAwesomeIcons.check,
+                  size: 14,
+                  color: AppColors.primary,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    pro,
+                    style: GoogleFonts.inter(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: colorScheme.onSurface,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTrialButton(
+      BuildContext context, bool isDark, ColorScheme colorScheme) {
     return ClipRRect(
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
         child: Container(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(
-            color: isDark
-                ? Colors.black.withValues(alpha: 0.6)
-                : Colors.white.withValues(alpha: 0.8),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: isDark
+                  ? [
+                      Colors.grey[900]!.withOpacity(0.95),
+                      Colors.grey[850]!.withOpacity(0.95),
+                    ]
+                  : [
+                      Colors.white.withOpacity(0.95),
+                      Colors.white.withOpacity(0.90),
+                    ],
+            ),
             border: Border(
               top: BorderSide(
                 color: isDark
-                    ? Colors.white.withValues(alpha: 0.1)
-                    : Colors.white.withValues(alpha: 0.3),
+                    ? Colors.white.withOpacity(0.15)
+                    : Colors.grey.withOpacity(0.3),
                 width: 1,
               ),
             ),
@@ -797,12 +784,12 @@ class _SubscriptionViewState extends State<SubscriptionView> {
                         AppColors.primaryDark,
                       ],
                     ),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
                         color: AppColors.primary.withValues(alpha: 0.4),
-                        blurRadius: 20,
-                        offset: const Offset(0, 8),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
                       ),
                     ],
                   ),
@@ -810,34 +797,42 @@ class _SubscriptionViewState extends State<SubscriptionView> {
                     color: Colors.transparent,
                     child: InkWell(
                       onTap: () => _handleStartTrial(),
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(12),
                       child: Container(
                         width: double.infinity,
-                        padding: const EdgeInsets.symmetric(vertical: 18),
-                        child: const Center(
-                          child: Text(
-                            'Start Free Trial',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const FaIcon(
+                              FontAwesomeIcons.rocket,
                               color: Colors.white,
+                              size: 16,
                             ),
-                          ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Start Free Trial',
+                              style: GoogleFonts.inter(
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 6),
                 Text(
                   '3 days free, then ${isYearly ? "€29.99/year" : "€2.99/month"}',
-                  style: TextStyle(
-                    fontSize: 13,
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
                     fontWeight: FontWeight.w500,
-                    color: isDark
-                        ? AppColors.darkTextSecondary
-                        : AppColors.textSecondary,
+                    color: colorScheme.onSurface.withOpacity(0.65),
                   ),
+                  textAlign: TextAlign.center,
                 ),
               ],
             ),

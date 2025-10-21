@@ -3,91 +3,111 @@ import 'package:flutter/material.dart';
 class AppColors {
   AppColors._();
 
-  // Primary Colors
-  static const Color primary =
-      Color(0xFF2E7D32); // Deeper, more sophisticated green
-  static const Color primaryDark = Color(0xFF1B5E20); // Deep forest green
-  static const Color primaryLight = Color(0xFF81C784); // Light green
+  // Primary Colors - Fresh, vibrant green (iOS Health inspired)
+  static const Color primary = Color(0xFF34C759); // Vibrant iOS green
+  static const Color primaryDark = Color(0xFF248A3D); // Rich forest green
+  static const Color primaryLight = Color(0xFF5DD879); // Bright mint green
 
-  // Accent Colors
-  static const Color accent = Color(0xFFFF6B6B); // Warm coral for CTAs
-  static const Color accentDark = Color(0xFFE53935); // Darker coral
-  static const Color accentLight = Color(0xFFFF8A80); // Lighter coral
+  // Accent Colors - Modern coral/peach for contrast
+  static const Color accent = Color(0xFFFF6B6B); // Vibrant coral
+  static const Color accentDark = Color(0xFFE85D5D); // Deep coral
+  static const Color accentLight = Color(0xFFFF8F8F); // Soft peach
 
-  // Background Colors
-  static const Color background = Color(0xFFF8F9FA); // Light theme background
-  static const Color surface = Colors.white; // Light theme surface
-  static const Color darkBackground =
-      Color(0xFF121212); // Dark theme background
-  static const Color darkSurface = Color(0xFF1E1E1E); // Dark theme surface
+  // Background Colors - Subtle, modern
+  static const Color background = Color(0xFFF5F7FA); // Soft blue-grey
+  static const Color surface = Color(0xFFFFFFFF); // Pure white
+  static const Color darkBackground = Color(0xFF0D0D0D); // True dark
+  static const Color darkSurface = Color(0xFF1C1C1E); // iOS dark surface
 
-  // Text Colors
-  static const Color textPrimary =
-      Color(0xFF2C3E50); // Light theme primary text
-  static const Color textSecondary =
-      Color(0xFF546E7A); // Light theme secondary text
-  static const Color textHint = Color(0xFF90A4AE); // Light theme hint text
-  static const Color darkTextPrimary =
-      Color(0xFFE1E1E1); // Dark theme primary text
-  static const Color darkTextSecondary =
-      Color(0xFFB0B0B0); // Dark theme secondary text
-  static const Color darkTextHint = Color(0xFF808080); // Dark theme hint text
+  // Text Colors - High contrast, readable
+  static const Color textPrimary = Color(0xFF1C1C1E); // Near black
+  static const Color textSecondary = Color(0xFF6C6C70); // Medium grey
+  static const Color textHint = Color(0xFF999999); // Light grey
+  static const Color darkTextPrimary = Color(0xFFF5F5F7); // Near white
+  static const Color darkTextSecondary = Color(0xFFAEAEB2); // Light grey
+  static const Color darkTextHint = Color(0xFF8E8E93); // Medium grey
 
-  // Status Colors
-  static const Color success = Color(0xFF43A047); // Slightly softer green
-  static const Color warning = Color(0xFFFFB300); // Warmer amber
-  static const Color info = Color(0xFF1E88E5); // Deeper blue
-  static const Color error = Color(0xFFD32F2F); // Brighter red
+  // Status Colors - Vibrant and clear
+  static const Color success = Color(0xFF34C759); // iOS green
+  static const Color warning = Color(0xFFFFCC00); // Vibrant amber
+  static const Color info = Color(0xFF007AFF); // iOS blue
+  static const Color error = Color(0xFFFF3B30); // iOS red
 
   // UI Colors
-  static const Color white = Colors.white;
-  static const Color black = Colors.black;
+  static const Color white = Color(0xFFFFFFFF);
+  static const Color black = Color(0xFF000000);
   static const Color transparent = Colors.transparent;
-  static const Color darkCardBackground =
-      Color(0xFF2D2D2D); // Dark theme card background
-  static const Color darkDivider = Color(0xFF3D3D3D); // Dark theme divider
+  static const Color darkCardBackground = Color(0xFF2C2C2E); // iOS card dark
+  static const Color darkDivider = Color(0xFF38383A); // Subtle divider
 
-  // Grey Shades
-  static const Color grey100 = Color(0xFFF8F9FA); // Warmer light grey
-  static const Color grey200 = Color(0xFFE9ECEF); // Softer grey
-  static const Color grey300 = Color(0xFFDEE2E6); // Light grey
-  static const Color grey400 = Color(0xFFCED4DA); // Medium grey
-  static const Color grey500 = Color(0xFFADB5BD); // Standard grey
-  static const Color grey600 = Color(0xFF6C757D); // Dark grey
-  static const Color grey800 = Color(0xFF343A40); // Very dark grey
+  // Grey Shades - iOS System Grays
+  static const Color grey100 = Color(0xFFF2F2F7); // System grey 6
+  static const Color grey200 = Color(0xFFE5E5EA); // System grey 5
+  static const Color grey300 = Color(0xFFD1D1D6); // System grey 4
+  static const Color grey400 = Color(0xFFC7C7CC); // System grey 3
+  static const Color grey500 = Color(0xFFAEAEB2); // System grey 2
+  static const Color grey600 = Color(0xFF8E8E93); // System grey
+  static const Color grey800 = Color(0xFF48484A); // Dark grey
 
-  // Feature Colors
-  static const Color camera = Color(0xFF1E88E5); // Deeper blue
-  static const Color nutrition = Color(0xFF43A047); // Matching success
-  static const Color history = Color(0xFFFF9800); // Warm orange
-  static const Color profile = Color(0xFFEC407A); // Softer pink
+  // Feature Colors - Vibrant, glassmorphic-friendly
+  static const Color camera = Color(0xFF007AFF); // iOS blue
+  static const Color nutrition = Color(0xFF34C759); // iOS green
+  static const Color history = Color(0xFFFF9500); // iOS orange
+  static const Color profile = Color(0xFFFF2D55); // iOS pink
 
-  // Additional Colors
-  static const Color orange = Color(0xFFFF9800); // Warm orange
-  static const Color blue = Color(0xFF1E88E5); // Deeper blue
-  static const Color green = Color(0xFF43A047); // Matching success
+  // Additional Colors - Modern, vibrant palette
+  static const Color orange = Color(0xFFFF9500); // iOS orange
+  static const Color blue = Color(0xFF007AFF); // iOS blue
+  static const Color green = Color(0xFF34C759); // iOS green
+  static const Color purple = Color(0xFFAF52DE); // iOS purple
+  static const Color pink = Color(0xFFFF2D55); // iOS pink
+  static const Color teal = Color(0xFF5AC8FA); // iOS teal
+  static const Color indigo = Color(0xFF5856D6); // iOS indigo
+  static const Color yellow = Color(0xFFFFCC00); // iOS yellow
 
-  // Gradient Colors
+  // Gradient Colors - Smooth, modern gradients
   static const List<Color> primaryGradient = [
-    Color(0xFF1B5E20), // Deep forest green
-    Color(0xFF43A047), // Fresh green
+    Color(0xFF34C759), // Vibrant green
+    Color(0xFF30D158), // Bright green
   ];
 
-  // New Gradients
   static const List<Color> accentGradient = [
-    Color(0xFFFF6B6B), // Warm coral
-    Color(0xFFFF8A80), // Light coral
+    Color(0xFFFF6B6B), // Coral
+    Color(0xFFFF8F8F), // Light coral
   ];
 
   static const List<Color> successGradient = [
-    Color(0xFF2E7D32), // Deep green
-    Color(0xFF66BB6A), // Light green
+    Color(0xFF34C759), // Green
+    Color(0xFF32D74B), // Bright green
   ];
 
   static const List<Color> infoGradient = [
-    Color(0xFF1565C0), // Deep blue
-    Color(0xFF42A5F5), // Light blue
+    Color(0xFF007AFF), // Blue
+    Color(0xFF0A84FF), // Bright blue
   ];
+
+  static const List<Color> warningGradient = [
+    Color(0xFFFFCC00), // Yellow
+    Color(0xFFFFD426), // Bright yellow
+  ];
+
+  static const List<Color> errorGradient = [
+    Color(0xFFFF3B30), // Red
+    Color(0xFFFF453A), // Bright red
+  ];
+
+  // Glassmorphic Colors - For frosted glass effects
+  static const Color glassLight = Color(0x40FFFFFF); // 25% white
+  static const Color glassDark = Color(0x30000000); // 19% black
+  static const Color glassBorder = Color(0x30FFFFFF); // 19% white border
+
+  // Nutrition Specific Colors - For food categories
+  static const Color protein = Color(0xFFFF3B30); // Red
+  static const Color carbs = Color(0xFFFFCC00); // Yellow
+  static const Color fat = Color(0xFFFF9500); // Orange
+  static const Color fiber = Color(0xFF34C759); // Green
+  static const Color vitamins = Color(0xFFAF52DE); // Purple
+  static const Color minerals = Color(0xFF007AFF); // Blue
 
   // Opacity Helpers
   static Color withOpacity(Color color, double opacity) =>
