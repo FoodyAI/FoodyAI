@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 import 'dart:ui';
 import '../../domain/entities/subscription_tier.dart';
 import '../../core/constants/app_colors.dart';
 import '../widgets/custom_app_bar.dart';
 import '../../config/routes/navigation_service.dart';
-import '../viewmodels/auth_viewmodel.dart';
 
 class SubscriptionView extends StatefulWidget {
   final String? returnRoute;
@@ -177,7 +175,6 @@ class _SubscriptionViewState extends State<SubscriptionView> {
   Widget _buildHeroSection(
       BuildContext context, bool isDark, ColorScheme colorScheme) {
     final tier = currentSubscription.tier;
-    final authVM = Provider.of<AuthViewModel>(context, listen: false);
 
     return _buildGlassmorphicCard(
       context: context,
