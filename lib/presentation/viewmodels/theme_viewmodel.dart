@@ -4,7 +4,7 @@ import '../../core/services/sync_service.dart';
 import '../../data/services/sqlite_service.dart';
 
 class ThemeViewModel extends ChangeNotifier {
-  ThemeMode _themeMode = ThemeMode.system;
+  ThemeMode _themeMode = ThemeMode.light;
   bool _isChanging = false;
   final SyncService _syncService = SyncService();
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -19,7 +19,7 @@ class ThemeViewModel extends ChangeNotifier {
 
   Future<void> _loadThemeMode() async {
     final savedTheme = await _sqliteService.getThemePreference();
-    
+
     if (savedTheme != null) {
       // Convert string to ThemeMode
       if (savedTheme == 'light') {
@@ -32,33 +32,33 @@ class ThemeViewModel extends ChangeNotifier {
         // Fallback for old format (ThemeMode.light.toString() etc.)
         _themeMode = ThemeMode.values.firstWhere(
           (mode) => mode.toString() == savedTheme,
-          orElse: () => ThemeMode.system,
+          orElse: () => ThemeMode.light,
         );
       }
     } else {
-      // No theme preference found, use system as default
-      _themeMode = ThemeMode.system;
+      // No theme preference found, use light as default
+      _themeMode = ThemeMode.light;
       // Initialize the theme preference with default value
-      await _sqliteService.setThemePreference('system');
+      await _sqliteService.setThemePreference('light');
     }
-    
+
     notifyListeners();
   }
 
   Future<void> setThemeMode(ThemeMode mode) async {
     if (_themeMode == mode || _isChanging) return;
-    
+
     _isChanging = true;
     notifyListeners();
-    
+
     // Optimistic UI: Update immediately for instant feedback
     final previousMode = _themeMode;
     _themeMode = mode;
     _isChanging = false;
     notifyListeners(); // Notify immediately for instant UI update
-    
+
     final themeString = _themeModeToString(mode);
-    
+
     try {
       // Save to SQLite in background
       await _sqliteService.setThemePreference(themeString);
@@ -82,12 +82,13 @@ class ThemeViewModel extends ChangeNotifier {
       _showThemeError();
     }
   }
-  
+
   void _showThemeError() {
     // This could be improved with a proper error handling system
-    print('⚠️ ThemeViewModel: Theme change failed, rolled back to previous theme');
+    print(
+        '⚠️ ThemeViewModel: Theme change failed, rolled back to previous theme');
   }
-  
+
   String _themeModeToString(ThemeMode mode) {
     switch (mode) {
       case ThemeMode.light:

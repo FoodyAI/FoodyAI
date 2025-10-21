@@ -44,7 +44,7 @@ class DatabaseHelper {
         weight_goal TEXT,
         daily_calories INTEGER,
         bmi REAL,
-        theme_preference TEXT DEFAULT 'system',
+        theme_preference TEXT DEFAULT 'light',
         ai_provider TEXT DEFAULT 'gemini',
         measurement_unit TEXT DEFAULT 'metric',
         is_guest BOOLEAN DEFAULT 1,

@@ -207,7 +207,7 @@ class SyncService {
       // Get measurement unit and theme from SQLite
       final isMetric = await _sqliteService.getIsMetric();
       final measurementUnit = isMetric ? 'metric' : 'imperial';
-      final themePreference = await _sqliteService.getThemePreference() ?? 'system';  // Default to 'system' if null
+      final themePreference = await _sqliteService.getThemePreference() ?? 'light';  // Default to 'light' if null
 
       // Sync to AWS using saveUserProfile with ALL data
       final result = await _awsService.saveUserProfile(
@@ -345,7 +345,7 @@ class SyncService {
       // Get measurement unit and theme from SQLite
       final isMetric = await _sqliteService.getIsMetric();
       final measurementUnit = isMetric ? 'metric' : 'imperial';
-      final themePreference = await _sqliteService.getThemePreference() ?? 'system';  // Default to 'system' if null
+      final themePreference = await _sqliteService.getThemePreference() ?? 'light';  // Default to 'light' if null
 
       final result = await _awsService.saveUserProfile(
         userId: user.uid,
