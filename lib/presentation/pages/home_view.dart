@@ -371,6 +371,7 @@ class _HomeContentState extends State<_HomeContent> {
   final SQLiteService _sqliteService = SQLiteService();
   final ScrollController _scrollController = ScrollController();
   bool _wasLoading = false;
+  bool _shouldScrollAfterLoad = false;
 
   @override
   void initState() {
@@ -609,10 +610,13 @@ class _HomeContentState extends State<_HomeContent> {
     // Get recommended daily calories
     final recommendedCalories = profile.dailyCalories;
 
-    // Auto-scroll to top while item is being added
+    // Auto-scroll to top: both while adding and after item is added
     final isLoading = analysisVM.isLoading;
+
+    // Case 1: Just started loading - scroll while item is being added
     if (isLoading && !_wasLoading) {
-      // Just started loading - scroll to top after a small delay
+      _shouldScrollAfterLoad = true;
+      // Scroll to top after a small delay
       // This ensures the shimmer card is rendered first, creating a smooth "scroll while adding" effect
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Future.delayed(const Duration(milliseconds: 100), () {
@@ -626,6 +630,24 @@ class _HomeContentState extends State<_HomeContent> {
         });
       });
     }
+
+    // Case 2: Loading just finished - scroll again to ensure new item is visible at top
+    if (!isLoading && _wasLoading && _shouldScrollAfterLoad) {
+      _shouldScrollAfterLoad = false;
+      // Scroll to top after item is completely added
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Future.delayed(const Duration(milliseconds: 150), () {
+          if (_scrollController.hasClients && mounted) {
+            _scrollController.animateTo(
+              0,
+              duration: const Duration(milliseconds: 400),
+              curve: Curves.easeOut,
+            );
+          }
+        });
+      });
+    }
+
     _wasLoading = isLoading;
 
     return Scaffold(
