@@ -526,12 +526,6 @@ class ImageAnalysisViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Add method to handle "Maybe Later" response
-  Future<void> handleMaybeLater() async {
-    await _sqliteService
-        .setMaybeLaterTimestamp(DateTime.now().millisecondsSinceEpoch);
-  }
-
   // Force refresh the UI - useful after sign-in when data might not be immediately available
   Future<void> forceRefresh() async {
     print('🔄 ImageAnalysisViewModel: Force refreshing UI...');
