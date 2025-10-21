@@ -509,9 +509,6 @@ class ImageAnalysisViewModel extends ChangeNotifier {
       await _syncService.saveFoodAnalysisToAWS(analysis);
 
       print('✅ ImageAnalysisViewModel: Analysis added successfully');
-
-      // Check if it's a good time to show the rating dialog
-      await _checkAndShowRating();
     } catch (e) {
       print('❌ ImageAnalysisViewModel: Error adding analysis: $e');
       _error = e.toString();
