@@ -332,7 +332,18 @@ class _CalorieTrackingCardState extends State<CalorieTrackingCard>
             ],
           ),
         ],
-      ),
+          ),
+        ),
+
+        // Show celebration animation when goal is reached
+        if (_showCelebration)
+          const Positioned.fill(
+            child: Padding(
+              padding: EdgeInsets.all(16),
+              child: CelebrationAnimation(),
+            ),
+          ),
+      ],
     );
   }
 
