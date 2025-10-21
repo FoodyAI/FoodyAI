@@ -409,9 +409,6 @@ class ImageAnalysisViewModel extends ChangeNotifier {
 
       // Single UI update after all operations are complete
       notifyListeners();
-
-      // Check if it's a good time to show the rating dialog
-      await _checkAndShowRating();
     }
   }
 
