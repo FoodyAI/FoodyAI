@@ -54,6 +54,25 @@ class _CalorieTrackingCardState extends State<CalorieTrackingCard>
   void didUpdateWidget(CalorieTrackingCard oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.totalCaloriesConsumed != widget.totalCaloriesConsumed) {
+      final wasGoalNotReached = oldWidget.recommendedCalories - oldWidget.totalCaloriesConsumed > 0;
+      final isGoalReached = widget.recommendedCalories - widget.totalCaloriesConsumed <= 0;
+
+      // Show celebration every time user transitions from not reached to reached
+      if (wasGoalNotReached && isGoalReached) {
+        setState(() {
+          _showCelebration = true;
+        });
+
+        // Hide celebration after 2 seconds
+        Future.delayed(const Duration(milliseconds: 2000), () {
+          if (mounted) {
+            setState(() {
+              _showCelebration = false;
+            });
+          }
+        });
+      }
+
       _progressAnimation = Tween<double>(
         begin: oldWidget.totalCaloriesConsumed / widget.recommendedCalories,
         end: (widget.totalCaloriesConsumed / widget.recommendedCalories)
