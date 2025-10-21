@@ -35,7 +35,7 @@ class SyncService {
       final dailyCalories = profile.dailyCalories.round();
       final bmi = profile.bmi;
       final themePreference =
-          await _sqliteService.getThemePreference() ?? 'system';
+          await _sqliteService.getThemePreference() ?? 'light';
       final aiProvider = profile.aiProvider.name;
       final measurementUnit =
           await _sqliteService.getIsMetric() ? 'metric' : 'imperial';
@@ -243,8 +243,8 @@ class SyncService {
             print('❌ AWS: FAILED to verify profile in local SQLite!');
           }
 
-          // Always set theme preference - default to 'system' if not in AWS
-          final themePreference = userData['theme_preference'] ?? 'system';
+          // Always set theme preference - default to 'light' if not in AWS
+          final themePreference = userData['theme_preference'] ?? 'light';
           await _sqliteService.setThemePreference(themePreference);
           print('   - Theme: $themePreference');
         }
