@@ -30,6 +30,7 @@ class _CalorieTrackingCardState extends State<CalorieTrackingCard>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _progressAnimation;
+  bool _showCelebration = false;
 
   @override
   void initState() {
