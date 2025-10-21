@@ -356,7 +356,7 @@ class _CalorieTrackingCardState extends State<CalorieTrackingCard>
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.withOpacity(color, 0.1),
+            color: color.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
