@@ -194,6 +194,11 @@ class AuthViewModel extends ChangeNotifier {
           _isDataLoading = false;
         }
 
+        // Set intro completed flag so user doesn't see intro again on app restart
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('intro_completed', true);
+        print('✅ AuthViewModel: Intro completion flag set');
+
         // Handle post-authentication flow if context is provided
         if (context != null && context.mounted) {
           await _authFlow.handlePostAuthNavigation(
