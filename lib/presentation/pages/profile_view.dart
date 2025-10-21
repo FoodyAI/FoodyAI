@@ -11,7 +11,6 @@ import '../widgets/profile_inputs.dart';
 import '../widgets/google_signin_button.dart';
 import '../widgets/sign_out_button.dart';
 import '../widgets/auth_loading_overlay.dart';
-import '../widgets/reauth_dialog.dart';
 import '../../core/constants/app_colors.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../services/aws_service.dart';
@@ -19,6 +18,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../config/routes/navigation_service.dart';
 import '../../core/services/connection_service.dart';
 import '../../core/services/sync_service.dart';
+import '../../services/notification_service.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
@@ -28,19 +29,37 @@ class ProfileView extends StatefulWidget {
 }
 
 class _ProfileViewState extends State<ProfileView>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver {
   late TabController _tabController;
+  // Key to refresh notification settings when returning from device settings
+  Key _notificationSettingsKey = UniqueKey();
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
+    // Listen for app lifecycle changes (when user returns from settings)
+    WidgetsBinding.instance.addObserver(this);
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    // When app resumes (user returns from device settings)
+    if (state == AppLifecycleState.resumed) {
+      // Refresh notification settings to reflect current OS permission
+      setState(() {
+        _notificationSettingsKey = UniqueKey();
+      });
+      print('🔄 App resumed - refreshing notification settings');
+    }
   }
 
   /// Helper method to build glassmorphic cards
@@ -51,7 +70,7 @@ class _ProfileViewState extends State<ProfileView>
     EdgeInsets margin = const EdgeInsets.only(bottom: 14),
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Container(
       margin: margin,
       padding: padding,
@@ -72,14 +91,14 @@ class _ProfileViewState extends State<ProfileView>
                 ],
         ),
         border: Border.all(
-          color: isDark 
-              ? Colors.white.withOpacity(0.2) 
+          color: isDark
+              ? Colors.white.withOpacity(0.2)
               : Colors.white.withOpacity(0.7),
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: isDark 
+            color: isDark
                 ? Colors.black.withOpacity(0.3)
                 : Colors.grey.withOpacity(0.12),
             blurRadius: 16,
@@ -179,11 +198,12 @@ class _ProfileViewState extends State<ProfileView>
                           : Colors.white.withOpacity(0.7),
                       width: 1.5,
                     ),
-            ),
-            child: TabBar(
-              controller: _tabController,
-              labelColor: colorScheme.primary,
-              unselectedLabelColor: colorScheme.onSurface.withOpacity(0.6),
+                  ),
+                  child: TabBar(
+                    controller: _tabController,
+                    labelColor: colorScheme.primary,
+                    unselectedLabelColor:
+                        colorScheme.onSurface.withOpacity(0.6),
                     labelStyle: GoogleFonts.inter(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -206,25 +226,25 @@ class _ProfileViewState extends State<ProfileView>
                     tabs: [
                       Tab(
                         icon: FaIcon(FontAwesomeIcons.user, size: 18),
-                  text: 'Personal',
+                        text: 'Personal',
                         height: 65,
-                ),
-                Tab(
+                      ),
+                      Tab(
                         icon: FaIcon(FontAwesomeIcons.dumbbell, size: 18),
-                  text: 'Activity',
+                        text: 'Activity',
                         height: 65,
-                ),
-                Tab(
+                      ),
+                      Tab(
                         icon: FaIcon(FontAwesomeIcons.bullseye, size: 18),
-                  text: 'Goals',
+                        text: 'Goals',
                         height: 65,
-                ),
-                Tab(
+                      ),
+                      Tab(
                         icon: FaIcon(FontAwesomeIcons.gear, size: 18),
-                  text: 'Settings',
+                        text: 'Settings',
                         height: 65,
-                ),
-              ],
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -256,71 +276,71 @@ class _ProfileViewState extends State<ProfileView>
         children: [
           _buildGlassmorphicCard(
             context: context,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Personal Information',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Personal Information',
                   style: GoogleFonts.poppins(
                     fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.onSurface,
-                    ),
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onSurface,
                   ),
+                ),
                 const SizedBox(height: 6),
-                  Text(
-                    'Manage your personal details and preferences',
+                Text(
+                  'Manage your personal details and preferences',
                   style: GoogleFonts.inter(
                     fontSize: 13,
-                      color: colorScheme.onSurface.withOpacity(0.7),
-                    ),
+                    color: colorScheme.onSurface.withOpacity(0.7),
                   ),
+                ),
                 const SizedBox(height: 20),
-                  GridView.count(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    crossAxisCount: 2,
+                GridView.count(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  crossAxisCount: 2,
                   mainAxisSpacing: 12,
                   crossAxisSpacing: 12,
                   childAspectRatio: 1.05,
-                    children: [
-                      _buildInfoCard(
-                        context,
-                        FontAwesomeIcons.user,
-                        'Gender',
-                        profile.gender,
-                        colorScheme.primary,
-                        () => _showGenderDialog(context, profileVM),
-                      ),
-                      _buildInfoCard(
-                        context,
-                        FontAwesomeIcons.cakeCandles,
-                        'Age',
-                        '${profile.age} years',
-                        colorScheme.secondary,
-                        () => _showAgeDialog(context, profileVM),
-                      ),
-                      _buildInfoCard(
-                        context,
-                        FontAwesomeIcons.weightScale,
-                        'Weight',
-                        '${profileVM.displayWeight.toStringAsFixed(1)} ${profileVM.weightUnit}',
-                        colorScheme.tertiary,
-                        () => _showWeightDialog(context, profileVM),
-                      ),
-                      _buildInfoCard(
-                        context,
-                        FontAwesomeIcons.rulerVertical,
-                        'Height',
-                        profileVM.isMetric
-                            ? '${profileVM.displayHeight.toStringAsFixed(1)} cm'
-                            : '${(profileVM.displayHeight / 12).floor()}′${(profileVM.displayHeight % 12).round()}″',
-                        colorScheme.error,
-                        () => _showHeightDialog(context, profileVM),
-                      ),
-                    ],
-                  ),
-                ],
+                  children: [
+                    _buildInfoCard(
+                      context,
+                      FontAwesomeIcons.user,
+                      'Gender',
+                      profile.gender,
+                      colorScheme.primary,
+                      () => _showGenderDialog(context, profileVM),
+                    ),
+                    _buildInfoCard(
+                      context,
+                      FontAwesomeIcons.cakeCandles,
+                      'Age',
+                      '${profile.age} years',
+                      colorScheme.secondary,
+                      () => _showAgeDialog(context, profileVM),
+                    ),
+                    _buildInfoCard(
+                      context,
+                      FontAwesomeIcons.weightScale,
+                      'Weight',
+                      '${profileVM.displayWeight.toStringAsFixed(1)} ${profileVM.weightUnit}',
+                      colorScheme.tertiary,
+                      () => _showWeightDialog(context, profileVM),
+                    ),
+                    _buildInfoCard(
+                      context,
+                      FontAwesomeIcons.rulerVertical,
+                      'Height',
+                      profileVM.isMetric
+                          ? '${profileVM.displayHeight.toStringAsFixed(1)} cm'
+                          : '${(profileVM.displayHeight / 12).floor()}′${(profileVM.displayHeight % 12).round()}″',
+                      colorScheme.error,
+                      () => _showHeightDialog(context, profileVM),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
           // Add bottom padding to prevent content from being hidden behind bottom nav bar
@@ -339,13 +359,13 @@ class _ProfileViewState extends State<ProfileView>
     VoidCallback onTap,
   ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: isDark 
+            color: isDark
                 ? Colors.black.withOpacity(0.3)
                 : Colors.grey.withOpacity(0.15),
             blurRadius: isDark ? 12 : 20,
@@ -357,15 +377,16 @@ class _ProfileViewState extends State<ProfileView>
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: isDark ? 12 : 16, sigmaY: isDark ? 12 : 16),
+          filter: ImageFilter.blur(
+              sigmaX: isDark ? 12 : 16, sigmaY: isDark ? 12 : 16),
           child: Material(
             color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
+            child: InkWell(
+              onTap: onTap,
               borderRadius: BorderRadius.circular(20),
-        child: Container(
+              child: Container(
                 padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
+                decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -380,54 +401,54 @@ class _ProfileViewState extends State<ProfileView>
                           ],
                   ),
                   borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-                    color: isDark 
-                        ? Colors.white.withOpacity(0.15) 
+                  border: Border.all(
+                    color: isDark
+                        ? Colors.white.withOpacity(0.15)
                         : Colors.white.withOpacity(0.8),
                     width: isDark ? 1.2 : 2,
-            ),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
+                  ),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
                         color: color.withOpacity(0.12),
                         shape: BoxShape.circle,
                       ),
-                child: FaIcon(
-                  icon,
+                      child: FaIcon(
+                        icon,
                         color: color,
                         size: 22,
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
-                  title,
+                      title,
                       style: GoogleFonts.inter(
                         fontSize: 12,
-                    fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w600,
                         color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                ),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                    ),
                     const SizedBox(height: 3),
                     Text(
-                  value,
+                      value,
                       style: GoogleFonts.poppins(
                         fontSize: 13,
                         color: color,
                         fontWeight: FontWeight.w700,
-                  ),
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-              ),
-            ],
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -447,61 +468,61 @@ class _ProfileViewState extends State<ProfileView>
         children: [
           _buildGlassmorphicCard(
             context: context,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Activity Level',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Activity Level',
                   style: GoogleFonts.poppins(
                     fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.onSurface,
-                    ),
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onSurface,
                   ),
+                ),
                 const SizedBox(height: 6),
-                  Text(
-                    'How active are you in your daily life?',
+                Text(
+                  'How active are you in your daily life?',
                   style: GoogleFonts.inter(
                     fontSize: 13,
-                      color: colorScheme.onSurface.withOpacity(0.7),
-                    ),
+                    color: colorScheme.onSurface.withOpacity(0.7),
                   ),
+                ),
                 const SizedBox(height: 20),
-                  ...ActivityLevel.values.map((level) {
-                    return Padding(
+                ...ActivityLevel.values.map((level) {
+                  return Padding(
                     padding: const EdgeInsets.only(bottom: 12),
-                      child: _ProfileSettingOption<ActivityLevel>(
-                        value: level,
-                        selectedValue: profile.activityLevel,
-                        colorScheme: colorScheme,
-                        icon: _getActivityIcon(level),
-                        title: level.displayName,
-                        subtitle: _getActivityDescription(level),
-                        categoryName: 'Activity Level',
-                        onSelect: (selectedLevel) async {
-                          try {
-                            await profileVM.saveProfile(
-                              gender: profile.gender,
-                              age: profile.age,
-                              weight: profileVM.displayWeight,
-                              weightUnit: profileVM.weightUnit,
-                              height: profileVM.displayHeight,
-                              heightUnit: profileVM.heightUnit,
-                              activityLevel: selectedLevel,
-                              isMetric: profileVM.isMetric,
-                              weightGoal: profile.weightGoal,
-                              aiProvider: profile.aiProvider,
-                            );
-                            return true;
-                          } catch (e) {
-                            print('Error saving activity level: $e');
-                            return false;
-                          }
-                        },
-                      ),
-                    );
-                  }).toList(),
-                ],
+                    child: _ProfileSettingOption<ActivityLevel>(
+                      value: level,
+                      selectedValue: profile.activityLevel,
+                      colorScheme: colorScheme,
+                      icon: _getActivityIcon(level),
+                      title: level.displayName,
+                      subtitle: _getActivityDescription(level),
+                      categoryName: 'Activity Level',
+                      onSelect: (selectedLevel) async {
+                        try {
+                          await profileVM.saveProfile(
+                            gender: profile.gender,
+                            age: profile.age,
+                            weight: profileVM.displayWeight,
+                            weightUnit: profileVM.weightUnit,
+                            height: profileVM.displayHeight,
+                            heightUnit: profileVM.heightUnit,
+                            activityLevel: selectedLevel,
+                            isMetric: profileVM.isMetric,
+                            weightGoal: profile.weightGoal,
+                            aiProvider: profile.aiProvider,
+                          );
+                          return true;
+                        } catch (e) {
+                          print('Error saving activity level: $e');
+                          return false;
+                        }
+                      },
+                    ),
+                  );
+                }).toList(),
+              ],
             ),
           ),
           // Add bottom padding to prevent content from being hidden behind bottom nav bar
@@ -521,60 +542,60 @@ class _ProfileViewState extends State<ProfileView>
         children: [
           _buildGlassmorphicCard(
             context: context,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Weight Goal',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Weight Goal',
                   style: GoogleFonts.poppins(
                     fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.onSurface,
-                    ),
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onSurface,
                   ),
+                ),
                 const SizedBox(height: 6),
-                  Text(
-                    'What would you like to achieve?',
+                Text(
+                  'What would you like to achieve?',
                   style: GoogleFonts.inter(
                     fontSize: 13,
-                      color: colorScheme.onSurface.withOpacity(0.7),
-                    ),
+                    color: colorScheme.onSurface.withOpacity(0.7),
                   ),
+                ),
                 const SizedBox(height: 20),
-                  ...WeightGoal.values.map((goal) {
-                    return Padding(
+                ...WeightGoal.values.map((goal) {
+                  return Padding(
                     padding: const EdgeInsets.only(bottom: 12),
-                      child: _ProfileSettingOption<WeightGoal>(
-                        value: goal,
-                        selectedValue: profile.weightGoal,
-                        colorScheme: colorScheme,
-                        icon: _getWeightGoalIcon(goal),
-                        title: goal.displayName,
-                        subtitle: _getWeightGoalDescription(goal),
-                        categoryName: 'Weight Goal',
-                        onSelect: (selectedGoal) async {
-                          try {
-                            await profileVM.saveProfile(
-                              gender: profile.gender,
-                              age: profile.age,
-                              weight: profileVM.displayWeight,
-                              weightUnit: profileVM.weightUnit,
-                              height: profileVM.displayHeight,
-                              heightUnit: profileVM.heightUnit,
-                              activityLevel: profile.activityLevel,
-                              isMetric: profileVM.isMetric,
-                              weightGoal: selectedGoal,
-                              aiProvider: profile.aiProvider,
-                            );
-                            return true;
-                          } catch (e) {
-                            return false;
-                          }
-                        },
-                      ),
-                    );
-                  }).toList(),
-                ],
+                    child: _ProfileSettingOption<WeightGoal>(
+                      value: goal,
+                      selectedValue: profile.weightGoal,
+                      colorScheme: colorScheme,
+                      icon: _getWeightGoalIcon(goal),
+                      title: goal.displayName,
+                      subtitle: _getWeightGoalDescription(goal),
+                      categoryName: 'Weight Goal',
+                      onSelect: (selectedGoal) async {
+                        try {
+                          await profileVM.saveProfile(
+                            gender: profile.gender,
+                            age: profile.age,
+                            weight: profileVM.displayWeight,
+                            weightUnit: profileVM.weightUnit,
+                            height: profileVM.displayHeight,
+                            heightUnit: profileVM.heightUnit,
+                            activityLevel: profile.activityLevel,
+                            isMetric: profileVM.isMetric,
+                            weightGoal: selectedGoal,
+                            aiProvider: profile.aiProvider,
+                          );
+                          return true;
+                        } catch (e) {
+                          return false;
+                        }
+                      },
+                    ),
+                  );
+                }).toList(),
+              ],
             ),
           ),
           // Add bottom padding to prevent content from being hidden behind bottom nav bar
@@ -604,11 +625,11 @@ class _ProfileViewState extends State<ProfileView>
           // Account Section
           _buildGlassmorphicCard(
             context: context,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
@@ -620,134 +641,136 @@ class _ProfileViewState extends State<ProfileView>
                         color: colorScheme.primary,
                         size: 18,
                       ),
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        'Account',
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Account',
                       style: GoogleFonts.poppins(
                         fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.onSurface,
-                        ),
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface,
                       ),
-                    ],
-                  ),
-                const SizedBox(height: 16),
-
-                  // Show user details if signed in, otherwise show guest benefits
-                  if (authVM.isSignedIn) ...[
-                    // User Details Section
-                    Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: colorScheme.primary.withOpacity(0.08),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: colorScheme.primary.withOpacity(0.20),
-                          width: 1.2,
-                        ),
-                      ),
-                      child: Column(
-                        children: [
-                          // User Profile Info
-                          Row(
-                            children: [
-                              CircleAvatar(
-                                radius: 28,
-                                backgroundImage: authVM.userPhotoURL != null
-                                    ? NetworkImage(authVM.userPhotoURL!)
-                                    : null,
-                                backgroundColor: colorScheme.primary.withOpacity(0.12),
-                                child: authVM.userPhotoURL == null
-                                    ? FaIcon(
-                                        FontAwesomeIcons.user,
-                                        size: 20,
-                                        color: colorScheme.primary,
-                                      )
-                                    : null,
-                              ),
-                              const SizedBox(width: 14),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    // User Name - Dynamic text size to fit content
-                                    Text(
-                                        authVM.userDisplayName ?? 'User',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                          color: colorScheme.onSurface,
-                                        ),
-                                        maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      ),
-                                    const SizedBox(height: 3),
-                                    // User Email - Dynamic text size to fit content
-                                    Text(
-                                        authVM.userEmail ?? '',
-                                      style: GoogleFonts.inter(
-                                        fontSize: 12,
-                                        color: colorScheme.onSurface.withOpacity(0.7),
-                                        ),
-                                        maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 14),
-                          // Sign Out Button
-                          const SignOutButtonWithAuth(
-                            isFullWidth: true,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ] else ...[
-                    // Guest Benefits Section
-                    Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: colorScheme.primary.withOpacity(0.08),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: colorScheme.primary.withOpacity(0.20),
-                          width: 1.2,
-                        ),
-                      ),
-                      child: Column(
-                        children: [
-                          _buildAccountBenefit(
-                            context,
-                            FontAwesomeIcons.cloudArrowUp,
-                            'Sync across devices',
-                          ),
-                          const SizedBox(height: 10),
-                          _buildAccountBenefit(
-                            context,
-                            FontAwesomeIcons.shieldHalved,
-                            'Backup your history',
-                          ),
-                          const SizedBox(height: 10),
-                          _buildAccountBenefit(
-                            context,
-                            FontAwesomeIcons.chartLine,
-                            'Advanced analytics',
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    const GoogleSignInButton(
-                      isFullWidth: true,
                     ),
                   ],
+                ),
+                const SizedBox(height: 16),
+
+                // Show user details if signed in, otherwise show guest benefits
+                if (authVM.isSignedIn) ...[
+                  // User Details Section
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: colorScheme.primary.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: colorScheme.primary.withOpacity(0.20),
+                        width: 1.2,
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        // User Profile Info
+                        Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 28,
+                              backgroundImage: authVM.userPhotoURL != null
+                                  ? NetworkImage(authVM.userPhotoURL!)
+                                  : null,
+                              backgroundColor:
+                                  colorScheme.primary.withOpacity(0.12),
+                              child: authVM.userPhotoURL == null
+                                  ? FaIcon(
+                                      FontAwesomeIcons.user,
+                                      size: 20,
+                                      color: colorScheme.primary,
+                                    )
+                                  : null,
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // User Name - Dynamic text size to fit content
+                                  Text(
+                                    authVM.userDisplayName ?? 'User',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: colorScheme.onSurface,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 3),
+                                  // User Email - Dynamic text size to fit content
+                                  Text(
+                                    authVM.userEmail ?? '',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 12,
+                                      color: colorScheme.onSurface
+                                          .withOpacity(0.7),
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 14),
+                        // Sign Out Button
+                        const SignOutButtonWithAuth(
+                          isFullWidth: true,
+                        ),
+                      ],
+                    ),
+                  ),
+                ] else ...[
+                  // Guest Benefits Section
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: colorScheme.primary.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: colorScheme.primary.withOpacity(0.20),
+                        width: 1.2,
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        _buildAccountBenefit(
+                          context,
+                          FontAwesomeIcons.cloudArrowUp,
+                          'Sync across devices',
+                        ),
+                        const SizedBox(height: 10),
+                        _buildAccountBenefit(
+                          context,
+                          FontAwesomeIcons.shieldHalved,
+                          'Backup your history',
+                        ),
+                        const SizedBox(height: 10),
+                        _buildAccountBenefit(
+                          context,
+                          FontAwesomeIcons.chartLine,
+                          'Advanced analytics',
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const GoogleSignInButton(
+                    isFullWidth: true,
+                  ),
                 ],
-              ),
+              ],
             ),
+          ),
           const SizedBox(height: 14),
           // Subscription Section
           _buildGlassmorphicCard(
@@ -755,79 +778,79 @@ class _ProfileViewState extends State<ProfileView>
             padding: const EdgeInsets.all(16),
             child: Material(
               color: Colors.transparent,
-            child: InkWell(
-              onTap: () {
-                NavigationService.navigateToSubscription(
-                    returnRoute: '/profile');
-              },
-              borderRadius: BorderRadius.circular(16),
-              child: Padding(
+              child: InkWell(
+                onTap: () {
+                  NavigationService.navigateToSubscription(
+                      returnRoute: '/profile');
+                },
+                borderRadius: BorderRadius.circular(16),
+                child: Padding(
                   padding: const EdgeInsets.all(2),
-                child: Row(
-                  children: [
-                    Container(
+                  child: Row(
+                    children: [
+                      Container(
                         padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            AppColors.primary,
-                            AppColors.primaryDark,
-                          ],
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              AppColors.primary,
+                              AppColors.primaryDark,
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const FaIcon(
-                        FontAwesomeIcons.crown,
-                        color: Colors.white,
+                        child: const FaIcon(
+                          FontAwesomeIcons.crown,
+                          color: Colors.white,
                           size: 18,
+                        ),
                       ),
-                    ),
                       const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Subscription',
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Subscription',
                               style: GoogleFonts.poppins(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
-                              color: colorScheme.onSurface,
+                                color: colorScheme.onSurface,
+                              ),
                             ),
-                          ),
                             const SizedBox(height: 2),
-                          Text(
-                            'Manage your plan & usage',
+                            Text(
+                              'Manage your plan & usage',
                               style: GoogleFonts.inter(
                                 fontSize: 12,
                                 color: colorScheme.onSurface.withOpacity(0.65),
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                    FaIcon(
-                      FontAwesomeIcons.chevronRight,
+                      FaIcon(
+                        FontAwesomeIcons.chevronRight,
                         color: colorScheme.onSurface.withOpacity(0.35),
                         size: 14,
-                    ),
-                  ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
           ),
           const SizedBox(height: 14),
           // Measurement Units Section
           _buildGlassmorphicCard(
             context: context,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
@@ -839,100 +862,100 @@ class _ProfileViewState extends State<ProfileView>
                         color: colorScheme.primary,
                         size: 18,
                       ),
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        'Measurement Units',
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Measurement Units',
                       style: GoogleFonts.poppins(
                         fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.onSurface,
-                        ),
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 6),
-                  Text(
-                    'Choose your preferred measurement system',
+                Text(
+                  'Choose your preferred measurement system',
                   style: GoogleFonts.inter(
                     fontSize: 13,
-                      color: colorScheme.onSurface.withOpacity(0.7),
-                    ),
+                    color: colorScheme.onSurface.withOpacity(0.7),
                   ),
+                ),
                 const SizedBox(height: 16),
-                  _ProfileSettingOption<bool>(
-                    value: true,
-                    selectedValue: profileVM.isMetric,
-                    colorScheme: colorScheme,
-                    icon: FontAwesomeIcons.globe,
-                    title: 'Metric (kg, cm)',
-                    subtitle: 'Use kilograms and centimeters',
-                    categoryName: 'Measurement Units',
-                    onSelect: (isMetric) async {
-                      try {
-                        final newWeight = profileVM.displayWeight * 0.453592;
-                        final newHeight = profileVM.displayHeight * 2.54;
-                        await profileVM.saveProfile(
-                          gender: profileVM.profile!.gender,
-                          age: profileVM.profile!.age,
-                          weight: newWeight,
-                          weightUnit: 'kg',
-                          height: newHeight,
-                          heightUnit: 'cm',
-                          activityLevel: profileVM.profile!.activityLevel,
-                          isMetric: true,
-                          weightGoal: profileVM.profile!.weightGoal,
-                          aiProvider: profileVM.profile!.aiProvider,
-                        );
-                        return true;
-                      } catch (e) {
-                        return false;
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  _ProfileSettingOption<bool>(
-                    value: false,
-                    selectedValue: profileVM.isMetric,
-                    colorScheme: colorScheme,
-                    icon: FontAwesomeIcons.flag,
-                    title: 'Imperial (lbs, ft)',
-                    subtitle: 'Use pounds and feet/inches',
-                    categoryName: 'Measurement Units',
-                    onSelect: (isMetric) async {
-                      try {
-                        final newWeight = profileVM.displayWeight * 2.20462;
-                        final newHeight = profileVM.displayHeight / 2.54;
-                        await profileVM.saveProfile(
-                          gender: profileVM.profile!.gender,
-                          age: profileVM.profile!.age,
-                          weight: newWeight,
-                          weightUnit: 'lbs',
-                          height: newHeight,
-                          heightUnit: 'inch',
-                          activityLevel: profileVM.profile!.activityLevel,
-                          isMetric: false,
-                          weightGoal: profileVM.profile!.weightGoal,
-                          aiProvider: profileVM.profile!.aiProvider,
-                        );
-                        return true;
-                      } catch (e) {
-                        return false;
-                      }
-                    },
-                  ),
-                ],
-              ),
+                _ProfileSettingOption<bool>(
+                  value: true,
+                  selectedValue: profileVM.isMetric,
+                  colorScheme: colorScheme,
+                  icon: FontAwesomeIcons.globe,
+                  title: 'Metric (kg, cm)',
+                  subtitle: 'Use kilograms and centimeters',
+                  categoryName: 'Measurement Units',
+                  onSelect: (isMetric) async {
+                    try {
+                      final newWeight = profileVM.displayWeight * 0.453592;
+                      final newHeight = profileVM.displayHeight * 2.54;
+                      await profileVM.saveProfile(
+                        gender: profileVM.profile!.gender,
+                        age: profileVM.profile!.age,
+                        weight: newWeight,
+                        weightUnit: 'kg',
+                        height: newHeight,
+                        heightUnit: 'cm',
+                        activityLevel: profileVM.profile!.activityLevel,
+                        isMetric: true,
+                        weightGoal: profileVM.profile!.weightGoal,
+                        aiProvider: profileVM.profile!.aiProvider,
+                      );
+                      return true;
+                    } catch (e) {
+                      return false;
+                    }
+                  },
+                ),
+                const SizedBox(height: 12),
+                _ProfileSettingOption<bool>(
+                  value: false,
+                  selectedValue: profileVM.isMetric,
+                  colorScheme: colorScheme,
+                  icon: FontAwesomeIcons.flag,
+                  title: 'Imperial (lbs, ft)',
+                  subtitle: 'Use pounds and feet/inches',
+                  categoryName: 'Measurement Units',
+                  onSelect: (isMetric) async {
+                    try {
+                      final newWeight = profileVM.displayWeight * 2.20462;
+                      final newHeight = profileVM.displayHeight / 2.54;
+                      await profileVM.saveProfile(
+                        gender: profileVM.profile!.gender,
+                        age: profileVM.profile!.age,
+                        weight: newWeight,
+                        weightUnit: 'lbs',
+                        height: newHeight,
+                        heightUnit: 'inch',
+                        activityLevel: profileVM.profile!.activityLevel,
+                        isMetric: false,
+                        weightGoal: profileVM.profile!.weightGoal,
+                        aiProvider: profileVM.profile!.aiProvider,
+                      );
+                      return true;
+                    } catch (e) {
+                      return false;
+                    }
+                  },
+                ),
+              ],
             ),
+          ),
           const SizedBox(height: 14),
           // Appearance Section
           _buildGlassmorphicCard(
             context: context,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
@@ -944,118 +967,118 @@ class _ProfileViewState extends State<ProfileView>
                         color: colorScheme.primary,
                         size: 18,
                       ),
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        'Appearance',
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Appearance',
                       style: GoogleFonts.poppins(
                         fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.onSurface,
-                        ),
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 6),
-                  Text(
-                    'Customize your app experience',
+                Text(
+                  'Customize your app experience',
                   style: GoogleFonts.inter(
                     fontSize: 13,
-                      color: colorScheme.onSurface.withOpacity(0.7),
-                    ),
+                    color: colorScheme.onSurface.withOpacity(0.7),
                   ),
+                ),
                 const SizedBox(height: 16),
-                  Consumer<ThemeViewModel>(
-                    builder: (context, themeVM, _) {
-                      return Column(
-                        children: [
-                          _buildThemeOption(
-                            context,
-                            FontAwesomeIcons.sun,
-                            'Light Theme',
-                            'Use light colors',
-                            themeVM.themeMode == ThemeMode.light,
-                            () async {
-                              // Optimistic UI: Show immediate feedback
-                              await themeVM.setThemeMode(ThemeMode.light);
+                Consumer<ThemeViewModel>(
+                  builder: (context, themeVM, _) {
+                    return Column(
+                      children: [
+                        _buildThemeOption(
+                          context,
+                          FontAwesomeIcons.sun,
+                          'Light Theme',
+                          'Use light colors',
+                          themeVM.themeMode == ThemeMode.light,
+                          () async {
+                            // Optimistic UI: Show immediate feedback
+                            await themeVM.setThemeMode(ThemeMode.light);
 
-                              // Show success message
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Theme updated successfully'),
-                                    backgroundColor: AppColors.success,
-                                    duration: Duration(seconds: 1),
-                                    behavior: SnackBarBehavior.floating,
-                                  ),
-                                );
-                              }
-                            },
-                          ),
-                          const SizedBox(height: 16),
-                          _buildThemeOption(
-                            context,
-                            FontAwesomeIcons.moon,
-                            'Dark Theme',
-                            'Use dark colors',
-                            themeVM.themeMode == ThemeMode.dark,
-                            () async {
-                              // Optimistic UI: Show immediate feedback
-                              await themeVM.setThemeMode(ThemeMode.dark);
+                            // Show success message
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Theme updated successfully'),
+                                  backgroundColor: AppColors.success,
+                                  duration: Duration(seconds: 1),
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            }
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        _buildThemeOption(
+                          context,
+                          FontAwesomeIcons.moon,
+                          'Dark Theme',
+                          'Use dark colors',
+                          themeVM.themeMode == ThemeMode.dark,
+                          () async {
+                            // Optimistic UI: Show immediate feedback
+                            await themeVM.setThemeMode(ThemeMode.dark);
 
-                              // Show success message
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Theme updated successfully'),
-                                    backgroundColor: AppColors.success,
-                                    duration: Duration(seconds: 1),
-                                    behavior: SnackBarBehavior.floating,
-                                  ),
-                                );
-                              }
-                            },
-                          ),
-                          const SizedBox(height: 16),
-                          _buildThemeOption(
-                            context,
-                            FontAwesomeIcons.circleHalfStroke,
-                            'System Theme',
-                            'Follow system settings',
-                            themeVM.themeMode == ThemeMode.system,
-                            () async {
-                              // Optimistic UI: Show immediate feedback
-                              await themeVM.setThemeMode(ThemeMode.system);
+                            // Show success message
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Theme updated successfully'),
+                                  backgroundColor: AppColors.success,
+                                  duration: Duration(seconds: 1),
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            }
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        _buildThemeOption(
+                          context,
+                          FontAwesomeIcons.circleHalfStroke,
+                          'System Theme',
+                          'Follow system settings',
+                          themeVM.themeMode == ThemeMode.system,
+                          () async {
+                            // Optimistic UI: Show immediate feedback
+                            await themeVM.setThemeMode(ThemeMode.system);
 
-                              // Show success message
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Theme updated successfully'),
-                                    backgroundColor: AppColors.success,
-                                    duration: Duration(seconds: 1),
-                                    behavior: SnackBarBehavior.floating,
-                                  ),
-                                );
-                              }
-                            },
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                ],
-              ),
+                            // Show success message
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Theme updated successfully'),
+                                  backgroundColor: AppColors.success,
+                                  duration: Duration(seconds: 1),
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            }
+                          },
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ],
             ),
+          ),
           const SizedBox(height: 14),
           // Notification Settings Section
           _buildGlassmorphicCard(
             context: context,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
@@ -1067,29 +1090,29 @@ class _ProfileViewState extends State<ProfileView>
                         color: colorScheme.primary,
                         size: 18,
                       ),
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        'Notifications',
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Notifications',
                       style: GoogleFonts.poppins(
                         fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.onSurface,
-                        ),
+                        fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 6),
-                  Text(
-                    'Manage your notification preferences',
+                Text(
+                  'Manage your notification preferences',
                   style: GoogleFonts.inter(
                     fontSize: 13,
-                      color: colorScheme.onSurface.withOpacity(0.7),
-                    ),
+                    color: colorScheme.onSurface.withOpacity(0.7),
                   ),
+                ),
                 const SizedBox(height: 16),
-                  _buildNotificationSettings(context, authVM),
-                ],
+                _buildNotificationSettings(context, authVM),
+              ],
             ),
           ),
           const SizedBox(height: 16),
@@ -1133,23 +1156,37 @@ class _ProfileViewState extends State<ProfileView>
       );
     }
 
-    return FutureBuilder<Map<String, dynamic>?>(
-      future: _getUserNotificationStatus(user.uid),
+    return FutureBuilder<bool>(
+      key: _notificationSettingsKey, // Refresh when key changes (app resumes)
+      future: _getActualNotificationStatus(user.uid),
       builder: (context, snapshot) {
-        final initialValue = snapshot.hasData && snapshot.data != null
-            ? snapshot.data!['notifications_enabled'] ?? true
-            : true;
+        // Initial value based on actual OS permission status
+        final initialValue = snapshot.hasData ? snapshot.data! : false;
 
         return _NotificationToggleWidget(
           initialValue: initialValue,
           colorScheme: colorScheme,
           onToggle: (value) async {
+            // If enabling notifications, request permission first
+            if (value) {
+              final notificationService = NotificationService();
+              final hasPermission =
+                  await notificationService.requestPermissionsAgain();
+
+              if (!hasPermission) {
+                print('❌ User denied notification permission');
+                return false;
+              }
+              print('✅ User granted notification permission');
+            }
+
             // Use SyncService to try sync immediately (if online) or mark for later (if offline)
             final syncService = SyncService();
             final success = await syncService.trySyncNotificationSettings(
               user.uid,
               value,
             );
+
             return success;
           },
         );
@@ -1157,14 +1194,30 @@ class _ProfileViewState extends State<ProfileView>
     );
   }
 
-  Future<Map<String, dynamic>?> _getUserNotificationStatus(
-      String userId) async {
+  /// Get actual notification status based on OS permission and database setting
+  Future<bool> _getActualNotificationStatus(String userId) async {
     try {
+      // Check OS-level permission first
+      final notificationService = NotificationService();
+      final hasOSPermission =
+          await notificationService.areNotificationsEnabled();
+
+      if (!hasOSPermission) {
+        // If OS permission is denied, return false regardless of database
+        print('📴 Notifications disabled at OS level');
+        return false;
+      }
+
+      // If OS permission is granted, check database setting
       final awsService = AWSService();
-      return await awsService.getUserProfile(userId);
+      final userProfile = await awsService.getUserProfile(userId);
+      final dbEnabled = userProfile?['notifications_enabled'] ?? true;
+
+      print('✅ OS permission: $hasOSPermission, DB setting: $dbEnabled');
+      return dbEnabled;
     } catch (e) {
-      print('Error getting user notification status: $e');
-      return null;
+      print('Error getting actual notification status: $e');
+      return false;
     }
   }
 
@@ -1182,13 +1235,13 @@ class _ProfileViewState extends State<ProfileView>
     return Material(
       color: Colors.transparent,
       child: InkWell(
-      onTap: onTap,
+        onTap: onTap,
         borderRadius: BorderRadius.circular(18),
-      child: AnimatedContainer(
+        child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-        curve: Curves.easeInOut,
+          curve: Curves.easeInOut,
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
+          decoration: BoxDecoration(
             gradient: isSelected
                 ? LinearGradient(
                     begin: Alignment.topLeft,
@@ -1206,61 +1259,63 @@ class _ProfileViewState extends State<ProfileView>
                 : null,
             color: isSelected ? null : Colors.transparent,
             borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-            color: isSelected
-                ? colorScheme.primary
+            border: Border.all(
+              color: isSelected
+                  ? colorScheme.primary
                   : colorScheme.outline.withOpacity(0.3),
               width: 1.5,
             ),
-        ),
-        child: Row(
-          children: [
+          ),
+          child: Row(
+            children: [
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: isSelected 
+                  color: isSelected
                       ? colorScheme.primary.withOpacity(0.15)
                       : colorScheme.onSurface.withOpacity(0.05),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: FaIcon(
-              icon,
-                  color: isSelected ? colorScheme.primary : colorScheme.onSurface.withOpacity(0.7),
+                  icon,
+                  color: isSelected
+                      ? colorScheme.primary
+                      : colorScheme.onSurface.withOpacity(0.7),
                   size: 20,
-            ),
+                ),
               ),
               const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
                       style: GoogleFonts.inter(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                      color: isSelected
-                          ? colorScheme.primary
-                          : colorScheme.onSurface,
+                        color: isSelected
+                            ? colorScheme.primary
+                            : colorScheme.onSurface,
+                      ),
                     ),
-                  ),
-                  Text(
-                    subtitle,
+                    Text(
+                      subtitle,
                       style: GoogleFonts.inter(
                         fontSize: 11,
                         color: colorScheme.onSurface.withOpacity(0.65),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            if (isSelected)
-              FaIcon(
-                FontAwesomeIcons.circleCheck,
-                color: colorScheme.primary,
+              if (isSelected)
+                FaIcon(
+                  FontAwesomeIcons.circleCheck,
+                  color: colorScheme.primary,
                   size: 18,
-              ),
-          ],
+                ),
+            ],
           ),
         ),
       ),
@@ -1752,7 +1807,7 @@ class _ProfileViewState extends State<ProfileView>
             borderRadius: BorderRadius.circular(8),
           ),
           child: FaIcon(
-          icon,
+            icon,
             size: 14,
             color: colorScheme.primary,
           ),
@@ -1779,48 +1834,48 @@ class _ProfileViewState extends State<ProfileView>
     return _buildGlassmorphicCard(
       context: context,
       margin: EdgeInsets.zero,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: isDark 
+                  color: isDark
                       ? Colors.red.shade400.withOpacity(0.15)
                       : Colors.red.shade100.withOpacity(0.8),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: FaIcon(
-                    FontAwesomeIcons.triangleExclamation,
-                    color: isDark ? Colors.red.shade400 : Colors.red.shade600,
+                  FontAwesomeIcons.triangleExclamation,
+                  color: isDark ? Colors.red.shade400 : Colors.red.shade600,
                   size: 18,
                 ),
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    'Danger Zone',
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'Danger Zone',
                 style: GoogleFonts.poppins(
                   fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.red.shade400 : Colors.red.shade600,
-                    ),
-                  ),
-                ],
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.red.shade400 : Colors.red.shade600,
+                ),
               ),
+            ],
+          ),
           const SizedBox(height: 6),
-              Text(
-                'Irreversible and destructive actions',
+          Text(
+            'Irreversible and destructive actions',
             style: GoogleFonts.inter(
               fontSize: 13,
               color: colorScheme.onSurface.withOpacity(0.7),
             ),
           ),
           const SizedBox(height: 16),
-              // Delete Account Button
-              _buildDeleteAccountButton(context, authVM),
-            ],
+          // Delete Account Button
+          _buildDeleteAccountButton(context, authVM),
+        ],
       ),
     );
   }
@@ -2037,41 +2092,23 @@ class _ProfileViewState extends State<ProfileView>
       }
 
       if (!success && context.mounted) {
-        // Check if re-authentication is needed
+        // Show error message
         final errorMessage = authVM.errorMessage ?? '';
 
-        if (errorMessage.contains('sign in again') ||
-            errorMessage.contains('cancelled')) {
-          // Show re-authentication dialog with better UX
-          final shouldReauth = await ReauthDialog.showForAccountDeletion(
-            context,
-            () async {
-              // Re-attempt deletion after user confirms with reauthentication
-              await _handleDeleteAccountWithReauth(context, authVM);
-            },
-          );
-
-          if (shouldReauth != true) {
-            // User cancelled re-authentication
-            return;
-          }
-        } else {
-          // Show generic error message
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(errorMessage.isNotEmpty
-                  ? errorMessage
-                  : 'Failed to delete account. Please try again.'),
-              backgroundColor: AppColors.error,
-              duration: const Duration(seconds: 4),
-              action: SnackBarAction(
-                label: 'Retry',
-                textColor: AppColors.white,
-                onPressed: () => _handleDeleteAccount(context, authVM),
-              ),
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage.isNotEmpty
+                ? errorMessage
+                : 'Failed to delete account. Please try again.'),
+            backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 4),
+            action: SnackBarAction(
+              label: 'Retry',
+              textColor: AppColors.white,
+              onPressed: () => _handleDeleteAccount(context, authVM),
             ),
-          );
-        }
+          ),
+        );
       }
       // Note: Success case (success == true) is handled automatically by AuthViewModel
       // which shows success message and navigates to welcome screen
@@ -2092,59 +2129,6 @@ class _ProfileViewState extends State<ProfileView>
               textColor: AppColors.white,
               onPressed: () => _handleDeleteAccount(context, authVM),
             ),
-          ),
-        );
-      }
-    }
-  }
-
-  /// Handle delete account with reauthentication after user confirms
-  static Future<void> _handleDeleteAccountWithReauth(
-    BuildContext context,
-    AuthViewModel authVM,
-  ) async {
-    // Show loading overlay immediately after confirmation
-    AuthLoadingOverlay.showLoading(
-      context,
-      message: 'Deleting your account...',
-    );
-
-    try {
-      // Use the new reauthentication method
-      final success = await authVM.deleteUserWithReauth();
-
-      // Hide loading overlay
-      if (context.mounted) {
-        AuthLoadingOverlay.hideLoading(context);
-      }
-
-      if (!success && context.mounted) {
-        // Show error message
-        final errorMessage = authVM.errorMessage ??
-            'Failed to delete account. Please try again.';
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(errorMessage),
-            backgroundColor: AppColors.error,
-            duration: const Duration(seconds: 4),
-            action: SnackBarAction(
-              label: 'Retry',
-              textColor: AppColors.white,
-              onPressed: () => _handleDeleteAccount(context, authVM),
-            ),
-          ),
-        );
-      }
-      // Note: Success case is handled automatically by AuthViewModel
-    } catch (e) {
-      // Hide loading overlay on error
-      if (context.mounted) {
-        AuthLoadingOverlay.hideLoading(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to delete account: ${e.toString()}'),
-            backgroundColor: AppColors.error,
-            duration: const Duration(seconds: 4),
           ),
         );
       }
@@ -2301,12 +2285,13 @@ class _ProfileSettingOptionState<T> extends State<_ProfileSettingOption<T>> {
           child: Material(
             color: Colors.transparent,
             child: InkWell(
-      onTap: _isLoading ? null : _handleSelection,
+              onTap: _isLoading ? null : _handleSelection,
               borderRadius: BorderRadius.circular(18),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                decoration: BoxDecoration(
                   gradient: isSelected
                       ? LinearGradient(
                           begin: Alignment.topLeft,
@@ -2322,35 +2307,35 @@ class _ProfileSettingOptionState<T> extends State<_ProfileSettingOption<T>> {
                                 ],
                         )
                       : null,
-          color: isSelected
+                  color: isSelected
                       ? null
                       : isDark
                           ? Colors.white.withOpacity(0.05)
                           : Colors.white.withOpacity(0.50),
                   borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-            color: isSelected
-                ? widget.colorScheme.primary
+                  border: Border.all(
+                    color: isSelected
+                        ? widget.colorScheme.primary
                         : isDark
                             ? Colors.white.withOpacity(0.10)
                             : Colors.white.withOpacity(0.40),
                     width: 1.5,
-          ),
-        ),
-        child: Row(
-          children: [
-            if (_isLoading && isSelected)
-              SizedBox(
-                        width: 28,
-                        height: 28,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    widget.colorScheme.primary,
                   ),
                 ),
-              )
-            else
+                child: Row(
+                  children: [
+                    if (_isLoading && isSelected)
+                      SizedBox(
+                        width: 28,
+                        height: 28,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            widget.colorScheme.primary,
+                          ),
+                        ),
+                      )
+                    else
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
@@ -2360,45 +2345,46 @@ class _ProfileSettingOptionState<T> extends State<_ProfileSettingOption<T>> {
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: FaIcon(
-                widget.icon,
-                color: isSelected
-                    ? widget.colorScheme.primary
+                          widget.icon,
+                          color: isSelected
+                              ? widget.colorScheme.primary
                               : widget.colorScheme.onSurface.withOpacity(0.7),
                           size: 20,
-              ),
+                        ),
                       ),
                     const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    widget.title,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.title,
                             style: GoogleFonts.inter(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
-                      color: isSelected
-                          ? widget.colorScheme.primary
-                          : widget.colorScheme.onSurface,
-                    ),
-                  ),
-                  Text(
-                    widget.subtitle,
+                              color: isSelected
+                                  ? widget.colorScheme.primary
+                                  : widget.colorScheme.onSurface,
+                            ),
+                          ),
+                          Text(
+                            widget.subtitle,
                             style: GoogleFonts.inter(
                               fontSize: 11,
-                              color: widget.colorScheme.onSurface.withOpacity(0.65),
+                              color: widget.colorScheme.onSurface
+                                  .withOpacity(0.65),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-            if (isSelected && !_isLoading)
-              FaIcon(
-                FontAwesomeIcons.circleCheck,
-                color: widget.colorScheme.primary,
+                    if (isSelected && !_isLoading)
+                      FaIcon(
+                        FontAwesomeIcons.circleCheck,
+                        color: widget.colorScheme.primary,
                         size: 18,
-              ),
-          ],
+                      ),
+                  ],
                 ),
               ),
             ),
@@ -2434,6 +2420,15 @@ class _NotificationToggleWidgetState extends State<_NotificationToggleWidget> {
   void initState() {
     super.initState();
     _notificationsEnabled = widget.initialValue;
+  }
+
+  @override
+  void didUpdateWidget(_NotificationToggleWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Update state when initialValue changes (e.g., after permission granted)
+    if (widget.initialValue != oldWidget.initialValue) {
+      _notificationsEnabled = widget.initialValue;
+    }
   }
 
   Future<void> _handleToggle(bool value) async {
@@ -2475,20 +2470,38 @@ class _NotificationToggleWidgetState extends State<_NotificationToggleWidget> {
         });
 
         if (mounted) {
+          // Show different message based on whether it was a permission issue
+          final message = value
+              ? 'Notification permission is required. Please enable notifications in your device settings.'
+              : 'Failed to update notification preferences';
+
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('Failed to update notification preferences'),
+              content: Text(message),
               backgroundColor: AppColors.error,
-              duration: const Duration(seconds: 3),
+              duration: const Duration(seconds: 5),
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
-              action: SnackBarAction(
-                label: 'Retry',
-                textColor: AppColors.white,
-                onPressed: () => _handleToggle(value),
-              ),
+              action: value
+                  ? SnackBarAction(
+                      label: 'Settings',
+                      textColor: Colors.white,
+                      backgroundColor: Colors.white.withOpacity(0.2),
+                      onPressed: () async {
+                        try {
+                          await openAppSettings();
+                        } catch (e) {
+                          print('Error opening app settings: $e');
+                        }
+                      },
+                    )
+                  : SnackBarAction(
+                      label: 'Retry',
+                      textColor: AppColors.white,
+                      onPressed: () => _handleToggle(value),
+                    ),
             ),
           );
         }
@@ -2517,16 +2530,16 @@ class _NotificationToggleWidgetState extends State<_NotificationToggleWidget> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: isDark 
+        color: isDark
             ? Colors.white.withOpacity(0.05)
             : Colors.white.withOpacity(0.50),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
-          color: isDark 
+          color: isDark
               ? Colors.white.withOpacity(0.10)
               : Colors.white.withOpacity(0.40),
           width: 1.5,
@@ -2541,8 +2554,8 @@ class _NotificationToggleWidgetState extends State<_NotificationToggleWidget> {
               borderRadius: BorderRadius.circular(10),
             ),
             child: FaIcon(
-            FontAwesomeIcons.bell,
-            color: widget.colorScheme.primary,
+              FontAwesomeIcons.bell,
+              color: widget.colorScheme.primary,
               size: 18,
             ),
           ),
@@ -2584,9 +2597,9 @@ class _NotificationToggleWidgetState extends State<_NotificationToggleWidget> {
             Transform.scale(
               scale: 0.85,
               child: Switch(
-              value: _notificationsEnabled,
-              onChanged: _handleToggle,
-              activeColor: widget.colorScheme.primary,
+                value: _notificationsEnabled,
+                onChanged: _handleToggle,
+                activeColor: widget.colorScheme.primary,
               ),
             ),
         ],
