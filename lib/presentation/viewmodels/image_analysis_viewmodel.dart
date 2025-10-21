@@ -127,34 +127,6 @@ class ImageAnalysisViewModel extends ChangeNotifier {
     await _loadSavedAnalyses();
   }
 
-  Future<void> _checkAndShowRating() async {
-    final hasSubmittedRating = await _sqliteService.getHasSubmittedRating();
-    final maybeLaterTimestamp = await _sqliteService.getMaybeLaterTimestamp();
-
-    if (hasSubmittedRating) return;
-
-    // Check if user has added at least 3 foods
-    if (_savedAnalyses.length < 3) return;
-
-    // If user clicked "Maybe Later", check if 2 days have passed
-    if (maybeLaterTimestamp != null) {
-      final daysSinceMaybeLater = DateTime.now()
-          .difference(DateTime.fromMillisecondsSinceEpoch(maybeLaterTimestamp))
-          .inDays;
-      if (daysSinceMaybeLater < 2) return;
-    }
-
-    // Show rating dialog
-    final context = NavigationService.currentContext;
-    if (context != null) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => const RatingDialog(),
-      );
-    }
-  }
-
   Future<void> pickImage(ImageSource source, BuildContext context) async {
     try {
       // Check network connection FIRST before picking image
