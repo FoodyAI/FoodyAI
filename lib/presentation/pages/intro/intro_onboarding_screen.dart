@@ -950,7 +950,7 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen>
                       // Main button (Next/Get Started or Google Sign-In)
                       if (isLoginPage)
                         const Padding(
-                          padding: EdgeInsets.only(bottom: 16),
+                          padding: EdgeInsets.only(bottom: 10),
                           child: GoogleSignInButton(isFullWidth: true),
                         )
                       else
