@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../data/models/food_analysis.dart';
 import '../../../core/constants/app_colors.dart';
 import 'glassmorphism_calendar.dart';
+import 'celebration_animation.dart';
 
 class CalorieTrackingCard extends StatefulWidget {
   final double totalCaloriesConsumed;
