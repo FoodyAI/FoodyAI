@@ -113,7 +113,11 @@ class _AnalysisLoadingViewState extends State<AnalysisLoadingView>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          HealthInfoCard(profile: profile, isMetric: isMetric),
+                          HealthInfoCard(
+                            profile: profile,
+                            isMetric: isMetric,
+                            isOnboarding: true,
+                          ),
                           const SizedBox(height: 24),
                           Center(
                             child: ElevatedButton(

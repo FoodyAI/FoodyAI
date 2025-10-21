@@ -369,6 +369,8 @@ class _HomeContentState extends State<_HomeContent> {
   bool _bannerDismissed = false;
   bool _hasNavigated = false;
   final SQLiteService _sqliteService = SQLiteService();
+  final ScrollController _scrollController = ScrollController();
+  bool _wasLoading = false;
 
   @override
   void initState() {
@@ -407,6 +409,12 @@ class _HomeContentState extends State<_HomeContent> {
     // Validate user state consistency only when dependencies change
     final authVM = Provider.of<AuthViewModel>(context, listen: false);
     authVM.validateUserState();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadBannerState() async {
@@ -601,6 +609,25 @@ class _HomeContentState extends State<_HomeContent> {
     // Get recommended daily calories
     final recommendedCalories = profile.dailyCalories;
 
+    // Auto-scroll to top while item is being added
+    final isLoading = analysisVM.isLoading;
+    if (isLoading && !_wasLoading) {
+      // Just started loading - scroll to top after a small delay
+      // This ensures the shimmer card is rendered first, creating a smooth "scroll while adding" effect
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Future.delayed(const Duration(milliseconds: 100), () {
+          if (_scrollController.hasClients && mounted) {
+            _scrollController.animateTo(
+              0,
+              duration: const Duration(milliseconds: 500),
+              curve: Curves.easeInOut,
+            );
+          }
+        });
+      });
+    }
+    _wasLoading = isLoading;
+
     return Scaffold(
       appBar: _buildCustomAppBar(context, authVM, profile),
       body: RefreshIndicator(
@@ -611,6 +638,7 @@ class _HomeContentState extends State<_HomeContent> {
           await analysisVM.forceRefresh();
         },
         child: SingleChildScrollView(
+          controller: _scrollController,
           physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
