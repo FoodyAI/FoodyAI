@@ -21,8 +21,8 @@
       "id": "page_1",
       "title": "Effortless calorie tracking",
       "description": "Snap your meal, and we'll handle the rest—calorie tracking!",
-      "background_image": "assets/images/bg_nutrition.jpg",
-      "background_image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=1080&h=1920&fit=crop",
+      "background_image": "assets/images/intro 1.jpeg",
+      "background_image_url": "assets/images/intro 1.jpeg",
       "icon": "nutrition",
       "primary_color_override": null
     },
@@ -30,10 +30,10 @@
       "id": "page_2",
       "title": "Track your whole day calories",
       "description": "Monitor your nutrition throughout the day with detailed macro breakdown and insights.",
-      "background_image": "assets/images/bg_bmi.jpg",
-      "background_image_url": "https://images.unsplash.com/photo-1498837167922-ddd27525d352?w=1080&h=1920&fit=crop",
+      "background_image": "assets/images/intro 2.jpeg",
+      "background_image_url": "assets/images/intro 2.jpeg",
       "background_video_url": "assets/videos/second.webm",
-      "use_video": true,
+      "use_video": false,
       "icon": "calculator",
       "primary_color_override": null
     },
@@ -41,9 +41,18 @@
       "id": "page_3",
       "title": "Transform your body",
       "description": "Today is the best time to start working toward your dream body",
-      "background_image": "assets/images/bg_activity.jpg",
-      "background_image_url": "https://images.unsplash.com/photo-1490818387583-1baba5e638af?w=1080&h=1920&fit=crop",
+      "background_image": "assets/images/intro 3.jpeg",
+      "background_image_url": "assets/images/intro 3.jpeg",
       "icon": "activity",
+      "primary_color_override": null
+    },
+    {
+      "id": "page_4",
+      "title": "Ready to start your journey?",
+      "description": "Sign in to track your nutrition and achieve your goals",
+      "background_image": "assets/images/intro 4.jpeg",
+      "background_image_url": "assets/images/intro 4.jpeg",
+      "icon": "login",
       "primary_color_override": null
     }
   ],

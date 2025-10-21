@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:video_player/video_player.dart';
 import '../../../config/onboarding/onboarding_config.dart';
 import '../../../config/onboarding/onboarding_page_model.dart';
 import '../../widgets/google_signin_button.dart';
+import '../legal/privacy_policy_page.dart';
+import '../legal/terms_of_service_page.dart';
 import 'dart:ui';
 
 /// Modern full-screen onboarding with immersive design
@@ -20,7 +23,8 @@ class IntroOnboardingScreen extends StatefulWidget {
   State<IntroOnboardingScreen> createState() => _IntroOnboardingScreenState();
 }
 
-class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
+class _IntroOnboardingScreenState extends State<IntroOnboardingScreen>
+    with TickerProviderStateMixin {
   late PageController _pageController;
   late OnboardingConfig _config;
   int _currentPage = 0;
@@ -31,17 +35,97 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
   VideoPlayerController? _videoController;
   bool _isVideoInitialized = false;
 
+  // Animation controllers
+  late AnimationController _scanningAnimationController;
+  late AnimationController _macroAnimationController;
+  late AnimationController _fireAnimationController;
+  late AnimationController _utensilsAnimationController;
+
+  // Animations
+  late Animation<double> _scanningScaleAnimation;
+  late Animation<double> _scanningOpacityAnimation;
+  late Animation<double> _fireScaleAnimation;
+  late Animation<double> _fireRotationAnimation;
+  late Animation<double> _utensilsSlideAnimation;
+
   @override
   void initState() {
     super.initState();
     _pageController = PageController();
+    _initializeAnimations();
     _loadConfiguration();
+  }
+
+  /// Initialize all animation controllers
+  void _initializeAnimations() {
+    // Scanning animation (Page 1) - pulsating effect
+    _scanningAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 2000),
+      vsync: this,
+    )..repeat(reverse: true);
+
+    _scanningScaleAnimation = Tween<double>(begin: 0.95, end: 1.05).animate(
+      CurvedAnimation(
+        parent: _scanningAnimationController,
+        curve: Curves.easeInOut,
+      ),
+    );
+
+    _scanningOpacityAnimation = Tween<double>(begin: 0.6, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _scanningAnimationController,
+        curve: Curves.easeInOut,
+      ),
+    );
+
+    // Macro cards animation (Page 2) - will be triggered per card
+    _macroAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    )..repeat();
+
+    // Fire animation (Page 3) - scale and rotate
+    _fireAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    )..repeat(reverse: true);
+
+    _fireScaleAnimation = Tween<double>(begin: 0.9, end: 1.1).animate(
+      CurvedAnimation(
+        parent: _fireAnimationController,
+        curve: Curves.easeInOut,
+      ),
+    );
+
+    _fireRotationAnimation = Tween<double>(begin: -0.05, end: 0.05).animate(
+      CurvedAnimation(
+        parent: _fireAnimationController,
+        curve: Curves.easeInOut,
+      ),
+    );
+
+    // Utensils animation (Page 4) - slide in from sides
+    _utensilsAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 2000),
+      vsync: this,
+    )..repeat(reverse: true);
+
+    _utensilsSlideAnimation = Tween<double>(begin: -10, end: 10).animate(
+      CurvedAnimation(
+        parent: _utensilsAnimationController,
+        curve: Curves.easeInOut,
+      ),
+    );
   }
 
   @override
   void dispose() {
     _pageController.dispose();
     _videoController?.dispose();
+    _scanningAnimationController.dispose();
+    _macroAnimationController.dispose();
+    _fireAnimationController.dispose();
+    _utensilsAnimationController.dispose();
     super.dispose();
   }
 
@@ -138,7 +222,7 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // PageView with full-screen pages (includes welcome page as last page)
+          // PageView with full-screen pages
           PageView.builder(
             controller: _pageController,
             onPageChanged: (index) {
@@ -147,26 +231,21 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
               });
               _initializeVideoForPage(index);
             },
-            itemCount: _config.pages.length + 1, // +1 for welcome page
+            itemCount: _config.pages.length,
             itemBuilder: (context, index) {
-              // Last page is the welcome/login page
-              if (index == _config.pages.length) {
-                return _buildWelcomePage();
-              }
               return _buildPage(_config.pages[index], index);
             },
           ),
 
-          // Bottom content card with proper spacing - hide on welcome page
-          if (_currentPage < _config.pages.length)
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: SafeArea(
-                child: _buildBottomCard(),
-              ),
+          // Bottom content card with proper spacing
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: SafeArea(
+              child: _buildBottomCard(),
             ),
+          ),
         ],
       ),
     );
@@ -267,12 +346,32 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
         if (index == 0) _buildScanningOverlay(),
         if (index == 1) _buildMacroCardsOverlay(),
         if (index == 2) _buildDailyCalorieOverlay(),
+        if (index == 3) _buildLoginOverlay(),
       ],
     );
   }
 
   /// Build image background
   Widget _buildImageBackground(OnboardingPageModel page) {
+    // Check if the image is a local asset
+    final isLocalAsset = page.backgroundImageUrl.startsWith('assets/');
+
+    if (isLocalAsset) {
+      return Image.asset(
+        page.backgroundImageUrl,
+        fit: BoxFit.cover,
+        width: double.infinity,
+        height: double.infinity,
+        errorBuilder: (context, error, stackTrace) => Container(
+          color: Colors.black,
+          child: const Center(
+            child: Icon(Icons.error, color: Colors.white, size: 48),
+          ),
+        ),
+      );
+    }
+
+    // Fallback to network image for backward compatibility
     return CachedNetworkImage(
       imageUrl: page.backgroundImageUrl,
       fit: BoxFit.cover,
@@ -314,32 +413,90 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
     );
   }
 
-  /// Build scanning frame overlay (Page 1) - centered with bottom margin
+  /// Build scanning frame overlay (Page 1) - centered with bottom margin and animation
   Widget _buildScanningOverlay() {
     return Center(
       child: Padding(
         padding: const EdgeInsets.only(bottom: 80), // Add bottom margin
-        child: Container(
-          width: 280,
-          height: 280,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(32),
-            border: Border.all(
-              color: Colors.white,
-              width: 3,
-            ),
-          ),
-          child: Stack(
-            children: [
-              // Corner brackets
-              _buildCornerBracket(Alignment.topLeft, true, true),
-              _buildCornerBracket(Alignment.topRight, true, false),
-              _buildCornerBracket(Alignment.bottomLeft, false, true),
-              _buildCornerBracket(Alignment.bottomRight, false, false),
-            ],
-          ),
+        child: AnimatedBuilder(
+          animation: _scanningAnimationController,
+          builder: (context, child) {
+            return Transform.scale(
+              scale: _scanningScaleAnimation.value,
+              child: Opacity(
+                opacity: _scanningOpacityAnimation.value,
+                child: Container(
+                  width: 280,
+                  height: 280,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(32),
+                    border: Border.all(
+                      color: Colors.white,
+                      width: 3,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.white
+                            .withOpacity(_scanningOpacityAnimation.value * 0.3),
+                        blurRadius: 20,
+                        spreadRadius: 5,
+                      ),
+                    ],
+                  ),
+                  child: Stack(
+                    children: [
+                      // Corner brackets
+                      _buildCornerBracket(Alignment.topLeft, true, true),
+                      _buildCornerBracket(Alignment.topRight, true, false),
+                      _buildCornerBracket(Alignment.bottomLeft, false, true),
+                      _buildCornerBracket(Alignment.bottomRight, false, false),
+
+                      // Scanning line animation
+                      _buildScanningLine(),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
         ),
       ),
+    );
+  }
+
+  /// Build animated scanning line that moves up and down
+  Widget _buildScanningLine() {
+    return AnimatedBuilder(
+      animation: _scanningAnimationController,
+      builder: (context, child) {
+        return Positioned(
+          top: 280 * _scanningAnimationController.value,
+          left: 20,
+          right: 20,
+          child: Opacity(
+            opacity: 0.8,
+            child: Container(
+              height: 2,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.transparent,
+                    const Color(0xFFFF6B6B),
+                    Colors.transparent,
+                  ],
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFFF6B6B).withOpacity(0.5),
+                    blurRadius: 8,
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -379,85 +536,151 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
     );
   }
 
-  /// Build macro nutrition cards overlay (Page 2) - positioned better
+  /// Build macro nutrition cards overlay (Page 2) - responsive for all devices
   Widget _buildMacroCardsOverlay() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final horizontalPadding = screenWidth * 0.06; // 6% of screen width
+    final cardSpacing =
+        screenWidth * 0.03; // 3% of screen width (min 8, max 16)
+    final spacing = cardSpacing.clamp(8.0, 16.0);
+
     return Positioned(
       left: 0,
       right: 0,
       top: MediaQuery.of(context).size.height * 0.45,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+        padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _buildMacroCard('Protein', '45g', const Color(0xFFB8A0FF), 0.75),
-            const SizedBox(width: 12),
-            _buildMacroCard('Carbs', '120g', const Color(0xFFC4E17F), 0.60),
-            const SizedBox(width: 12),
-            _buildMacroCard('Fat', '28g', const Color(0xFFFFC876), 0.85),
+            Flexible(
+              child: _buildMacroCard(
+                  'Protein', '45g', const Color(0xFFB8A0FF), 0.75),
+            ),
+            SizedBox(width: spacing),
+            Flexible(
+              child: _buildMacroCard(
+                  'Carbs', '120g', const Color(0xFFC4E17F), 0.60),
+            ),
+            SizedBox(width: spacing),
+            Flexible(
+              child:
+                  _buildMacroCard('Fat', '28g', const Color(0xFFFFC876), 0.85),
+            ),
           ],
         ),
       ),
     );
   }
 
-  /// Build individual macro card
+  /// Build individual macro card - responsive for all screen sizes with animation
   Widget _buildMacroCard(
       String label, String value, Color color, double progress) {
-    return Container(
-      width: 100,
-      height: 120,
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.9),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              color: Colors.black.withOpacity(0.7),
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-            ),
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    // Dynamic sizing based on screen size
+    // Card width: 26-30% of screen width, ensuring good fit on all devices
+    final cardWidth = (screenWidth * 0.26).clamp(85.0, 110.0);
+    final cardHeight = (screenHeight * 0.15).clamp(100.0, 130.0);
+
+    // Dynamic font sizes
+    final labelFontSize = (screenWidth * 0.035).clamp(12.0, 15.0);
+    final valueFontSize = (screenWidth * 0.04).clamp(14.0, 17.0);
+
+    // Dynamic circle size
+    final circleSize = (cardWidth * 0.45).clamp(40.0, 55.0);
+    final strokeWidth = (circleSize * 0.08).clamp(3.0, 5.0);
+
+    // Dynamic spacing
+    final verticalSpacing = (cardHeight * 0.06).clamp(6.0, 10.0);
+    final borderRadius = (cardWidth * 0.18).clamp(16.0, 22.0);
+
+    return AnimatedBuilder(
+      animation: _macroAnimationController,
+      builder: (context, child) {
+        return Container(
+          width: cardWidth,
+          height: cardHeight,
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.9),
+            borderRadius: BorderRadius.circular(borderRadius),
+            boxShadow: [
+              BoxShadow(
+                color: color.withOpacity(0.3),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-          const SizedBox(height: 8),
-          // Circular progress indicator
-          SizedBox(
-            width: 50,
-            height: 50,
-            child: Stack(
-              children: [
-                Center(
-                  child: SizedBox(
-                    width: 50,
-                    height: 50,
-                    child: CircularProgressIndicator(
-                      value: progress,
-                      strokeWidth: 4,
-                      backgroundColor: Colors.white.withOpacity(0.3),
-                      valueColor: const AlwaysStoppedAnimation<Color>(
-                        Colors.white,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  color: Colors.black.withOpacity(0.7),
+                  fontSize: labelFontSize,
+                  fontWeight: FontWeight.w600,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              SizedBox(height: verticalSpacing),
+              // Animated circular progress indicator
+              SizedBox(
+                width: circleSize,
+                height: circleSize,
+                child: Stack(
+                  children: [
+                    Center(
+                      child: SizedBox(
+                        width: circleSize,
+                        height: circleSize,
+                        child: TweenAnimationBuilder<double>(
+                          duration: const Duration(milliseconds: 1500),
+                          curve: Curves.easeInOut,
+                          tween: Tween<double>(
+                            begin: 0,
+                            end: progress,
+                          ),
+                          builder: (context, value, _) =>
+                              CircularProgressIndicator(
+                            value: value,
+                            strokeWidth: strokeWidth,
+                            backgroundColor: Colors.white.withOpacity(0.3),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white.withOpacity(0.6 + (value * 0.4)),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
-                Center(
-                  child: Text(
-                    value,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+                    Center(
+                      child: TweenAnimationBuilder<double>(
+                        duration: const Duration(milliseconds: 1500),
+                        curve: Curves.easeInOut,
+                        tween: Tween<double>(begin: 0, end: 1),
+                        builder: (context, opacity, _) => Opacity(
+                          opacity: opacity,
+                          child: Text(
+                            value,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: valueFontSize,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -507,7 +730,7 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
                       ),
                       const SizedBox(height: 4),
                       const Text(
-                        '2000',
+                        '2600',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 38,
@@ -516,19 +739,42 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
                       ),
                     ],
                   ),
-                  // Fire icon on the right
-                  Container(
-                    width: 56,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.3),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.local_fire_department,
-                      color: Colors.white,
-                      size: 30,
-                    ),
+                  // Animated fire icon on the right
+                  AnimatedBuilder(
+                    animation: _fireAnimationController,
+                    builder: (context, child) {
+                      return Transform.scale(
+                        scale: _fireScaleAnimation.value,
+                        child: Transform.rotate(
+                          angle: _fireRotationAnimation.value,
+                          child: Container(
+                            width: 56,
+                            height: 56,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.3),
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFFFF6B6B).withOpacity(
+                                      _fireScaleAnimation.value - 0.7),
+                                  blurRadius: 20,
+                                  spreadRadius: 3,
+                                ),
+                              ],
+                            ),
+                            child: Icon(
+                              Icons.local_fire_department,
+                              color: Color.lerp(
+                                Colors.white,
+                                const Color(0xFFFF6B6B),
+                                (_fireScaleAnimation.value - 0.9) * 5,
+                              ),
+                              size: 30,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -538,7 +784,78 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
       ),
     );
   }
- 
+
+  /// Build login icon overlay (Page 4) - animated restaurant icon
+  Widget _buildLoginOverlay() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 80),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AnimatedBuilder(
+              animation: _utensilsAnimationController,
+              builder: (context, child) {
+                return Transform.rotate(
+                  angle: _utensilsSlideAnimation.value * 0.02,
+                  child: Transform.scale(
+                    scale: 1.0 + (_utensilsSlideAnimation.value.abs() * 0.008),
+                    child: Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            Color(0xFFFF6B6B),
+                            Color(0xFFFF8E8E),
+                          ],
+                        ),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFFFF6B6B).withOpacity(
+                                0.4 + (_utensilsSlideAnimation.value.abs() * 0.02)),
+                            blurRadius:
+                                20 + (_utensilsSlideAnimation.value.abs() * 2),
+                            spreadRadius: 3,
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.restaurant_menu,
+                        size: 50,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Foody',
+              style: TextStyle(
+                fontSize: 48,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                letterSpacing: 1.5,
+                shadows: [
+                  Shadow(
+                    color: Colors.black26,
+                    offset: Offset(0, 2),
+                    blurRadius: 4,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   /// Build bottom content card with glassmorphism - FIXED HEIGHT
   Widget _buildBottomCard() {
     // Safety check to prevent index out of range
@@ -548,6 +865,7 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
 
     final page = _config.pages[_currentPage];
     final isLastPage = _currentPage == _config.pages.length - 1;
+    final isLoginPage = page.icon == 'login';
 
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 20),
@@ -629,66 +947,84 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
                   // Bottom section with button and link
                   Column(
                     children: [
-                      // Next button
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: _handleNext,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFFF6B6B),
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 15),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                            elevation: 0,
-                          ),
-                          child: Text(
-                            isLastPage ? 'Get Started' : 'Next',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              letterSpacing: 0.5,
+                      // Main button (Next/Get Started or Google Sign-In)
+                      if (isLoginPage)
+                        const Padding(
+                          padding: EdgeInsets.only(bottom: 10),
+                          child: GoogleSignInButton(isFullWidth: true),
+                        )
+                      else
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: _handleNext,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFFFF6B6B),
+                                foregroundColor: Colors.white,
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 15),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                                elevation: 0,
+                              ),
+                              child: Text(
+                                isLastPage ? 'Get Started' : 'Next',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
                             ),
                           ),
                         ),
-                      ),
 
-                      // "Already have an account?" text (on all pages)
+                      // Bottom text/link
                       const SizedBox(height: 4),
-                      TextButton(
-                        onPressed: _skipOnboarding,
-                        style: TextButton.styleFrom(
-                          foregroundColor: const Color(0xFFFF6B6B),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 4,
+                      if (isLoginPage)
+                        // Privacy text on login page
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8, bottom: 16),
+                          child: _buildPrivacyTermsText(context),
+                        )
+                      else
+                        // "Already have an account?" text on other pages
+                        TextButton(
+                          onPressed: _skipOnboarding,
+                          style: TextButton.styleFrom(
+                            foregroundColor: const Color(0xFFFF6B6B),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 4,
+                            ),
+                            minimumSize: const Size(0, 32),
                           ),
-                          minimumSize: const Size(0, 32),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              'Already have an account?',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.white.withOpacity(0.9),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'Already have an account?',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.white.withOpacity(0.9),
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 4),
-                            const Text(
-                              'Sign in',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFFFF6B6B),
+                              const SizedBox(width: 4),
+                              const Text(
+                                'Sign in',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFFFF6B6B),
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
                     ],
                   ),
                 ],
@@ -700,12 +1036,12 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
     );
   }
 
-  /// Build page indicators (dots) - includes welcome page
+  /// Build page indicators (dots)
   Widget _buildPageIndicators() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(
-        _config.pages.length + 1, // +1 for welcome page
+        _config.pages.length,
         (index) => AnimatedContainer(
           duration: const Duration(milliseconds: 300),
           margin: const EdgeInsets.symmetric(horizontal: 4),
@@ -722,239 +1058,55 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
     );
   }
 
-  /// Build welcome/login page (last slide)
-  Widget _buildWelcomePage() {
-    final screenHeight = MediaQuery.of(context).size.height;
-
-    return Stack(
-      children: [
-        // Full-screen background image with blur
-        Positioned.fill(
-          child: Container(
-            decoration: const BoxDecoration(
-              image: DecorationImage(
-                image: NetworkImage(
-                  'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=1080&h=1920&fit=crop',
-                ),
-                fit: BoxFit.cover,
-              ),
-            ),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.black.withOpacity(0.4),
-                      Colors.black.withOpacity(0.7),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
+  /// Build clickable Privacy Policy and Terms of Service text
+  Widget _buildPrivacyTermsText(BuildContext context) {
+    return RichText(
+      textAlign: TextAlign.center,
+      text: TextSpan(
+        style: TextStyle(
+          fontSize: 11,
+          color: Colors.white.withOpacity(0.6),
+          height: 1.4,
         ),
-
-        // Main content
-        SafeArea(
-          child: Column(
-            children: [
-              // Top section with logo - positioned higher
-              SizedBox(height: screenHeight * 0.12),
-
-              // Logo and title section
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: Column(
-                  children: [
-                    // App icon
-                    TweenAnimationBuilder(
-                      tween: Tween<double>(begin: 0, end: 1),
-                      duration: const Duration(milliseconds: 800),
-                      builder: (context, double value, child) {
-                        return Transform.scale(
-                          scale: value,
-                          child: Opacity(
-                            opacity: value,
-                            child: child,
-                          ),
-                        );
-                      },
-                      child: Container(
-                        width: 100,
-                        height: 100,
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              Color(0xFFFF6B6B),
-                              Color(0xFFFF8E8E),
-                            ],
-                          ),
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFFFF6B6B).withOpacity(0.4),
-                              blurRadius: 20,
-                              spreadRadius: 3,
-                            ),
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.restaurant_menu,
-                          size: 50,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // App name
-                    TweenAnimationBuilder(
-                      tween: Tween<double>(begin: 0, end: 1),
-                      duration: const Duration(milliseconds: 800),
-                      builder: (context, double value, child) {
-                        return Opacity(
-                          opacity: value,
-                          child: Transform.translate(
-                            offset: Offset(0, 20 * (1 - value)),
-                            child: child,
-                          ),
-                        );
-                      },
-                      child: const Text(
-                        'Foody',
-                        style: TextStyle(
-                          fontSize: 42,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                          letterSpacing: 1.2,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    // Tagline
-                    TweenAnimationBuilder(
-                      tween: Tween<double>(begin: 0, end: 1),
-                      duration: const Duration(milliseconds: 1000),
-                      builder: (context, double value, child) {
-                        return Opacity(
-                          opacity: value,
-                          child: Transform.translate(
-                            offset: Offset(0, 20 * (1 - value)),
-                            child: child,
-                          ),
-                        );
-                      },
-                      child: Text(
-                        'Your Personal Nutrition Companion',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.white.withOpacity(0.8),
-                          letterSpacing: 0.5,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const Spacer(),
-
-              // Bottom white card with sign-in button - exact match with other pages
-              Padding(
-                padding: const EdgeInsets.only(bottom: 20.0),
-                child: Container(
-                  margin: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-                  constraints: const BoxConstraints(maxHeight: 300),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(32),
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(32),
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.4),
-                            width: 1.5,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.15),
-                              blurRadius: 30,
-                              spreadRadius: 5,
-                              offset: const Offset(0, 10),
-                            ),
-                          ],
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 24.0, vertical: 20.0),
-                          child: Column(
-                            children: [
-                              // Page indicators
-                              _buildPageIndicators(),
-                              const SizedBox(height: 16),
-
-                              // Title - fixed height
-                              const SizedBox(
-                                height: 58,
-                                child: Center(
-                                  child: Text(
-                                    'Ready to start your journey?',
-                                    textAlign: TextAlign.center,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                      height: 1.2,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-
-                              // Description - fixed height
-                              SizedBox(
-                                height: 42,
-                                child: Center(
-                                  child: Text(
-                                    'Sign in to track your nutrition and achieve your goals',
-                                    textAlign: TextAlign.center,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      color: Colors.white.withOpacity(0.9),
-                                      height: 1.4,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-
-                              // Google Sign-In Button
-                              const GoogleSignInButton(isFullWidth: true),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
+        children: [
+          const TextSpan(text: 'By signing in, you agree to our '),
+          TextSpan(
+            text: 'Privacy Policy',
+            style: const TextStyle(
+              color: Color(0xFFFF6B6B),
+              fontWeight: FontWeight.w600,
+              decoration: TextDecoration.underline,
+            ),
+            recognizer: TapGestureRecognizer()
+              ..onTap = () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const PrivacyPolicyPage(),
                   ),
-                ),
-              ),
-            ],
+                );
+              },
           ),
-        ),
-      ],
+          const TextSpan(text: ' and '),
+          TextSpan(
+            text: 'Terms of Service',
+            style: const TextStyle(
+              color: Color(0xFFFF6B6B),
+              fontWeight: FontWeight.w600,
+              decoration: TextDecoration.underline,
+            ),
+            recognizer: TapGestureRecognizer()
+              ..onTap = () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const TermsOfServicePage(),
+                  ),
+                );
+              },
+          ),
+        ],
+      ),
     );
   }
 }
