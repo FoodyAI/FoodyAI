@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../data/models/food_analysis.dart';
 import '../../../core/constants/app_colors.dart';
 import 'glassmorphism_calendar.dart';
+import 'celebration_animation.dart';
 
 class CalorieTrackingCard extends StatefulWidget {
   final double totalCaloriesConsumed;
@@ -29,6 +30,7 @@ class _CalorieTrackingCardState extends State<CalorieTrackingCard>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _progressAnimation;
+  bool _showCelebration = false;
 
   @override
   void initState() {
@@ -52,6 +54,25 @@ class _CalorieTrackingCardState extends State<CalorieTrackingCard>
   void didUpdateWidget(CalorieTrackingCard oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.totalCaloriesConsumed != widget.totalCaloriesConsumed) {
+      final wasGoalNotReached = oldWidget.recommendedCalories - oldWidget.totalCaloriesConsumed > 0;
+      final isGoalReached = widget.recommendedCalories - widget.totalCaloriesConsumed <= 0;
+
+      // Show celebration every time user transitions from not reached to reached
+      if (wasGoalNotReached && isGoalReached) {
+        setState(() {
+          _showCelebration = true;
+        });
+
+        // Hide celebration after 2 seconds
+        Future.delayed(const Duration(milliseconds: 2000), () {
+          if (mounted) {
+            setState(() {
+              _showCelebration = false;
+            });
+          }
+        });
+      }
+
       _progressAnimation = Tween<double>(
         begin: oldWidget.totalCaloriesConsumed / widget.recommendedCalories,
         end: (widget.totalCaloriesConsumed / widget.recommendedCalories)
@@ -91,28 +112,30 @@ class _CalorieTrackingCardState extends State<CalorieTrackingCard>
         widget.selectedDate.month == DateTime.now().month &&
         widget.selectedDate.day == DateTime.now().day;
 
-    return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppColors.withOpacity(statusColor, 0.1),
-            AppColors.withOpacity(statusColor, 0.05),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.withOpacity(statusColor, 0.1),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+    return Stack(
+      children: [
+        Container(
+          margin: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                statusColor.withValues(alpha: 0.1),
+                statusColor.withValues(alpha: 0.05),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: statusColor.withValues(alpha: 0.1),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Column(
+          child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
@@ -215,7 +238,7 @@ class _CalorieTrackingCardState extends State<CalorieTrackingCard>
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.withOpacity(statusColor, 0.2),
+                    color: statusColor.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
@@ -277,7 +300,7 @@ class _CalorieTrackingCardState extends State<CalorieTrackingCard>
                           borderRadius: BorderRadius.circular(6),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.withOpacity(statusColor, 0.3),
+                              color: statusColor.withValues(alpha: 0.3),
                               blurRadius: 8,
                               offset: const Offset(0, 2),
                             ),
@@ -309,7 +332,18 @@ class _CalorieTrackingCardState extends State<CalorieTrackingCard>
             ],
           ),
         ],
-      ),
+          ),
+        ),
+
+        // Show celebration animation when goal is reached
+        if (_showCelebration)
+          const Positioned.fill(
+            child: Padding(
+              padding: EdgeInsets.all(16),
+              child: CelebrationAnimation(),
+            ),
+          ),
+      ],
     );
   }
 
@@ -322,7 +356,7 @@ class _CalorieTrackingCardState extends State<CalorieTrackingCard>
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: AppColors.withOpacity(color, 0.1),
+            color: color.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -350,7 +384,7 @@ class _CalorieTrackingCardState extends State<CalorieTrackingCard>
                       color: Theme.of(context)
                           .colorScheme
                           .onSurface
-                          .withOpacity(0.7),
+                          .withValues(alpha: 0.7),
                       fontSize: 14,
                     ),
                   ),
