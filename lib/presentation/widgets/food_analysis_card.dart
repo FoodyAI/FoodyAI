@@ -357,7 +357,7 @@ class FoodAnalysisCard extends StatelessWidget {
                             if (loadingProgress == null) return child;
                             return ImageHelper.createLoadingWidget(
                               width: double.infinity,
-                              height: 300,
+                              height: 240,
                               backgroundColor: Colors.grey[300],
                               borderRadius: 32,
                             );
