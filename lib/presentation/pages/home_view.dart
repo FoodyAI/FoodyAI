@@ -31,12 +31,16 @@ class HomeView extends StatefulWidget {
   State<HomeView> createState() => _HomeViewState();
 }
 
-class _HomeViewState extends State<HomeView> {
+class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin {
   int _currentIndex = 0;
   final ConnectionService _connectionService = ConnectionService();
   final SyncService _syncService = SyncService();
   StreamSubscription<bool>? _connectionSubscription;
   bool _wasOffline = false;
+
+  // Animation controller for rotating plus button
+  late AnimationController _rotationController;
+  bool _wasLoading = false;
 
   final List<Widget> _pages = [
     const _HomeContent(),      // Index 0: Home
