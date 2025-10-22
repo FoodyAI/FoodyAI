@@ -867,10 +867,27 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen>
     final isLastPage = _currentPage == _config.pages.length - 1;
     final isLoginPage = page.icon == 'login';
 
+    // Get screen dimensions using MediaQuery
+    final mediaQuery = MediaQuery.of(context);
+    final screenHeight = mediaQuery.size.height;
+
+    // Determine screen size categories
+    final isSmallScreen = screenHeight < 700;
+    final isMediumScreen = screenHeight >= 700 && screenHeight < 800;
+
+    // Adjust spacing based on screen height - EXTREMELY COMPACT for small screens
+    final verticalPadding = isSmallScreen ? 8.0 : (isMediumScreen ? 14.0 : 20.0);
+    final indicatorSpacing = isSmallScreen ? 4.0 : (isMediumScreen ? 10.0 : 16.0);
+    final titleHeight = isSmallScreen ? 24.0 : (isMediumScreen ? 30.0 : 36.0); // Reduced for single line
+    final titleFontSize = isSmallScreen ? 16.0 : (isMediumScreen ? 20.0 : 24.0);
+    final descriptionHeight = isSmallScreen ? 28.0 : (isMediumScreen ? 36.0 : 42.0);
+    final descriptionFontSize = isSmallScreen ? 10.0 : (isMediumScreen ? 12.0 : 14.0);
+    final spaceBetweenTitleDesc = isSmallScreen ? 0.0 : (isMediumScreen ? 4.0 : 8.0);
+    final buttonVerticalPadding = isSmallScreen ? 8.0 : (isMediumScreen ? 12.0 : 15.0);
+    final bottomMargin = isSmallScreen ? 4.0 : (isMediumScreen ? 12.0 : 20.0);
+
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-      constraints:
-          const BoxConstraints(maxHeight: 300), // Max height with constraints
+      margin: EdgeInsets.fromLTRB(16, 0, 16, bottomMargin),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(32),
         child: BackdropFilter(
