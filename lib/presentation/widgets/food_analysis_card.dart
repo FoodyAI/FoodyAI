@@ -287,7 +287,7 @@ class FoodAnalysisCard extends StatelessWidget {
 
   Widget _buildModalImagePlaceholder(BuildContext context) {
     return Container(
-      height: 300,
+      height: 240,
       width: double.infinity,
       decoration: BoxDecoration(
         gradient: LinearGradient(
