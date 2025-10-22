@@ -305,102 +305,13 @@ class _CalorieTrackingCardState extends State<CalorieTrackingCard>
                                     ),
                                   ),
                                 ),
-                                const SizedBox(width: 8),
-                                if (!isToday)
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(14),
-                                    child: BackdropFilter(
-                                      filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-                                      child: Container(
-                                        width: 40,
-                                        height: 40,
-                                        decoration: BoxDecoration(
-                                          color: isDark
-                                              ? Colors.white.withValues(alpha: 0.1)
-                                              : Colors.white.withValues(alpha: 0.5),
-                                          borderRadius: BorderRadius.circular(14),
-                                          border: Border.all(
-                                            color: isDark
-                                                ? Colors.white.withValues(alpha: 0.15)
-                                                : Colors.white.withValues(alpha: 0.6),
-                                            width: 1,
-                                          ),
-                                        ),
-                                        child: IconButton(
-                                          onPressed: () => widget.onDateSelected(DateTime.now()),
-                                          padding: EdgeInsets.zero,
-                                          icon: Icon(
-                                            Icons.today_rounded,
-                                            color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
-                                            size: 20,
-                                          ),
-                                          tooltip: 'Go to Today',
-                                        ),
-                                      ),
-                                    ),
-                                  ),
                               ],
                             ),
                           ),
                         ),
                         const SizedBox(width: 12),
-                        // Status Badge
-                        Flexible(
-                          flex: 1,
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(20),
-                            child: BackdropFilter(
-                              filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 8,
-                                ),
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      statusColor.withValues(alpha: 0.25),
-                                      statusColor.withValues(alpha: 0.15),
-                                    ],
-                                  ),
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(
-                                    color: statusColor.withValues(alpha: 0.4),
-                                    width: 1,
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    if (remainingCalories <= 0)
-                                      const Padding(
-                                        padding: EdgeInsets.only(right: 4),
-                                        child: Text(
-                                          '🎉',
-                                          style: TextStyle(fontSize: 14),
-                                        ),
-                                      ),
-                                    Flexible(
-                                      child: FittedBox(
-                                        fit: BoxFit.scaleDown,
-                                        child: Text(
-                                          remainingCalories <= 0
-                                              ? 'Goal!'
-                                              : '${remainingCalories.toStringAsFixed(0)} left',
-                                          style: GoogleFonts.inter(
-                                            color: statusColor,
-                                            fontWeight: FontWeight.w700,
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
+                        // Animated Emoji Status Badge
+                        _buildAnimatedEmojiStatus(remainingCalories, statusColor),
                       ],
                     ),
                     const SizedBox(height: 16),
