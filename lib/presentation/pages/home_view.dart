@@ -159,6 +159,7 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
 
   @override
   void dispose() {
+    _rotationController.dispose();
     _connectionSubscription?.cancel();
     super.dispose();
   }
