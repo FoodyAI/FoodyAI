@@ -369,7 +369,7 @@ class FoodAnalysisCard extends StatelessWidget {
                     _buildModalImagePlaceholder(context),
                   // Gradient Overlay
                   Container(
-                    height: 300,
+                    height: 240,
                     width: double.infinity,
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
