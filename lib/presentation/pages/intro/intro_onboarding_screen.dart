@@ -1068,11 +1068,13 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen>
   Widget _buildPrivacyTermsText(BuildContext context) {
     return RichText(
       textAlign: TextAlign.center,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
       text: TextSpan(
         style: TextStyle(
-          fontSize: 11,
+          fontSize: 9,
           color: Colors.white.withOpacity(0.6),
-          height: 1.4,
+          height: 1.0,
         ),
         children: [
           const TextSpan(text: 'By signing in, you agree to our '),
