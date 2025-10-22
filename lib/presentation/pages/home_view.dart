@@ -31,12 +31,16 @@ class HomeView extends StatefulWidget {
   State<HomeView> createState() => _HomeViewState();
 }
 
-class _HomeViewState extends State<HomeView> {
+class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin {
   int _currentIndex = 0;
   final ConnectionService _connectionService = ConnectionService();
   final SyncService _syncService = SyncService();
   StreamSubscription<bool>? _connectionSubscription;
   bool _wasOffline = false;
+
+  // Animation controller for rotating plus button
+  late AnimationController _rotationController;
+  bool _wasLoading = false;
 
   final List<Widget> _pages = [
     const _HomeContent(),      // Index 0: Home
@@ -46,61 +50,88 @@ class _HomeViewState extends State<HomeView> {
 
   Widget _buildGlassmorphismFAB(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              // Exact same glassmorphism as calendar
-              color: isDark
-                  ? Colors.black.withValues(alpha: 0.3)
-                  : Colors.white.withValues(alpha: 0.4),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: isDark
-                    ? Colors.white.withValues(alpha: 0.15)
-                    : Colors.white.withValues(alpha: 0.6),
-                width: 1.5,
-              ),
-              boxShadow: [
-                BoxShadow(
+
+    return Consumer<ImageAnalysisViewModel>(
+      builder: (context, analysisVM, _) {
+        final isLoading = analysisVM.isLoading;
+
+        // Start/stop rotation based on loading state
+        if (isLoading && !_wasLoading) {
+          // Just started loading - start rotation
+          _rotationController.repeat();
+        } else if (!isLoading && _wasLoading) {
+          // Just stopped loading - stop rotation
+          _rotationController.stop();
+          _rotationController.reset();
+        }
+        _wasLoading = isLoading;
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 20),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  // Exact same glassmorphism as calendar
                   color: isDark
-                      ? Colors.black.withValues(alpha: 0.2)
-                      : Colors.black.withValues(alpha: 0.08),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
+                      ? Colors.black.withValues(alpha: 0.3)
+                      : Colors.white.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.15)
+                        : Colors.white.withValues(alpha: 0.6),
+                    width: 1.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: isDark
+                          ? Colors.black.withValues(alpha: 0.2)
+                          : Colors.black.withValues(alpha: 0.08),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: () => _showAddOptionsBottomSheet(context),
-                borderRadius: BorderRadius.circular(16),
-                child: Center(
-                  child: FaIcon(
-                    FontAwesomeIcons.plus,
-                    color: isDark ? Colors.white : AppColors.textPrimary,
-                    size: 20,
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    // Lock button during loading
+                    onTap: isLoading ? null : () => _showAddOptionsBottomSheet(context),
+                    borderRadius: BorderRadius.circular(16),
+                    child: Center(
+                      child: RotationTransition(
+                        turns: _rotationController,
+                        child: FaIcon(
+                          FontAwesomeIcons.plus,
+                          color: isDark ? Colors.white : AppColors.textPrimary,
+                          size: 20,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
   @override
   void initState() {
     super.initState();
+
+    // Initialize rotation animation controller
+    _rotationController = AnimationController(
+      duration: const Duration(seconds: 2),
+      vsync: this,
+    );
 
     // Listen to connection changes and trigger sync when coming back online
     _connectionSubscription =
@@ -128,6 +159,7 @@ class _HomeViewState extends State<HomeView> {
 
   @override
   void dispose() {
+    _rotationController.dispose();
     _connectionSubscription?.cancel();
     super.dispose();
   }
@@ -371,6 +403,7 @@ class _HomeContentState extends State<_HomeContent> {
   final SQLiteService _sqliteService = SQLiteService();
   final ScrollController _scrollController = ScrollController();
   bool _wasLoading = false;
+  bool _shouldScrollAfterLoad = false;
 
   @override
   void initState() {
@@ -609,10 +642,13 @@ class _HomeContentState extends State<_HomeContent> {
     // Get recommended daily calories
     final recommendedCalories = profile.dailyCalories;
 
-    // Auto-scroll to top while item is being added
+    // Auto-scroll to top: both while adding and after item is added
     final isLoading = analysisVM.isLoading;
+
+    // Case 1: Just started loading - scroll while item is being added
     if (isLoading && !_wasLoading) {
-      // Just started loading - scroll to top after a small delay
+      _shouldScrollAfterLoad = true;
+      // Scroll to top after a small delay
       // This ensures the shimmer card is rendered first, creating a smooth "scroll while adding" effect
       WidgetsBinding.instance.addPostFrameCallback((_) {
         Future.delayed(const Duration(milliseconds: 100), () {
@@ -626,6 +662,24 @@ class _HomeContentState extends State<_HomeContent> {
         });
       });
     }
+
+    // Case 2: Loading just finished - scroll again to ensure new item is visible at top
+    if (!isLoading && _wasLoading && _shouldScrollAfterLoad) {
+      _shouldScrollAfterLoad = false;
+      // Scroll to top after item is completely added
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Future.delayed(const Duration(milliseconds: 150), () {
+          if (_scrollController.hasClients && mounted) {
+            _scrollController.animateTo(
+              0,
+              duration: const Duration(milliseconds: 400),
+              curve: Curves.easeOut,
+            );
+          }
+        });
+      });
+    }
+
     _wasLoading = isLoading;
 
     return Scaffold(
