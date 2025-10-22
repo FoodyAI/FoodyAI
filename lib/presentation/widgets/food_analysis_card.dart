@@ -347,7 +347,7 @@ class FoodAnalysisCard extends StatelessWidget {
                         child: ImageHelper.buildHybridImageWidget(
                           analysis: analysis,
                           width: double.infinity,
-                          height: 300,
+                          height: 240,
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
                             // Show placeholder if image fails to load
