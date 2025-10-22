@@ -29,12 +29,12 @@ class GoogleSignInButton extends StatelessWidget {
       onPressed: isLoading ? null : (onPressed ?? () => _handleSignIn(context)),
       icon: Image.asset(
         'assets/google_logo.png',
-        height: isCompact ? 16 : 20,
+        height: isCompact ? 16 : 19,
       ),
       label: Text(
         label ?? 'Sign in with Google',
         style: TextStyle(
-          fontSize: isCompact ? 13 : 16,
+          fontSize: isCompact ? 12 : 15,
           fontWeight: FontWeight.w600,
         ),
       ),
