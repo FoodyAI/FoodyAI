@@ -411,6 +411,147 @@ class _CalorieTrackingCardState extends State<CalorieTrackingCard>
     );
   }
 
+  Widget _buildAnimatedEmojiStatus(double remainingCalories, Color statusColor) {
+    // Determine emoji, text, and animation based on status
+    String emoji;
+    String motivationalText;
+    Duration animationDuration;
+    Curve animationCurve;
+    double scaleStart;
+    double scaleEnd;
+
+    final percentageRemaining = widget.recommendedCalories > 0
+        ? (remainingCalories / widget.recommendedCalories * 100)
+        : 0.0;
+
+    if (remainingCalories <= 0) {
+      // Goal reached! 🎉
+      emoji = '🎉';
+      motivationalText = 'Nailed It!';
+      animationDuration = const Duration(milliseconds: 1500);
+      animationCurve = Curves.easeInOut;
+      scaleStart = 0.0;
+      scaleEnd = 1.0;
+    } else if (percentageRemaining < 20) {
+      // Close to limit 😅
+      emoji = '😅';
+      motivationalText = 'Easy Does It!';
+      animationDuration = const Duration(milliseconds: 1200);
+      animationCurve = Curves.easeInOut;
+      scaleStart = 0.0;
+      scaleEnd = 1.0;
+    } else if (percentageRemaining < 50) {
+      // Moderate consumption 😋
+      emoji = '😋';
+      motivationalText = 'Almost There!';
+      animationDuration = const Duration(milliseconds: 1800);
+      animationCurve = Curves.easeInOut;
+      scaleStart = 0.0;
+      scaleEnd = 1.0;
+    } else {
+      // Healthy consumption 😊
+      emoji = '😊';
+      motivationalText = 'Going Strong!';
+      animationDuration = const Duration(milliseconds: 2000);
+      animationCurve = Curves.easeInOut;
+      scaleStart = 0.0;
+      scaleEnd = 1.0;
+    }
+
+    // Update animation controller if duration changed
+    if (_emojiController.duration != animationDuration) {
+      _emojiController.duration = animationDuration;
+      _emojiAnimation = Tween<double>(
+        begin: scaleStart,
+        end: scaleEnd,
+      ).animate(CurvedAnimation(
+        parent: _emojiController,
+        curve: animationCurve,
+      ));
+      _emojiController.repeat(reverse: true);
+    }
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+        child: Container(
+          constraints: const BoxConstraints(
+            minHeight: 44, // Match calendar button height (10 padding top + 10 padding bottom + ~24 content)
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                statusColor.withValues(alpha: 0.25),
+                statusColor.withValues(alpha: 0.15),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: statusColor.withValues(alpha: 0.4),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Animated Emoji with Rotation and Bounce
+              AnimatedBuilder(
+                animation: _emojiAnimation,
+                builder: (context, child) {
+                  // Create a bouncing effect with sine wave
+                  final bounce = (1.0 + (0.15 * (1.0 - ((_emojiAnimation.value - 0.5).abs() * 2))));
+                  // Subtle rotation effect
+                  final rotation = (_emojiAnimation.value * 0.2) - 0.1; // -0.1 to 0.1 radians
+
+                  return Transform.rotate(
+                    angle: rotation,
+                    child: Transform.scale(
+                      scale: bounce,
+                      child: Text(
+                        emoji,
+                        style: const TextStyle(
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(width: 6),
+              // Animated Motivational Text with Colorize
+              Flexible(
+                child: AnimatedTextKit(
+                  key: ValueKey(motivationalText),
+                  repeatForever: true,
+                  pause: const Duration(milliseconds: 1000),
+                  animatedTexts: [
+                    ColorizeAnimatedText(
+                      motivationalText,
+                      textStyle: GoogleFonts.inter(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 11,
+                      ),
+                      colors: [
+                        statusColor,
+                        const Color(0xFFFF6B35), // Orange
+                        const Color(0xFF4A90E2), // Blue
+                        const Color(0xFF88D66C), // Green
+                        statusColor,
+                      ],
+                      speed: const Duration(milliseconds: 500),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildCompactStatCard({
     required IconData icon,
     required String label,
