@@ -92,42 +92,24 @@ class _SplashScreenState extends State<SplashScreen> {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: isDarkMode
-                ? [
-                    AppColors.darkBackground,
-                    const Color(0xFF1A1A1A),
-                    AppColors.darkSurface,
-                  ]
-                : [
-                    Colors.white,
-                    const Color(0xFFF8F9FA),
-                    AppColors.grey100,
-                  ],
-          ),
-        ),
-        child: Center(
-          child: _buildLiquidText(isDarkMode),
-        ),
+      backgroundColor: isDarkMode ? Colors.black : Colors.white,
+      body: Center(
+        child: _buildLiquidText(isDarkMode),
       ),
     );
   }
 
   Widget _buildLiquidText(bool isDarkMode) {
     return SizedBox(
-      width: 300,
-      height: 100,
+      width: 250,
+      height: 80,
       child: AnimatedTextKit(
         animatedTexts: [
           ColorizeAnimatedText(
             'Foody',
             textAlign: TextAlign.center,
             textStyle: const TextStyle(
-              fontSize: 68,
+              fontSize: 48,
               fontWeight: FontWeight.w900,
               letterSpacing: 2.0,
             ),
