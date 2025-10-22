@@ -50,55 +50,76 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
 
   Widget _buildGlassmorphismFAB(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              // Exact same glassmorphism as calendar
-              color: isDark
-                  ? Colors.black.withValues(alpha: 0.3)
-                  : Colors.white.withValues(alpha: 0.4),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: isDark
-                    ? Colors.white.withValues(alpha: 0.15)
-                    : Colors.white.withValues(alpha: 0.6),
-                width: 1.5,
-              ),
-              boxShadow: [
-                BoxShadow(
+
+    return Consumer<ImageAnalysisViewModel>(
+      builder: (context, analysisVM, _) {
+        final isLoading = analysisVM.isLoading;
+
+        // Start/stop rotation based on loading state
+        if (isLoading && !_wasLoading) {
+          // Just started loading - start rotation
+          _rotationController.repeat();
+        } else if (!isLoading && _wasLoading) {
+          // Just stopped loading - stop rotation
+          _rotationController.stop();
+          _rotationController.reset();
+        }
+        _wasLoading = isLoading;
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 20),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  // Exact same glassmorphism as calendar
                   color: isDark
-                      ? Colors.black.withValues(alpha: 0.2)
-                      : Colors.black.withValues(alpha: 0.08),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
+                      ? Colors.black.withValues(alpha: 0.3)
+                      : Colors.white.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.15)
+                        : Colors.white.withValues(alpha: 0.6),
+                    width: 1.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: isDark
+                          ? Colors.black.withValues(alpha: 0.2)
+                          : Colors.black.withValues(alpha: 0.08),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: () => _showAddOptionsBottomSheet(context),
-                borderRadius: BorderRadius.circular(16),
-                child: Center(
-                  child: FaIcon(
-                    FontAwesomeIcons.plus,
-                    color: isDark ? Colors.white : AppColors.textPrimary,
-                    size: 20,
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    // Lock button during loading
+                    onTap: isLoading ? null : () => _showAddOptionsBottomSheet(context),
+                    borderRadius: BorderRadius.circular(16),
+                    child: Center(
+                      child: RotationTransition(
+                        turns: _rotationController,
+                        child: FaIcon(
+                          FontAwesomeIcons.plus,
+                          color: isDark ? Colors.white : AppColors.textPrimary,
+                          size: 20,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
