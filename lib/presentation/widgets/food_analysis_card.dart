@@ -568,66 +568,11 @@ class FoodAnalysisCard extends StatelessWidget {
                         ),
                       ),
                     ),
-
-                    if (onDelete != null) const SizedBox(height: 100),
                   ],
                 ),
               ),
-            ],
-          ),
-        ),
-
-        // Delete Button
-        if (onDelete != null)
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 24,
-            child: Center(
-              child: Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.error.withOpacity(0.3),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Material(
-                  color: AppColors.transparent,
-                  child: InkWell(
-                    onTap: () => _showDeleteDialog(context),
-                    customBorder: const CircleBorder(),
-                    child: Container(
-                      width: 56,
-                      height: 56,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            AppColors.error,
-                            AppColors.error.withOpacity(0.8),
-                          ],
-                        ),
-                      ),
-                      child: const Center(
-                        child: FaIcon(
-                          FontAwesomeIcons.trash,
-                          color: AppColors.white,
-                          size: 28,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-      ],
+        ],
+      ),
     );
   }
 
