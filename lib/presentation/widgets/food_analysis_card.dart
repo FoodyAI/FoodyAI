@@ -331,7 +331,7 @@ class FoodAnalysisCard extends StatelessWidget {
                       analysis.s3ImageUrl != null ||
                       analysis.imagePath != null)
                     Container(
-                      height: 300,
+                      height: 240,
                       width: double.infinity,
                       decoration: const BoxDecoration(
                         borderRadius: BorderRadius.only(
