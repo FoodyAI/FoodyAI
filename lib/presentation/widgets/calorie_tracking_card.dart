@@ -58,7 +58,37 @@ class _CalorieTrackingCardState extends State<CalorieTrackingCard>
       parent: _controller,
       curve: Curves.easeInOut,
     ));
+
+    // Card entrance animation
+    _scaleController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+    _scaleAnimation = Tween<double>(
+      begin: 0.92,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _scaleController,
+      curve: Curves.easeOutBack,
+    ));
+
+    // Fire icon pulsing animation
+    _fireController = AnimationController(
+      duration: const Duration(milliseconds: 1800),
+      vsync: this,
+    );
+    _fireAnimation = Tween<double>(
+      begin: 1.0,
+      end: 1.15,
+    ).animate(CurvedAnimation(
+      parent: _fireController,
+      curve: Curves.easeInOut,
+    ));
+
+    // Start animations
+    _scaleController.forward();
     _controller.forward();
+    _fireController.repeat(reverse: true);
   }
 
   @override
