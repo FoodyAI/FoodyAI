@@ -20,7 +20,7 @@
     {
       "id": "page_1",
       "title": "Effortless calorie tracking",
-      "description": "Snap your meal, and we'll handle the rest—calorie tracking!",
+      "description": "Snap your meal and we'll handle the rest with accurate calorie tracking and analysis.",
       "background_image": "assets/images/intro 1.jpeg",
       "background_image_url": "assets/images/intro 1.jpeg",
       "icon": "nutrition",
@@ -28,7 +28,7 @@
     },
     {
       "id": "page_2",
-      "title": "Track your whole day calories",
+      "title": "Track daily calories",
       "description": "Monitor your nutrition throughout the day with detailed macro breakdown and insights.",
       "background_image": "assets/images/intro 2.jpeg",
       "background_image_url": "assets/images/intro 2.jpeg",
@@ -40,7 +40,7 @@
     {
       "id": "page_3",
       "title": "Transform your body",
-      "description": "Today is the best time to start working toward your dream body",
+      "description": "Today is the best time to start working toward your dream body and health goals.",
       "background_image": "assets/images/intro 3.jpeg",
       "background_image_url": "assets/images/intro 3.jpeg",
       "icon": "activity",
@@ -48,8 +48,8 @@
     },
     {
       "id": "page_4",
-      "title": "Ready to start your journey?",
-      "description": "Sign in to track your nutrition and achieve your goals",
+      "title": "Start your journey",
+      "description": "Sign in to track your nutrition journey with personalized goals and detailed insights.",
       "background_image": "assets/images/intro 4.jpeg",
       "background_image_url": "assets/images/intro 4.jpeg",
       "icon": "login",

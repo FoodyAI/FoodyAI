@@ -856,7 +856,7 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen>
     );
   }
 
-  /// Build bottom content card with glassmorphism - FIXED HEIGHT
+  /// Build bottom content card with glassmorphism - RESPONSIVE HEIGHT
   Widget _buildBottomCard() {
     // Safety check to prevent index out of range
     if (_currentPage >= _config.pages.length) {
@@ -867,10 +867,27 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen>
     final isLastPage = _currentPage == _config.pages.length - 1;
     final isLoginPage = page.icon == 'login';
 
+    // Get screen dimensions using MediaQuery
+    final mediaQuery = MediaQuery.of(context);
+    final screenHeight = mediaQuery.size.height;
+
+    // Determine screen size categories
+    final isSmallScreen = screenHeight < 700;
+    final isMediumScreen = screenHeight >= 700 && screenHeight < 800;
+
+    // Adjust spacing based on screen height - EXTREMELY COMPACT for small screens
+    final verticalPadding = isSmallScreen ? 8.0 : (isMediumScreen ? 14.0 : 20.0);
+    final indicatorSpacing = isSmallScreen ? 4.0 : (isMediumScreen ? 10.0 : 16.0);
+    final titleHeight = isSmallScreen ? 24.0 : (isMediumScreen ? 30.0 : 36.0); // Reduced for single line
+    final titleFontSize = isSmallScreen ? 16.0 : (isMediumScreen ? 20.0 : 24.0);
+    final descriptionHeight = isSmallScreen ? 28.0 : (isMediumScreen ? 36.0 : 42.0);
+    final descriptionFontSize = isSmallScreen ? 10.0 : (isMediumScreen ? 12.0 : 14.0);
+    final spaceBetweenTitleDesc = isSmallScreen ? 0.0 : (isMediumScreen ? 4.0 : 8.0);
+    final buttonVerticalPadding = isSmallScreen ? 8.0 : (isMediumScreen ? 12.0 : 15.0);
+    final bottomMargin = isSmallScreen ? 4.0 : (isMediumScreen ? 12.0 : 20.0);
+
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-      constraints:
-          const BoxConstraints(maxHeight: 300), // Max height with constraints
+      margin: EdgeInsets.fromLTRB(16, 0, 16, bottomMargin),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(32),
         child: BackdropFilter(
@@ -893,139 +910,128 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen>
               ],
             ),
             child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
+              padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: verticalPadding),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Column(
-                    children: [
-                      // Page indicators
-                      _buildPageIndicators(),
-                      const SizedBox(height: 16),
+                  // Page indicators
+                  _buildPageIndicators(),
+                  SizedBox(height: indicatorSpacing),
 
-                      // Title - fixed height
-                      SizedBox(
-                        height: 58,
-                        child: Center(
-                          child: Text(
-                            page.title,
-                            textAlign: TextAlign.center,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                              height: 1.2,
-                            ),
-                          ),
+                  // Title - responsive height (FIXED) - SINGLE LINE
+                  SizedBox(
+                    height: titleHeight,
+                    child: Center(
+                      child: Text(
+                        page.title,
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: titleFontSize,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          height: 1.0,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                    ),
+                  ),
+                  SizedBox(height: spaceBetweenTitleDesc),
 
-                      // Description - fixed height
-                      SizedBox(
-                        height: 42,
-                        child: Center(
-                          child: Text(
-                            page.description,
-                            textAlign: TextAlign.center,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.white.withOpacity(0.9),
-                              height: 1.4,
-                            ),
-                          ),
+                  // Description - responsive height (FIXED)
+                  SizedBox(
+                    height: descriptionHeight,
+                    child: Center(
+                      child: Text(
+                        page.description,
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: descriptionFontSize,
+                          color: Colors.white.withOpacity(0.9),
+                          height: 1.4,
                         ),
                       ),
-                    ],
+                    ),
                   ),
 
-                  // Bottom section with button and link
-                  Column(
-                    children: [
-                      // Main button (Next/Get Started or Google Sign-In)
-                      if (isLoginPage)
-                        const Padding(
-                          padding: EdgeInsets.only(bottom: 10),
-                          child: GoogleSignInButton(isFullWidth: true),
-                        )
-                      else
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8),
-                          child: SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              onPressed: _handleNext,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF34C759),
-                                foregroundColor: Colors.white,
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 15),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(30),
-                                ),
-                                elevation: 0,
-                              ),
-                              child: Text(
-                                isLastPage ? 'Get Started' : 'Next',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  letterSpacing: 0.5,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
+                  // Spacing before button (FIXED HEIGHT)
+                  SizedBox(height: isSmallScreen ? 0 : 8),
 
-                      // Bottom text/link
-                      const SizedBox(height: 4),
-                      if (isLoginPage)
-                        // Privacy text on login page
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8, bottom: 16),
-                          child: _buildPrivacyTermsText(context),
-                        )
-                      else
-                        // "Already have an account?" text on other pages
-                        TextButton(
-                          onPressed: _skipOnboarding,
-                          style: TextButton.styleFrom(
-                            foregroundColor: const Color(0xFF34C759),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 4,
+                  // Main button (FIXED HEIGHT for all pages)
+                  SizedBox(
+                    width: double.infinity,
+                    height: isSmallScreen ? 40 : 50, // Fixed button height
+                    child: isLoginPage
+                        ? const GoogleSignInButton(isFullWidth: true)
+                        : ElevatedButton(
+                            onPressed: _handleNext,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF34C759),
+                              foregroundColor: Colors.white,
+                              padding: EdgeInsets.symmetric(vertical: buttonVerticalPadding),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                              elevation: 0,
                             ),
-                            minimumSize: const Size(0, 32),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'Already have an account?',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.white.withOpacity(0.9),
-                                ),
+                            child: Text(
+                              isLastPage ? 'Get Started' : 'Next',
+                              style: TextStyle(
+                                fontSize: isSmallScreen ? 14 : 16,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.5,
                               ),
-                              const SizedBox(width: 4),
-                              const Text(
-                                'Sign in',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: Color(0xFF34C759),
-                                ),
-                              ),
-                            ],
+                            ),
                           ),
-                        ),
-                    ],
+                  ),
+
+                  // Bottom text/link (FIXED HEIGHT for all pages)
+                  SizedBox(
+                    height: isSmallScreen ? 32 : 48, // Fixed height for bottom section
+                    child: isLoginPage
+                        // Privacy text on login page
+                        ? Padding(
+                            padding: EdgeInsets.only(top: isSmallScreen ? 8 : 18),
+                            child: _buildPrivacyTermsText(context),
+                          )
+                        // "Already have an account?" text on other pages
+                        : Center(
+                            child: TextButton(
+                              onPressed: _skipOnboarding,
+                              style: TextButton.styleFrom(
+                                foregroundColor: const Color(0xFF34C759),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                  vertical: 0,
+                                ),
+                                minimumSize: Size(0, isSmallScreen ? 20 : 32),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'Already have an account?',
+                                    style: TextStyle(
+                                      fontSize: isSmallScreen ? 11 : 13,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.white.withOpacity(0.9),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'Sign in',
+                                    style: TextStyle(
+                                      fontSize: isSmallScreen ? 11 : 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: const Color(0xFF34C759),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                   ),
                 ],
               ),
@@ -1062,11 +1068,13 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen>
   Widget _buildPrivacyTermsText(BuildContext context) {
     return RichText(
       textAlign: TextAlign.center,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
       text: TextSpan(
         style: TextStyle(
-          fontSize: 11,
+          fontSize: 9,
           color: Colors.white.withOpacity(0.6),
-          height: 1.4,
+          height: 1.0,
         ),
         children: [
           const TextSpan(text: 'By signing in, you agree to our '),
