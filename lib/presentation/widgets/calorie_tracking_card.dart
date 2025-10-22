@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'dart:ui';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:percent_indicator/percent_indicator.dart';
+import 'package:animated_text_kit/animated_text_kit.dart';
 import '../../data/models/food_analysis.dart';
 import '../../../core/constants/app_colors.dart';
 import 'glassmorphism_calendar.dart';
@@ -38,8 +39,10 @@ class _CalorieTrackingCardState extends State<CalorieTrackingCard>
   // Animation controllers for card entrance and interactions
   late AnimationController _scaleController;
   late AnimationController _fireController;
+  late AnimationController _emojiController;
   late Animation<double> _scaleAnimation;
   late Animation<double> _fireAnimation;
+  late Animation<double> _emojiAnimation;
 
   @override
   void initState() {
@@ -85,10 +88,24 @@ class _CalorieTrackingCardState extends State<CalorieTrackingCard>
       curve: Curves.easeInOut,
     ));
 
+    // Emoji rotation animation (will change based on status)
+    _emojiController = AnimationController(
+      duration: const Duration(milliseconds: 2000),
+      vsync: this,
+    );
+    _emojiAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _emojiController,
+      curve: Curves.easeInOut,
+    ));
+
     // Start animations
     _scaleController.forward();
     _controller.forward();
     _fireController.repeat(reverse: true);
+    _emojiController.repeat(reverse: true);
   }
 
   @override
