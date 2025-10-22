@@ -16,40 +16,49 @@ class AuthLoadingOverlay extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
-    return Material(
-      color: isDarkMode
-          ? Colors.black.withValues(alpha: 0.85)
-          : Colors.white.withValues(alpha: 0.95),
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Lottie animation
-            SizedBox(
-              width: 200,
-              height: 200,
-              child: Lottie.asset(
-                'assets/animations/auth/loading.json',
-                fit: BoxFit.contain,
-                repeat: true,
+    return Scaffold(
+      backgroundColor: isDarkMode ? Colors.black : Colors.white,
+      body: SafeArea(
+        top: false,
+        bottom: false,
+        child: SizedBox.expand(
+          child: Container(
+            color: isDarkMode ? Colors.black : Colors.white,
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Lottie animation
+                  SizedBox(
+                    width: 200,
+                    height: 200,
+                    child: Lottie.asset(
+                      'assets/animations/auth/loading.json',
+                      fit: BoxFit.contain,
+                      repeat: true,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  // Optional message
+                  if (message != null)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 32),
+                      child: Text(
+                        message!,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: isDarkMode
+                              ? AppColors.white
+                              : AppColors.textPrimary,
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
-            const SizedBox(height: 24),
-            // Optional message
-            if (message != null)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32),
-                child: Text(
-                  message!,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: isDarkMode ? AppColors.white : AppColors.textPrimary,
-                  ),
-                ),
-              ),
-          ],
+          ),
         ),
       ),
     );
@@ -60,7 +69,8 @@ class AuthLoadingOverlay extends StatelessWidget {
     showDialog(
       context: context,
       barrierDismissible: false,
-      barrierColor: Colors.black.withValues(alpha: 0.5),
+      barrierColor: Colors.transparent,
+      useSafeArea: false,
       builder: (context) => PopScope(
         canPop: false, // Prevent back button
         child: AuthLoadingOverlay(message: message),

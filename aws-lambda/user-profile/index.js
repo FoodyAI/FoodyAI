@@ -98,7 +98,7 @@ exports.handler = async (event) => {
           userData.goal || null,
           userData.dailyCalories || null,
           userData.bmi || null,
-          userData.themePreference || 'system',
+          userData.themePreference || 'light',
           userData.aiProvider || 'openai',
           userData.measurementUnit || 'metric',
           userData.fcmToken || null,
