@@ -30,14 +30,22 @@ class CalorieTrackingCard extends StatefulWidget {
 }
 
 class _CalorieTrackingCardState extends State<CalorieTrackingCard>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _progressAnimation;
   bool _showCelebration = false;
 
+  // Animation controllers for card entrance and interactions
+  late AnimationController _scaleController;
+  late AnimationController _fireController;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _fireAnimation;
+
   @override
   void initState() {
     super.initState();
+
+    // Progress animation
     _controller = AnimationController(
       duration: const Duration(milliseconds: 1500),
       vsync: this,
