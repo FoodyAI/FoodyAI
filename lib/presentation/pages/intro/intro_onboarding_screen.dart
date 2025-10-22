@@ -856,7 +856,7 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen>
     );
   }
 
-  /// Build bottom content card with glassmorphism - FIXED HEIGHT
+  /// Build bottom content card with glassmorphism - RESPONSIVE HEIGHT
   Widget _buildBottomCard() {
     // Safety check to prevent index out of range
     if (_currentPage >= _config.pages.length) {
