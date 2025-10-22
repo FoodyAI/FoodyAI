@@ -129,320 +129,442 @@ class _CalorieTrackingCardState extends State<CalorieTrackingCard>
   @override
   void dispose() {
     _controller.dispose();
+    _scaleController.dispose();
+    _fireController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final remainingCalories =
         widget.recommendedCalories - widget.totalCaloriesConsumed;
 
-    // Determine status color based on calorie consumption
+    // Determine status color based on calorie consumption with modern colors
     Color statusColor;
+    Color gradientStart;
+    Color gradientEnd;
+
     if (remainingCalories < 0) {
-      statusColor = Colors.red; // Exceeded goal - Red for warning
+      statusColor = const Color(0xFFEF4444); // Modern red
+      gradientStart = const Color(0xFFEF4444);
+      gradientEnd = const Color(0xFFF87171);
     } else if (remainingCalories < widget.recommendedCalories * 0.2) {
-      statusColor = Colors.orange; // Very close to limit - Orange for caution
+      statusColor = const Color(0xFFF59E0B); // Modern orange
+      gradientStart = const Color(0xFFF59E0B);
+      gradientEnd = const Color(0xFFFBBF24);
     } else if (remainingCalories < widget.recommendedCalories * 0.5) {
-      statusColor = Colors.amber; // Moderate consumption - Yellow for attention
+      statusColor = const Color(0xFFFBBF24); // Modern amber
+      gradientStart = const Color(0xFFFBBF24);
+      gradientEnd = const Color(0xFFFDE047);
     } else {
-      statusColor = Colors.green; // Healthy consumption - Green for good
+      statusColor = const Color(0xFF10B981); // Modern green
+      gradientStart = const Color(0xFF10B981);
+      gradientEnd = const Color(0xFF34D399);
     }
 
     final isToday = widget.selectedDate.year == DateTime.now().year &&
         widget.selectedDate.month == DateTime.now().month &&
         widget.selectedDate.day == DateTime.now().day;
 
-    return Stack(
-      children: [
-        Container(
-          margin: const EdgeInsets.all(16),
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                statusColor.withValues(alpha: 0.1),
-                statusColor.withValues(alpha: 0.05),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
-                color: statusColor.withValues(alpha: 0.1),
-                blurRadius: 20,
-                offset: const Offset(0, 10),
-              ),
-            ],
-          ),
-          child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return ScaleTransition(
+      scale: _scaleAnimation,
+      child: Stack(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Flexible(
-                flex: 2,
-                child: GestureDetector(
-                  onTap: () async {
-                    final DateTime? picked = await GlassmorphismCalendar.showCalendarDialog(
-                      context: context,
-                      selectedDate: widget.selectedDate,
-                    );
-                    if (picked != null) {
-                      widget.onDateSelected(picked);
-                    }
-                  },
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Flexible(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .primary
-                                .withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Flexible(
-                                child: FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  child: Text(
-                                    isToday
-                                        ? 'Today\'s Calories'
-                                        : '${DateFormat('d MMM').format(widget.selectedDate)} Calories',
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                      color:
-                                          Theme.of(context).colorScheme.primary,
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(28),
+                // Exact same style as health analysis cards
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: isDark
+                      ? [
+                          Colors.grey[850]!.withOpacity(0.95),
+                          Colors.grey[900]!.withOpacity(0.95),
+                        ]
+                      : [
+                          Colors.white.withOpacity(0.95),
+                          Colors.white.withOpacity(0.90),
+                        ],
+                ),
+                border: Border.all(
+                  color: isDark
+                      ? Colors.white.withOpacity(0.25)
+                      : Colors.white.withOpacity(0.8),
+                  width: 2,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: isDark
+                        ? Colors.black.withOpacity(0.4)
+                        : Colors.grey.withOpacity(0.15),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header Row - Date Selector and Status
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Flexible(
+                          flex: 2,
+                          child: GestureDetector(
+                            onTap: () async {
+                              final DateTime? picked = await GlassmorphismCalendar.showCalendarDialog(
+                                context: context,
+                                selectedDate: widget.selectedDate,
+                              );
+                              if (picked != null) {
+                                widget.onDateSelected(picked);
+                              }
+                            },
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Flexible(
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(20),
+                                    child: BackdropFilter(
+                                      filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 14, vertical: 10),
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            colors: [
+                                              AppColors.primary.withValues(alpha: 0.2),
+                                              AppColors.primary.withValues(alpha: 0.1),
+                                            ],
+                                          ),
+                                          borderRadius: BorderRadius.circular(20),
+                                          border: Border.all(
+                                            color: AppColors.primary.withValues(alpha: 0.3),
+                                            width: 1,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            FaIcon(
+                                              FontAwesomeIcons.calendarDay,
+                                              color: AppColors.primary,
+                                              size: 14,
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Flexible(
+                                              child: FittedBox(
+                                                fit: BoxFit.scaleDown,
+                                                child: Text(
+                                                  isToday
+                                                      ? 'Today'
+                                                      : DateFormat('d MMM').format(widget.selectedDate),
+                                                  style: GoogleFonts.inter(
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: AppColors.primary,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Icon(
+                                              Icons.chevron_right_rounded,
+                                              color: AppColors.primary,
+                                              size: 18,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ),
+                                const SizedBox(width: 8),
+                                if (!isToday)
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(14),
+                                    child: BackdropFilter(
+                                      filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                                      child: Container(
+                                        width: 40,
+                                        height: 40,
+                                        decoration: BoxDecoration(
+                                          color: isDark
+                                              ? Colors.white.withValues(alpha: 0.1)
+                                              : Colors.white.withValues(alpha: 0.5),
+                                          borderRadius: BorderRadius.circular(14),
+                                          border: Border.all(
+                                            color: isDark
+                                                ? Colors.white.withValues(alpha: 0.15)
+                                                : Colors.white.withValues(alpha: 0.6),
+                                            width: 1,
+                                          ),
+                                        ),
+                                        child: IconButton(
+                                          onPressed: () => widget.onDateSelected(DateTime.now()),
+                                          padding: EdgeInsets.zero,
+                                          icon: Icon(
+                                            Icons.today_rounded,
+                                            color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                                            size: 20,
+                                          ),
+                                          tooltip: 'Go to Today',
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        // Status Badge
+                        Flexible(
+                          flex: 1,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(20),
+                            child: BackdropFilter(
+                              filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      statusColor.withValues(alpha: 0.25),
+                                      statusColor.withValues(alpha: 0.15),
+                                    ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                    color: statusColor.withValues(alpha: 0.4),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    if (remainingCalories <= 0)
+                                      const Padding(
+                                        padding: EdgeInsets.only(right: 4),
+                                        child: Text(
+                                          '🎉',
+                                          style: TextStyle(fontSize: 14),
+                                        ),
+                                      ),
+                                    Flexible(
+                                      child: FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Text(
+                                          remainingCalories <= 0
+                                              ? 'Goal!'
+                                              : '${remainingCalories.toStringAsFixed(0)} left',
+                                          style: GoogleFonts.inter(
+                                            color: statusColor,
+                                            fontWeight: FontWeight.w700,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                              const SizedBox(width: 6),
-                              Icon(
-                                Icons.chevron_right,
-                                color: Theme.of(context).colorScheme.primary,
-                                size: 18,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Horizontal Layout: Circle Left, Stats Right
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        // Circular Progress Indicator - Smooth animation with status color
+                        AnimatedBuilder(
+                          animation: _progressAnimation,
+                          builder: (context, child) {
+                            return CircularPercentIndicator(
+                              radius: 55.0,
+                              lineWidth: 10.0,
+                              percent: _progressAnimation.value.clamp(0.0, 1.0),
+                              center: Container(
+                                padding: const EdgeInsets.all(14),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      statusColor.withValues(alpha: 0.2),
+                                      statusColor.withValues(alpha: 0.08),
+                                    ],
+                                  ),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: AnimatedBuilder(
+                                  animation: _fireAnimation,
+                                  builder: (context, child) {
+                                    return Transform.scale(
+                                      scale: _fireAnimation.value,
+                                      child: Icon(
+                                        Icons.local_fire_department_rounded,
+                                        color: statusColor,
+                                        size: 36,
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                              circularStrokeCap: CircularStrokeCap.round,
+                              backgroundColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.08),
+                              progressColor: statusColor,
+                              animation: false, // Disable built-in animation, use AnimatedBuilder instead
+                            );
+                          },
+                        ),
+                        const SizedBox(width: 12),
+
+                        // Stats Cards Stacked Vertically (Right Side)
+                        Expanded(
+                          child: Column(
+                            children: [
+                              _buildCompactStatCard(
+                                icon: FontAwesomeIcons.fire,
+                                label: 'Consumed',
+                                value: widget.totalCaloriesConsumed.toStringAsFixed(0),
+                                color: statusColor,
+                                isDark: isDark,
+                              ),
+                              const SizedBox(height: 8),
+                              _buildCompactStatCard(
+                                icon: FontAwesomeIcons.bullseye,
+                                label: 'Remaining',
+                                value: remainingCalories > 0
+                                    ? remainingCalories.toStringAsFixed(0)
+                                    : '0',
+                                color: statusColor,
+                                isDark: isDark,
                               ),
                             ],
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      SizedBox(
-                        height: 40,
-                        width: 40,
-                        child: isToday
-                            ? const SizedBox.shrink()
-                            : Tooltip(
-                                message: 'Go to Today',
-                                child: IconButton(
-                                  onPressed: () =>
-                                      widget.onDateSelected(DateTime.now()),
-                                  icon: Icon(
-                                    Icons.replay_rounded,
-                                    color:
-                                        Theme.of(context).colorScheme.secondary,
-                                    size: 20,
-                                  ),
-                                  style: IconButton.styleFrom(
-                                    backgroundColor: Theme.of(context)
-                                        .colorScheme
-                                        .secondary
-                                        .withOpacity(0.1),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(width: 8),
-              Flexible(
-                flex: 1,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: statusColor.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (remainingCalories <= 0)
-                        const Padding(
-                          padding: EdgeInsets.only(right: 4),
-                          child: Text(
-                            '🎉',
-                            style: TextStyle(
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                      Flexible(
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(
-                            remainingCalories <= 0
-                                ? 'Goal Reached!'
-                                : '${remainingCalories.toStringAsFixed(0)} left',
-                            style: TextStyle(
-                              color: statusColor,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-          Stack(
-            children: [
-              // Background progress bar
-              Container(
-                height: 12,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-              ),
-              // Animated progress indicator
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  return AnimatedBuilder(
-                    animation: _progressAnimation,
-                    builder: (context, child) {
-                      return Container(
-                        height: 12,
-                        width: constraints.maxWidth * _progressAnimation.value,
-                        decoration: BoxDecoration(
-                          color: statusColor,
-                          borderRadius: BorderRadius.circular(6),
-                          boxShadow: [
-                            BoxShadow(
-                              color: statusColor.withValues(alpha: 0.3),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildCalorieInfo(
-                'Consumed',
-                widget.totalCaloriesConsumed.toStringAsFixed(0),
-                FontAwesomeIcons.fire,
-                statusColor,
-              ),
-              _buildCalorieInfo(
-                'Goal',
-                widget.recommendedCalories.toStringAsFixed(0),
-                FontAwesomeIcons.flag,
-                statusColor,
-              ),
-            ],
-          ),
-        ],
-          ),
-        ),
-
-        // Show celebration animation when goal is reached
-        if (_showCelebration)
-          const Positioned.fill(
-            child: Padding(
-              padding: EdgeInsets.all(16),
-              child: CelebrationAnimation(),
             ),
-          ),
-      ],
+
+          // Show celebration animation when goal is reached
+          if (_showCelebration)
+            Positioned.fill(
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                child: const Padding(
+                  padding: EdgeInsets.all(16),
+                  child: CelebrationAnimation(),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 
-  Widget _buildCalorieInfo(
-      String label, String value, IconData icon, Color color) {
+  Widget _buildCompactStatCard({
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color color,
+    required bool isDark,
+  }) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
+        // Exact same style as health analysis cards
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: isDark
+              ? [
+                  Colors.grey[850]!.withValues(alpha: 0.95),
+                  Colors.grey[900]!.withValues(alpha: 0.95),
+                ]
+              : [
+                  Colors.white.withValues(alpha: 0.95),
+                  Colors.white.withValues(alpha: 0.90),
+                ],
+        ),
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.25)
+              : Colors.white.withValues(alpha: 0.8),
+          width: 2,
+        ),
         boxShadow: [
           BoxShadow(
-            color: color.withValues(alpha: 0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: isDark
+                ? Colors.black.withValues(alpha: 0.4)
+                : Colors.grey.withValues(alpha: 0.15),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+            spreadRadius: 2,
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
+      child: Row(
         children: [
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              FaIcon(
-                icon,
-                color: color,
-                size: 18,
-              ),
-              const SizedBox(width: 8),
-              Flexible(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Text(
-                    label,
-                    style: TextStyle(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withValues(alpha: 0.7),
-                      fontSize: 14,
-                    ),
+          // Icon on left
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(
+              icon,
+              color: color,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 10),
+          // Label and value stacked
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  label,
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                   ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              value,
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: GoogleFonts.poppins(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                    height: 1.0,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
