@@ -321,9 +321,10 @@ class FoodAnalysisCard extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+      child: IntrinsicHeight(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
               // Header Image Section
               Stack(
                 children: [
@@ -572,6 +573,7 @@ class FoodAnalysisCard extends StatelessWidget {
                 ),
               ),
         ],
+      ),
       ),
     );
   }
