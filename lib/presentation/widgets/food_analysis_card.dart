@@ -464,24 +464,24 @@ class FoodAnalysisCard extends StatelessWidget {
                       ],
                     ),
 
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 20),
 
                     // Health Score Section
                     const Text(
                       'Health Score',
                       style: TextStyle(
-                        fontSize: 24,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
                         letterSpacing: -0.5,
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     ClipRRect(
                       borderRadius: BorderRadius.circular(20),
                       child: BackdropFilter(
                         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                         child: Container(
-                          padding: const EdgeInsets.all(24),
+                          padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
                             // Calendar-style glassmorphism with health color tint
                             color: isDark
