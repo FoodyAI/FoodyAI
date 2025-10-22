@@ -127,6 +127,12 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
   void initState() {
     super.initState();
 
+    // Initialize rotation animation controller
+    _rotationController = AnimationController(
+      duration: const Duration(seconds: 2),
+      vsync: this,
+    );
+
     // Listen to connection changes and trigger sync when coming back online
     _connectionSubscription =
         _connectionService.connectionStream.listen((isConnected) {
