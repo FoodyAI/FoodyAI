@@ -257,7 +257,7 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen>
       backgroundColor: Colors.black,
       body: Center(
         child: CircularProgressIndicator(
-          color: const Color(0xFFFF6B6B),
+          color: const Color(0xFF34C759),
         ),
       ),
     );
@@ -276,7 +276,7 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen>
               const Icon(
                 Icons.error_outline,
                 size: 64,
-                color: Color(0xFFFF6B6B),
+                color: Color(0xFF34C759),
               ),
               const SizedBox(height: 24),
               Text(
@@ -297,7 +297,7 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen>
                   _loadConfiguration();
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFF6B6B),
+                  backgroundColor: const Color(0xFF34C759),
                   foregroundColor: Colors.white,
                   padding:
                       const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
@@ -481,13 +481,13 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen>
                 gradient: LinearGradient(
                   colors: [
                     Colors.transparent,
-                    const Color(0xFFFF6B6B),
+                    const Color(0xFF34C759),
                     Colors.transparent,
                   ],
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFFFF6B6B).withOpacity(0.5),
+                    color: const Color(0xFF34C759).withOpacity(0.5),
                     blurRadius: 8,
                     spreadRadius: 2,
                   ),
@@ -755,7 +755,7 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen>
                               shape: BoxShape.circle,
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(0xFFFF6B6B).withOpacity(
+                                  color: const Color(0xFF34C759).withOpacity(
                                       _fireScaleAnimation.value - 0.7),
                                   blurRadius: 20,
                                   spreadRadius: 3,
@@ -766,7 +766,7 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen>
                               Icons.local_fire_department,
                               color: Color.lerp(
                                 Colors.white,
-                                const Color(0xFFFF6B6B),
+                                const Color(0xFF34C759),
                                 (_fireScaleAnimation.value - 0.9) * 5,
                               ),
                               size: 30,
@@ -808,14 +808,14 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen>
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                           colors: [
-                            Color(0xFFFF6B6B),
-                            Color(0xFFFF8E8E),
+                            Color(0xFF34C759),
+                            Color(0xFF5DD879),
                           ],
                         ),
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFFFF6B6B).withOpacity(
+                            color: const Color(0xFF34C759).withOpacity(
                                 0.4 + (_utensilsSlideAnimation.value.abs() * 0.02)),
                             blurRadius:
                                 20 + (_utensilsSlideAnimation.value.abs() * 2),
@@ -961,7 +961,7 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen>
                             child: ElevatedButton(
                               onPressed: _handleNext,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFFFF6B6B),
+                                backgroundColor: const Color(0xFF34C759),
                                 foregroundColor: Colors.white,
                                 padding:
                                     const EdgeInsets.symmetric(vertical: 15),
@@ -995,7 +995,7 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen>
                         TextButton(
                           onPressed: _skipOnboarding,
                           style: TextButton.styleFrom(
-                            foregroundColor: const Color(0xFFFF6B6B),
+                            foregroundColor: const Color(0xFF34C759),
                             padding: const EdgeInsets.symmetric(
                               horizontal: 12,
                               vertical: 4,
@@ -1019,7 +1019,7 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen>
                                 style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w600,
-                                  color: Color(0xFFFF6B6B),
+                                  color: Color(0xFF34C759),
                                 ),
                               ),
                             ],
@@ -1049,7 +1049,7 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen>
           height: 8,
           decoration: BoxDecoration(
             color: index == _currentPage
-                ? const Color(0xFFFF6B6B)
+                ? const Color(0xFF34C759)
                 : Colors.white.withOpacity(0.4),
             borderRadius: BorderRadius.circular(4),
           ),
@@ -1073,7 +1073,7 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen>
           TextSpan(
             text: 'Privacy Policy',
             style: const TextStyle(
-              color: Color(0xFFFF6B6B),
+              color: Color(0xFF34C759),
               fontWeight: FontWeight.w600,
               decoration: TextDecoration.underline,
             ),
@@ -1091,7 +1091,7 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen>
           TextSpan(
             text: 'Terms of Service',
             style: const TextStyle(
-              color: Color(0xFFFF6B6B),
+              color: Color(0xFF34C759),
               fontWeight: FontWeight.w600,
               decoration: TextDecoration.underline,
             ),
