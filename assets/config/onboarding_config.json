@@ -48,8 +48,8 @@
     },
     {
       "id": "page_4",
-      "title": "Ready to start your journey?",
-      "description": "Sign in to track your nutrition and achieve your goals",
+      "title": "Start your journey",
+      "description": "Sign in to track your nutrition journey with personalized goals and detailed insights.",
       "background_image": "assets/images/intro 4.jpeg",
       "background_image_url": "assets/images/intro 4.jpeg",
       "icon": "login",
