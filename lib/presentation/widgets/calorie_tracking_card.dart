@@ -148,6 +148,7 @@ class _CalorieTrackingCardState extends State<CalorieTrackingCard>
     _controller.dispose();
     _scaleController.dispose();
     _fireController.dispose();
+    _emojiController.dispose();
     super.dispose();
   }
 
