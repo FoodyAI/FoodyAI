@@ -31,76 +31,110 @@ class HomeView extends StatefulWidget {
   State<HomeView> createState() => _HomeViewState();
 }
 
-class _HomeViewState extends State<HomeView> {
+class _HomeViewState extends State<HomeView>
+    with SingleTickerProviderStateMixin {
   int _currentIndex = 0;
   final ConnectionService _connectionService = ConnectionService();
   final SyncService _syncService = SyncService();
   StreamSubscription<bool>? _connectionSubscription;
   bool _wasOffline = false;
 
+  // Animation controller for rotating plus button
+  late AnimationController _rotationController;
+  bool _wasLoading = false;
+
   final List<Widget> _pages = [
-    const _HomeContent(),      // Index 0: Home
-    const AnalyzeView(),       // Index 1: Analyze
-    const ProfileView(),       // Index 2: Settings/Profile
+    const _HomeContent(), // Index 0: Home
+    const AnalyzeView(), // Index 1: Analyze
+    const ProfileView(), // Index 2: Settings/Profile
   ];
 
   Widget _buildGlassmorphismFAB(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 20),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              // Exact same glassmorphism as calendar
-              color: isDark
-                  ? Colors.black.withValues(alpha: 0.3)
-                  : Colors.white.withValues(alpha: 0.4),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: isDark
-                    ? Colors.white.withValues(alpha: 0.15)
-                    : Colors.white.withValues(alpha: 0.6),
-                width: 1.5,
-              ),
-              boxShadow: [
-                BoxShadow(
+
+    return Consumer<ImageAnalysisViewModel>(
+      builder: (context, analysisVM, _) {
+        final isLoading = analysisVM.isLoading;
+
+        // Start/stop rotation based on loading state
+        if (isLoading && !_wasLoading) {
+          // Just started loading - start rotation
+          _rotationController.repeat();
+        } else if (!isLoading && _wasLoading) {
+          // Just stopped loading - stop rotation
+          _rotationController.stop();
+          _rotationController.reset();
+        }
+        _wasLoading = isLoading;
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 20),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  // Exact same glassmorphism as calendar
                   color: isDark
-                      ? Colors.black.withValues(alpha: 0.2)
-                      : Colors.black.withValues(alpha: 0.08),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
+                      ? Colors.black.withValues(alpha: 0.3)
+                      : Colors.white.withValues(alpha: 0.4),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.15)
+                        : Colors.white.withValues(alpha: 0.6),
+                    width: 1.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: isDark
+                          ? Colors.black.withValues(alpha: 0.2)
+                          : Colors.black.withValues(alpha: 0.08),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: () => _showAddOptionsBottomSheet(context),
-                borderRadius: BorderRadius.circular(16),
-                child: Center(
-                  child: FaIcon(
-                    FontAwesomeIcons.plus,
-                    color: isDark ? Colors.white : AppColors.textPrimary,
-                    size: 20,
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    // Lock button during loading
+                    onTap: isLoading
+                        ? null
+                        : () => _showAddOptionsBottomSheet(context),
+                    borderRadius: BorderRadius.circular(16),
+                    child: Center(
+                      child: RotationTransition(
+                        turns: _rotationController,
+                        child: FaIcon(
+                          FontAwesomeIcons.plus,
+                          color: isDark ? Colors.white : AppColors.textPrimary,
+                          size: 20,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
   @override
   void initState() {
     super.initState();
+
+    // Initialize rotation animation controller
+    _rotationController = AnimationController(
+      duration: const Duration(seconds: 2),
+      vsync: this,
+    );
 
     // Listen to connection changes and trigger sync when coming back online
     _connectionSubscription =
@@ -128,6 +162,7 @@ class _HomeViewState extends State<HomeView> {
 
   @override
   void dispose() {
+    _rotationController.dispose();
     _connectionSubscription?.cancel();
     super.dispose();
   }
@@ -188,8 +223,7 @@ class _HomeViewState extends State<HomeView> {
                       isDark: isDark,
                       onTap: () {
                         Navigator.pop(context);
-                        final vm = Provider.of<ImageAnalysisViewModel>(
-                            context,
+                        final vm = Provider.of<ImageAnalysisViewModel>(context,
                             listen: false);
                         vm.pickImage(ImageSource.camera, context);
                       },
@@ -202,8 +236,7 @@ class _HomeViewState extends State<HomeView> {
                       isDark: isDark,
                       onTap: () {
                         Navigator.pop(context);
-                        final vm = Provider.of<ImageAnalysisViewModel>(
-                            context,
+                        final vm = Provider.of<ImageAnalysisViewModel>(context,
                             listen: false);
                         vm.pickImage(ImageSource.gallery, context);
                       },
@@ -221,8 +254,8 @@ class _HomeViewState extends State<HomeView> {
                         if (!connectionService.isConnected) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Row(
-                                children: const [
+                              content: const Row(
+                                children: [
                                   Icon(Icons.wifi_off, color: Colors.white),
                                   SizedBox(width: 12),
                                   Text('No internet connection'),
@@ -340,7 +373,8 @@ class _HomeViewState extends State<HomeView> {
         return Scaffold(
           extendBody: true,
           body: _pages[_currentIndex],
-          floatingActionButton: _currentIndex == 0 ? _buildGlassmorphismFAB(context) : null,
+          floatingActionButton:
+              _currentIndex == 0 ? _buildGlassmorphismFAB(context) : null,
           floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
           bottomNavigationBar: Column(
             mainAxisSize: MainAxisSize.min,
@@ -369,6 +403,9 @@ class _HomeContentState extends State<_HomeContent> {
   bool _bannerDismissed = false;
   bool _hasNavigated = false;
   final SQLiteService _sqliteService = SQLiteService();
+  final ScrollController _scrollController = ScrollController();
+  bool _wasLoading = false;
+  bool _shouldScrollAfterLoad = false;
 
   @override
   void initState() {
@@ -407,6 +444,12 @@ class _HomeContentState extends State<_HomeContent> {
     // Validate user state consistency only when dependencies change
     final authVM = Provider.of<AuthViewModel>(context, listen: false);
     authVM.validateUserState();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadBannerState() async {
@@ -481,7 +524,7 @@ class _HomeContentState extends State<_HomeContent> {
     UserProfile profile,
   ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return AppBar(
       automaticallyImplyLeading: false,
       backgroundColor: isDark ? AppColors.darkBackground : Colors.white,
@@ -491,19 +534,22 @@ class _HomeContentState extends State<_HomeContent> {
       toolbarHeight: 64,
       flexibleSpace: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 4),
+          padding:
+              const EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 4),
           child: Row(
             children: [
               // Profile Picture with Gender-based Avatar
               CircleAvatar(
                 radius: 22,
-                backgroundImage: (authVM.userPhotoURL != null && authVM.userPhotoURL!.isNotEmpty)
+                backgroundImage: (authVM.userPhotoURL != null &&
+                        authVM.userPhotoURL!.isNotEmpty)
                     ? NetworkImage(authVM.userPhotoURL!)
                     : null,
                 backgroundColor: AppColors.primary.withOpacity(0.1),
-                child: (authVM.userPhotoURL == null || authVM.userPhotoURL!.isEmpty)
+                child: (authVM.userPhotoURL == null ||
+                        authVM.userPhotoURL!.isEmpty)
                     ? FaIcon(
-                        profile.gender.toLowerCase() == 'male' 
+                        profile.gender.toLowerCase() == 'male'
                             ? FontAwesomeIcons.person
                             : FontAwesomeIcons.personDress,
                         size: 20,
@@ -523,7 +569,9 @@ class _HomeContentState extends State<_HomeContent> {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                        color: isDark
+                            ? AppColors.darkTextPrimary
+                            : AppColors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -531,7 +579,9 @@ class _HomeContentState extends State<_HomeContent> {
                       _getGreeting(),
                       style: TextStyle(
                         fontSize: 12,
-                        color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+                        color: isDark
+                            ? AppColors.darkTextSecondary
+                            : AppColors.textSecondary,
                       ),
                     ),
                   ],
@@ -601,6 +651,46 @@ class _HomeContentState extends State<_HomeContent> {
     // Get recommended daily calories
     final recommendedCalories = profile.dailyCalories;
 
+    // Auto-scroll to top: both while adding and after item is added
+    final isLoading = analysisVM.isLoading;
+
+    // Case 1: Just started loading - scroll while item is being added
+    if (isLoading && !_wasLoading) {
+      _shouldScrollAfterLoad = true;
+      // Scroll to top after a small delay
+      // This ensures the shimmer card is rendered first, creating a smooth "scroll while adding" effect
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Future.delayed(const Duration(milliseconds: 100), () {
+          if (_scrollController.hasClients && mounted) {
+            _scrollController.animateTo(
+              0,
+              duration: const Duration(milliseconds: 500),
+              curve: Curves.easeInOut,
+            );
+          }
+        });
+      });
+    }
+
+    // Case 2: Loading just finished - scroll again to ensure new item is visible at top
+    if (!isLoading && _wasLoading && _shouldScrollAfterLoad) {
+      _shouldScrollAfterLoad = false;
+      // Scroll to top after item is completely added
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Future.delayed(const Duration(milliseconds: 150), () {
+          if (_scrollController.hasClients && mounted) {
+            _scrollController.animateTo(
+              0,
+              duration: const Duration(milliseconds: 400),
+              curve: Curves.easeOut,
+            );
+          }
+        });
+      });
+    }
+
+    _wasLoading = isLoading;
+
     return Scaffold(
       appBar: _buildCustomAppBar(context, authVM, profile),
       body: RefreshIndicator(
@@ -611,6 +701,7 @@ class _HomeContentState extends State<_HomeContent> {
           await analysisVM.forceRefresh();
         },
         child: SingleChildScrollView(
+          controller: _scrollController,
           physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -704,8 +795,8 @@ class _HomeContentState extends State<_HomeContent> {
                                   if (context.mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
-                                        content: Row(
-                                          children: const [
+                                        content: const Row(
+                                          children: [
                                             Icon(
                                               Icons.wifi_off,
                                               color: Colors.white,

@@ -61,7 +61,9 @@ class ReauthDialog extends StatelessWidget {
             style: TextStyle(
               fontSize: 15,
               height: 1.5,
-              color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+              color: isDark
+                  ? AppColors.darkTextSecondary
+                  : AppColors.textSecondary,
             ),
           ),
           const SizedBox(height: 20),
@@ -88,7 +90,9 @@ class ReauthDialog extends StatelessWidget {
                     'You\'ll be asked to sign in with Google to confirm your identity.',
                     style: TextStyle(
                       fontSize: 13,
-                      color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+                      color: isDark
+                          ? AppColors.darkTextSecondary
+                          : AppColors.textSecondary,
                     ),
                   ),
                 ),
@@ -152,7 +156,8 @@ class ReauthDialog extends StatelessWidget {
       barrierDismissible: false,
       builder: (context) => ReauthDialog(
         title: 'Verify Your Identity',
-        message: 'For your security, we need to verify your identity before deleting your account. This is a one-time security check.',
+        message:
+            'For your security, we need to verify your identity before deleting your account. This is a one-time security check.',
         onConfirm: onConfirm,
       ),
     );
@@ -169,7 +174,8 @@ class ReauthDialog extends StatelessWidget {
       barrierDismissible: false,
       builder: (context) => ReauthDialog(
         title: 'Verify Your Identity',
-        message: 'For your security, we need to verify your identity before $operationName. This is a one-time security check.',
+        message:
+            'For your security, we need to verify your identity before $operationName. This is a one-time security check.',
         onConfirm: onConfirm,
       ),
     );

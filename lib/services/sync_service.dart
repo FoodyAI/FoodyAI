@@ -35,7 +35,7 @@ class SyncService {
       final dailyCalories = profile.dailyCalories.round();
       final bmi = profile.bmi;
       final themePreference =
-          await _sqliteService.getThemePreference() ?? 'system';
+          await _sqliteService.getThemePreference() ?? 'light';
       final aiProvider = profile.aiProvider.name;
       final measurementUnit =
           await _sqliteService.getIsMetric() ? 'metric' : 'imperial';
@@ -89,9 +89,9 @@ class SyncService {
         try {
           // Use s3ImageUrl first (for barcode/network images), then localImagePath, then imagePath
           final imageUrl = analysis.s3ImageUrl ??
-                          analysis.localImagePath ??
-                          analysis.imagePath ??
-                          '';
+              analysis.localImagePath ??
+              analysis.imagePath ??
+              '';
 
           // Save to AWS
           final result = await _awsService.saveFoodAnalysis(
@@ -148,12 +148,14 @@ class SyncService {
       // Only clear if we get a successful response saying user doesn't exist
       // If profileData is null, it could be a network error (offline), not a deleted account
       if (profileData == null) {
-        print('⚠️ AWS: Could not reach AWS (likely offline) - keeping local data');
+        print(
+            '⚠️ AWS: Could not reach AWS (likely offline) - keeping local data');
         return; // Keep existing local data, don't clear anything
       }
 
       if (profileData['success'] == false) {
-        print('ℹ️ AWS: User not found in AWS (account deleted) - clearing local data');
+        print(
+            'ℹ️ AWS: User not found in AWS (account deleted) - clearing local data');
         await _sqliteService.clearAllData();
         return;
       }
@@ -243,8 +245,8 @@ class SyncService {
             print('❌ AWS: FAILED to verify profile in local SQLite!');
           }
 
-          // Always set theme preference - default to 'system' if not in AWS
-          final themePreference = userData['theme_preference'] ?? 'system';
+          // Always set theme preference - default to 'light' if not in AWS
+          final themePreference = userData['theme_preference'] ?? 'light';
           await _sqliteService.setThemePreference(themePreference);
           print('   - Theme: $themePreference');
         }
@@ -285,7 +287,8 @@ class SyncService {
           // If image URL is HTTP/HTTPS (barcode item), store in s3ImageUrl
           // If it's S3 path (camera/gallery), store in imagePath
           final isHttpUrl = imageUrl != null &&
-                           (imageUrl.startsWith('http://') || imageUrl.startsWith('https://'));
+              (imageUrl.startsWith('http://') ||
+                  imageUrl.startsWith('https://'));
 
           return FoodAnalysis(
             id: foodData['id'] as String,
@@ -295,7 +298,8 @@ class SyncService {
             fat: fat,
             calories: calories,
             healthScore: healthScore,
-            imagePath: !isHttpUrl && imageUrl?.isNotEmpty == true ? imageUrl : null,
+            imagePath:
+                !isHttpUrl && imageUrl?.isNotEmpty == true ? imageUrl : null,
             s3ImageUrl: isHttpUrl ? imageUrl : null,
             date: DateTime.parse(foodData['analysis_date'] as String),
             syncedToAws: true, // Already in AWS
@@ -369,9 +373,9 @@ class SyncService {
 
       // Use s3ImageUrl first (for barcode/network images), then localImagePath, then imagePath
       final imageUrl = analysis.s3ImageUrl ??
-                      analysis.localImagePath ??
-                      analysis.imagePath ??
-                      '';
+          analysis.localImagePath ??
+          analysis.imagePath ??
+          '';
       print('📸 AWS: Image URL: $imageUrl');
 
       // Send the image URL to AWS - if it's an HTTP URL (barcode), AWS will store it

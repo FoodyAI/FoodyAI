@@ -194,6 +194,11 @@ class AuthViewModel extends ChangeNotifier {
           _isDataLoading = false;
         }
 
+        // Set intro completed flag so user doesn't see intro again on app restart
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('intro_completed', true);
+        print('✅ AuthViewModel: Intro completion flag set');
+
         // Handle post-authentication flow if context is provided
         if (context != null && context.mounted) {
           await _authFlow.handlePostAuthNavigation(
@@ -332,10 +337,10 @@ class AuthViewModel extends ChangeNotifier {
         final newContext = NavigationService.currentContext;
         if (newContext != null && newContext.mounted) {
           ScaffoldMessenger.of(newContext).showSnackBar(
-            SnackBar(
-              content: const Text('Signed out successfully'),
+            const SnackBar(
+              content: Text('Signed out successfully'),
               backgroundColor: AppColors.primary,
-              duration: const Duration(seconds: 2),
+              duration: Duration(seconds: 2),
             ),
           );
         }
@@ -418,10 +423,10 @@ class AuthViewModel extends ChangeNotifier {
         final newContext = NavigationService.currentContext;
         if (newContext != null && newContext.mounted) {
           ScaffoldMessenger.of(newContext).showSnackBar(
-            SnackBar(
-              content: const Text('Account deleted successfully'),
+            const SnackBar(
+              content: Text('Account deleted successfully'),
               backgroundColor: AppColors.success,
-              duration: const Duration(seconds: 2),
+              duration: Duration(seconds: 2),
             ),
           );
         }
@@ -503,10 +508,10 @@ class AuthViewModel extends ChangeNotifier {
         final newContext = NavigationService.currentContext;
         if (newContext != null && newContext.mounted) {
           ScaffoldMessenger.of(newContext).showSnackBar(
-            SnackBar(
-              content: const Text('Account deleted successfully'),
+            const SnackBar(
+              content: Text('Account deleted successfully'),
               backgroundColor: AppColors.success,
-              duration: const Duration(seconds: 2),
+              duration: Duration(seconds: 2),
             ),
           );
         }

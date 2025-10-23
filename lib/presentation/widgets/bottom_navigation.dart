@@ -16,7 +16,7 @@ class BottomNavigation extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Container(
       color: Colors.transparent,
       padding: const EdgeInsets.only(bottom: 16, top: 0),
@@ -63,7 +63,7 @@ class BottomNavigation extends StatelessWidget {
                       onTap: () => onTap(0),
                       isDark: isDark,
                     ),
-                    
+
                     // Analyze
                     _buildNavItem(
                       context: context,
@@ -73,7 +73,7 @@ class BottomNavigation extends StatelessWidget {
                       onTap: () => onTap(1),
                       isDark: isDark,
                     ),
-                    
+
                     // Settings
                     _buildNavItem(
                       context: context,
@@ -110,9 +110,7 @@ class BottomNavigation extends StatelessWidget {
           margin: const EdgeInsets.symmetric(horizontal: 4),
           decoration: BoxDecoration(
             color: isSelected
-                ? (isDark
-                    ? const Color(0xFF2D2D2D)
-                    : const Color(0xFF3D3D3D))
+                ? (isDark ? const Color(0xFF2D2D2D) : const Color(0xFF3D3D3D))
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(20),
           ),

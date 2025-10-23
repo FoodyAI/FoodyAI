@@ -44,7 +44,7 @@ class DatabaseHelper {
         weight_goal TEXT,
         daily_calories INTEGER,
         bmi REAL,
-        theme_preference TEXT DEFAULT 'system',
+        theme_preference TEXT DEFAULT 'light',
         ai_provider TEXT DEFAULT 'gemini',
         measurement_unit TEXT DEFAULT 'metric',
         is_guest BOOLEAN DEFAULT 1,
@@ -177,10 +177,12 @@ class DatabaseHelper {
 
     if (oldVersion < 6) {
       // Version 6: Force all users to use Gemini AI provider
-      print('🔄 Database upgraded: Version 6 migration - forcing Gemini as AI provider');
+      print(
+          '🔄 Database upgraded: Version 6 migration - forcing Gemini as AI provider');
 
       // Ensure ai_provider column exists first
-      await _addColumnIfNotExists(db, 'user_profile', 'ai_provider', 'TEXT DEFAULT \'gemini\'');
+      await _addColumnIfNotExists(
+          db, 'user_profile', 'ai_provider', 'TEXT DEFAULT \'gemini\'');
 
       // Update all existing users to use Gemini
       await db.execute('''

@@ -38,12 +38,12 @@ class ImageHelper {
   /// Checks if local file exists (with caching)
   static Future<bool> localFileExists(String? filePath) async {
     if (filePath == null || !isLocalPath(filePath)) return false;
-    
+
     // Check cache first
     if (_localFileExistsCache.containsKey(filePath)) {
       return _localFileExistsCache[filePath]!;
     }
-    
+
     try {
       final file = File(filePath);
       final exists = await file.exists();
@@ -231,7 +231,7 @@ class ImageHelper {
     if (_imageCache.containsKey(imagePath)) {
       final cachedBytes = _imageCache[imagePath]!;
       print('✅ ImageHelper: Using cached image (${cachedBytes.length} bytes)');
-      
+
       return Image.memory(
         cachedBytes,
         width: width,
@@ -270,7 +270,8 @@ class ImageHelper {
         }
 
         final imageBytes = snapshot.data!;
-        print('🖼️ ImageHelper: Loading image from bytes (${imageBytes.length} bytes)');
+        print(
+            '🖼️ ImageHelper: Loading image from bytes (${imageBytes.length} bytes)');
 
         return Image.memory(
           imageBytes,
@@ -342,7 +343,8 @@ class ImageHelper {
     }
 
     _activeRequests++;
-    print('🔄 ImageHelper: Fetching ($s3Url) [Active: $_activeRequests/$_maxConcurrentRequests]');
+    print(
+        '🔄 ImageHelper: Fetching ($s3Url) [Active: $_activeRequests/$_maxConcurrentRequests]');
 
     try {
       return await _fetchImageFromNetwork(s3Url, cacheFile);
@@ -377,10 +379,12 @@ class ImageHelper {
         // Cache to disk in background (don't wait)
         _saveToDiskCache(cacheFile, imageBytes);
 
-        print('✅ ImageHelper: Fetched successfully (${imageBytes.length} bytes)');
+        print(
+            '✅ ImageHelper: Fetched successfully (${imageBytes.length} bytes)');
         return imageBytes;
       } else {
-        throw Exception('HTTP ${response.statusCode}: ${response.reasonPhrase}');
+        throw Exception(
+            'HTTP ${response.statusCode}: ${response.reasonPhrase}');
       }
     } on TimeoutException catch (e) {
       print('⏱️ ImageHelper: Timeout after 6s');
@@ -407,7 +411,8 @@ class ImageHelper {
   }
 
   /// Saves image bytes to disk cache (background operation)
-  static Future<void> _saveToDiskCache(File cacheFile, Uint8List imageBytes) async {
+  static Future<void> _saveToDiskCache(
+      File cacheFile, Uint8List imageBytes) async {
     try {
       await cacheFile.writeAsBytes(imageBytes);
       print('💾 ImageHelper: Saved to disk cache (${imageBytes.length} bytes)');
@@ -480,12 +485,12 @@ class ImageHelper {
   }) {
     // Create a unique key for this analysis based on its image paths
     final cacheKey = _createCacheKey(analysis);
-    
+
     // Check if we've already determined the source for this analysis
     if (_imageSourceCache.containsKey(cacheKey)) {
       final cachedSource = _imageSourceCache[cacheKey]!;
       print('⚡ ImageHelper: Using cached source determination');
-      
+
       return _buildImageFromSource(
         imageSource: cachedSource,
         width: width,
@@ -519,7 +524,7 @@ class ImageHelper {
         }
 
         final imageSource = snapshot.data!;
-        
+
         // Cache the determined source for future rebuilds
         _imageSourceCache[cacheKey] = imageSource;
         print('💾 ImageHelper: Cached source determination for: $cacheKey');
@@ -600,8 +605,7 @@ class ImageHelper {
   /// OFFLINE-FIRST: Prioritizes local file if it exists
   static Future<_ImageSource> _determineImageSource(dynamic analysis) async {
     // 1. Check if local file exists and is valid
-    if (analysis.localImagePath != null &&
-        analysis.localImagePath.isNotEmpty) {
+    if (analysis.localImagePath != null && analysis.localImagePath.isNotEmpty) {
       final localExists = await localFileExists(analysis.localImagePath);
       if (localExists) {
         print('✅ ImageHelper: Local file exists: ${analysis.localImagePath}');
@@ -610,7 +614,8 @@ class ImageHelper {
           path: analysis.localImagePath,
         );
       } else {
-        print('⚠️ ImageHelper: Local file does NOT exist: ${analysis.localImagePath}');
+        print(
+            '⚠️ ImageHelper: Local file does NOT exist: ${analysis.localImagePath}');
       }
     }
 
@@ -649,13 +654,15 @@ class ImageHelper {
         // Legacy local path - verify it exists
         final localExists = await localFileExists(analysis.imagePath);
         if (localExists) {
-          print('✅ ImageHelper: Legacy local file exists: ${analysis.imagePath}');
+          print(
+              '✅ ImageHelper: Legacy local file exists: ${analysis.imagePath}');
           return _ImageSource(
             type: _ImageSourceType.local,
             path: analysis.imagePath,
           );
         } else {
-          print('⚠️ ImageHelper: Legacy local file does NOT exist: ${analysis.imagePath}');
+          print(
+              '⚠️ ImageHelper: Legacy local file does NOT exist: ${analysis.imagePath}');
         }
       }
     }

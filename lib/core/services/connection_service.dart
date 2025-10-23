@@ -7,7 +7,8 @@ class ConnectionService {
   factory ConnectionService() => _instance;
   ConnectionService._internal();
 
-  final StreamController<bool> _connectionController = StreamController<bool>.broadcast();
+  final StreamController<bool> _connectionController =
+      StreamController<bool>.broadcast();
   StreamSubscription? _connectivitySubscription;
   StreamSubscription? _internetSubscription;
   bool _isConnected = true;
@@ -22,9 +23,8 @@ class ConnectionService {
     _checkInitialConnection();
 
     // Monitor connectivity changes (WiFi, Mobile, None)
-    _connectivitySubscription = Connectivity()
-        .onConnectivityChanged
-        .listen(_handleConnectivityChange);
+    _connectivitySubscription =
+        Connectivity().onConnectivityChanged.listen(_handleConnectivityChange);
     print('🌐 ConnectionService: Subscribed to connectivity changes');
 
     // Monitor actual internet connectivity
@@ -81,12 +81,14 @@ class ConnectionService {
   }
 
   void _updateConnectionStatus(bool isConnected) {
-    print('🌐 ConnectionService: Status update - Old: $_isConnected, New: $isConnected');
+    print(
+        '🌐 ConnectionService: Status update - Old: $_isConnected, New: $isConnected');
 
     if (_isConnected != isConnected) {
       _isConnected = isConnected;
       _connectionController.add(_isConnected);
-      print('✅ ConnectionService: Status CHANGED! Emitted to stream: $isConnected');
+      print(
+          '✅ ConnectionService: Status CHANGED! Emitted to stream: $isConnected');
     } else {
       print('ℹ️ ConnectionService: Status unchanged, no emission');
     }

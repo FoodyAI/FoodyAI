@@ -72,7 +72,8 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
   Future<void> _addToFoodAnalysis(BuildContext context) async {
     if (_scannedProduct == null) return;
 
-    final analysisVM = Provider.of<ImageAnalysisViewModel>(context, listen: false);
+    final analysisVM =
+        Provider.of<ImageAnalysisViewModel>(context, listen: false);
 
     if (context.mounted) {
       // Show success message
@@ -238,7 +239,7 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     // Scan frame with corner brackets and buttons
-                    Container(
+                    SizedBox(
                       width: _scanFrameSize,
                       height: _scanFrameSize,
                       child: Stack(
@@ -278,7 +279,8 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
                                 bottomRight: Radius.circular(24),
                               ),
                               child: BackdropFilter(
-                                filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                                filter:
+                                    ImageFilter.blur(sigmaX: 16, sigmaY: 16),
                                 child: Container(
                                   height: 55,
                                   decoration: BoxDecoration(
@@ -306,7 +308,8 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
                                       Expanded(
                                         child: _buildInFrameButton(
                                           icon: FontAwesomeIcons.keyboard,
-                                          onTap: () => _showManualBarcodeInput(context),
+                                          onTap: () =>
+                                              _showManualBarcodeInput(context),
                                         ),
                                       ),
                                       Container(
@@ -326,11 +329,13 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
                                       ),
                                       Expanded(
                                         child: ValueListenableBuilder(
-                                          valueListenable: controller.torchState,
+                                          valueListenable:
+                                              controller.torchState,
                                           builder: (context, state, child) {
                                             return _buildInFrameButton(
                                               icon: FontAwesomeIcons.bolt,
-                                              onTap: () => controller.toggleTorch(),
+                                              onTap: () =>
+                                                  controller.toggleTorch(),
                                             );
                                           },
                                         ),
@@ -361,8 +366,7 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
             ),
 
           // Loading Indicator
-          if (_isLoading)
-            const BarcodeScannerShimmer(),
+          if (_isLoading) const BarcodeScannerShimmer(),
 
           // Error Message
           if (_error != null)
@@ -410,7 +414,7 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
                               color: AppColors.error.withOpacity(0.2),
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: FaIcon(
+                            child: const FaIcon(
                               FontAwesomeIcons.triangleExclamation,
                               color: AppColors.error,
                               size: 20,
@@ -422,7 +426,7 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Text(
+                                const Text(
                                   'Error',
                                   style: TextStyle(
                                     color: AppColors.error,
@@ -434,7 +438,9 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
                                 Text(
                                   _error!,
                                   style: TextStyle(
-                                    color: isDark ? Colors.white : AppColors.textPrimary,
+                                    color: isDark
+                                        ? Colors.white
+                                        : AppColors.textPrimary,
                                     fontSize: 13,
                                   ),
                                 ),
@@ -444,7 +450,8 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
                           IconButton(
                             icon: FaIcon(
                               FontAwesomeIcons.xmark,
-                              color: isDark ? Colors.white : AppColors.textPrimary,
+                              color:
+                                  isDark ? Colors.white : AppColors.textPrimary,
                               size: 16,
                             ),
                             onPressed: () {
@@ -487,203 +494,215 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
                         ),
                       ),
                       padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Drag Handle
-                      Center(
-                        child: Container(
-                          width: 48,
-                          height: 4,
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).brightness == Brightness.dark
-                                ? Colors.white.withValues(alpha: 0.3)
-                                : Colors.grey.withValues(alpha: 0.5),
-                            borderRadius: BorderRadius.circular(2),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Product Image
-                      if (_scannedProduct!.imageUrl != null)
-                        Center(
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Drag Handle
+                          Center(
                             child: Container(
-                              height: 140,
-                              width: 140,
+                              width: 48,
+                              height: 4,
                               decoration: BoxDecoration(
-                                color: Theme.of(context).brightness == Brightness.dark
-                                    ? Colors.grey.withValues(alpha: 0.2)
-                                    : Colors.grey.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Image.network(
-                                _scannedProduct!.imageUrl!,
-                                fit: BoxFit.contain,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return const Center(
-                                    child: FaIcon(
-                                      FontAwesomeIcons.imagePortrait,
-                                      size: 50,
-                                      color: Colors.grey,
-                                    ),
-                                  );
-                                },
+                                color: Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? Colors.white.withValues(alpha: 0.3)
+                                    : Colors.grey.withValues(alpha: 0.5),
+                                borderRadius: BorderRadius.circular(2),
                               ),
                             ),
                           ),
-                        ),
-                      const SizedBox(height: 14),
+                          const SizedBox(height: 16),
 
-                      // Product Name
-                      Text(
-                        _scannedProduct!.name,
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).brightness == Brightness.dark
-                              ? Colors.white
-                              : AppColors.textPrimary,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-
-                      // Brand
-                      if (_scannedProduct!.brand != null) ...[
-                        const SizedBox(height: 6),
-                        Row(
-                          children: [
-                            FaIcon(
-                              FontAwesomeIcons.tag,
-                              size: 12,
-                              color: Theme.of(context).brightness == Brightness.dark
-                                  ? AppColors.darkTextSecondary
-                                  : AppColors.textSecondary,
+                          // Product Image
+                          if (_scannedProduct!.imageUrl != null)
+                            Center(
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(20),
+                                child: Container(
+                                  height: 140,
+                                  width: 140,
+                                  decoration: BoxDecoration(
+                                    color: Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? Colors.grey.withValues(alpha: 0.2)
+                                        : Colors.grey.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Image.network(
+                                    _scannedProduct!.imageUrl!,
+                                    fit: BoxFit.contain,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return const Center(
+                                        child: FaIcon(
+                                          FontAwesomeIcons.imagePortrait,
+                                          size: 50,
+                                          color: Colors.grey,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ),
                             ),
-                            const SizedBox(width: 6),
-                            Expanded(
-                              child: Text(
-                                _scannedProduct!.brand!,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Theme.of(context).brightness == Brightness.dark
+                          const SizedBox(height: 14),
+
+                          // Product Name
+                          Text(
+                            _scannedProduct!.name,
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).brightness ==
+                                      Brightness.dark
+                                  ? Colors.white
+                                  : AppColors.textPrimary,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+
+                          // Brand
+                          if (_scannedProduct!.brand != null) ...[
+                            const SizedBox(height: 6),
+                            Row(
+                              children: [
+                                FaIcon(
+                                  FontAwesomeIcons.tag,
+                                  size: 12,
+                                  color: Theme.of(context).brightness ==
+                                          Brightness.dark
                                       ? AppColors.darkTextSecondary
                                       : AppColors.textSecondary,
                                 ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    _scannedProduct!.brand!,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Theme.of(context).brightness ==
+                                              Brightness.dark
+                                          ? AppColors.darkTextSecondary
+                                          : AppColors.textSecondary,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
-                        ),
-                      ],
 
-                      const SizedBox(height: 16),
+                          const SizedBox(height: 16),
 
-                      // Nutrition Title
-                      Text(
-                        'Nutritional Information',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).brightness == Brightness.dark
-                              ? Colors.white
-                              : AppColors.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-
-                      // Nutrient Cards
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildGlassNutrientCard(
-                              context,
-                              'Calories',
-                              _scannedProduct!.calories?.toStringAsFixed(0) ?? 'N/A',
-                              'kcal',
-                              AppColors.orange,
-                              FontAwesomeIcons.fire,
+                          // Nutrition Title
+                          Text(
+                            'Nutritional Information',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).brightness ==
+                                      Brightness.dark
+                                  ? Colors.white
+                                  : AppColors.textPrimary,
                             ),
                           ),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: _buildGlassNutrientCard(
-                              context,
-                              'Protein',
-                              _scannedProduct!.protein?.toStringAsFixed(1) ?? 'N/A',
-                              'g',
-                              AppColors.blue,
-                              FontAwesomeIcons.dumbbell,
-                            ),
+                          const SizedBox(height: 10),
+
+                          // Nutrient Cards
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildGlassNutrientCard(
+                                  context,
+                                  'Calories',
+                                  _scannedProduct!.calories
+                                          ?.toStringAsFixed(0) ??
+                                      'N/A',
+                                  'kcal',
+                                  AppColors.orange,
+                                  FontAwesomeIcons.fire,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: _buildGlassNutrientCard(
+                                  context,
+                                  'Protein',
+                                  _scannedProduct!.protein
+                                          ?.toStringAsFixed(1) ??
+                                      'N/A',
+                                  'g',
+                                  AppColors.blue,
+                                  FontAwesomeIcons.dumbbell,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildGlassNutrientCard(
+                                  context,
+                                  'Carbs',
+                                  _scannedProduct!.carbs?.toStringAsFixed(1) ??
+                                      'N/A',
+                                  'g',
+                                  AppColors.green,
+                                  FontAwesomeIcons.carrot,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: _buildGlassNutrientCard(
+                                  context,
+                                  'Fat',
+                                  _scannedProduct!.fat?.toStringAsFixed(1) ??
+                                      'N/A',
+                                  'g',
+                                  AppColors.orange,
+                                  FontAwesomeIcons.droplet,
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 16),
+
+                          // Action Buttons
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildGlassButton(
+                                  context,
+                                  'Rescan',
+                                  FontAwesomeIcons.arrowsRotate,
+                                  onPressed: () {
+                                    setState(() {
+                                      _scannedProduct = null;
+                                      _error = null;
+                                    });
+                                  },
+                                  isPrimary: false,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                flex: 2,
+                                child: _buildGlassButton(
+                                  context,
+                                  'Add to Analysis',
+                                  FontAwesomeIcons.plus,
+                                  onPressed: () => _addToFoodAnalysis(context),
+                                  isPrimary: true,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                      const SizedBox(height: 6),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildGlassNutrientCard(
-                              context,
-                              'Carbs',
-                              _scannedProduct!.carbs?.toStringAsFixed(1) ?? 'N/A',
-                              'g',
-                              AppColors.green,
-                              FontAwesomeIcons.carrot,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: _buildGlassNutrientCard(
-                              context,
-                              'Fat',
-                              _scannedProduct!.fat?.toStringAsFixed(1) ?? 'N/A',
-                              'g',
-                              AppColors.orange,
-                              FontAwesomeIcons.droplet,
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      // Action Buttons
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildGlassButton(
-                              context,
-                              'Rescan',
-                              FontAwesomeIcons.arrowsRotate,
-                              onPressed: () {
-                                setState(() {
-                                  _scannedProduct = null;
-                                  _error = null;
-                                });
-                              },
-                              isPrimary: false,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            flex: 2,
-                            child: _buildGlassButton(
-                              context,
-                              'Add to Analysis',
-                              FontAwesomeIcons.plus,
-                              onPressed: () => _addToFoodAnalysis(context),
-                              isPrimary: true,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
                     ),
                   ),
                 ),
@@ -695,7 +714,7 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
   }
 
   Widget _buildCornerBracket(bool isTop, bool isLeft) {
-    return Container(
+    return SizedBox(
       width: 70,
       height: 70,
       child: CustomPaint(
@@ -831,7 +850,7 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(
+                          borderSide: const BorderSide(
                             color: AppColors.primary,
                             width: 2,
                           ),
@@ -1001,7 +1020,8 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
               child: InkWell(
                 onTap: onPressed,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
                   decoration: BoxDecoration(
                     color: AppColors.primary,
                     borderRadius: BorderRadius.circular(12),
@@ -1043,7 +1063,8 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
                 child: InkWell(
                   onTap: onPressed,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 12, horizontal: 12),
                     decoration: BoxDecoration(
                       color: isDark
                           ? Colors.black.withValues(alpha: 0.3)

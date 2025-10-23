@@ -23,7 +23,8 @@ class _ConnectionBannerState extends State<ConnectionBanner> {
   void didUpdateWidget(ConnectionBanner oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    print('🎨 ConnectionBanner: didUpdateWidget - Old: ${oldWidget.isConnected}, New: ${widget.isConnected}');
+    print(
+        '🎨 ConnectionBanner: didUpdateWidget - Old: ${oldWidget.isConnected}, New: ${widget.isConnected}');
 
     if (!oldWidget.isConnected && widget.isConnected) {
       // Connection restored - show green banner briefly
@@ -94,7 +95,8 @@ class _ConnectionBannerState extends State<ConnectionBanner> {
 
   @override
   Widget build(BuildContext context) {
-    print('🎨 ConnectionBanner: build() - showBanner: $_showBanner, isConnected: ${widget.isConnected}');
+    print(
+        '🎨 ConnectionBanner: build() - showBanner: $_showBanner, isConnected: ${widget.isConnected}');
     if (!_showBanner) return const SizedBox.shrink();
 
     return AnimatedSlide(
@@ -110,8 +112,8 @@ class _ConnectionBannerState extends State<ConnectionBanner> {
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
-            color: _wasDisconnected 
-                ? Colors.green 
+            color: _wasDisconnected
+                ? Colors.green
                 : (_showBlackBanner ? Colors.black : AppColors.error),
             boxShadow: const [
               BoxShadow(

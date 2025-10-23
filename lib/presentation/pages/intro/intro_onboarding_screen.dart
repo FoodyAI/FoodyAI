@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:video_player/video_player.dart';
+import 'package:animated_text_kit/animated_text_kit.dart';
 import '../../../config/onboarding/onboarding_config.dart';
 import '../../../config/onboarding/onboarding_page_model.dart';
+import '../../../core/constants/app_colors.dart';
 import '../../widgets/google_signin_button.dart';
+import '../legal/privacy_policy_page.dart';
+import '../legal/terms_of_service_page.dart';
 import 'dart:ui';
 
 /// Modern full-screen onboarding with immersive design
@@ -20,7 +25,8 @@ class IntroOnboardingScreen extends StatefulWidget {
   State<IntroOnboardingScreen> createState() => _IntroOnboardingScreenState();
 }
 
-class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
+class _IntroOnboardingScreenState extends State<IntroOnboardingScreen>
+    with TickerProviderStateMixin {
   late PageController _pageController;
   late OnboardingConfig _config;
   int _currentPage = 0;
@@ -31,17 +37,81 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
   VideoPlayerController? _videoController;
   bool _isVideoInitialized = false;
 
+  // Animation controllers
+  late AnimationController _scanningAnimationController;
+  late AnimationController _macroAnimationController;
+  late AnimationController _fireAnimationController;
+
+  // Animations
+  late Animation<double> _scanningScaleAnimation;
+  late Animation<double> _scanningOpacityAnimation;
+  late Animation<double> _fireScaleAnimation;
+  late Animation<double> _fireRotationAnimation;
+
   @override
   void initState() {
     super.initState();
     _pageController = PageController();
+    _initializeAnimations();
     _loadConfiguration();
+  }
+
+  /// Initialize all animation controllers
+  void _initializeAnimations() {
+    // Scanning animation (Page 1) - pulsating effect
+    _scanningAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 2000),
+      vsync: this,
+    )..repeat(reverse: true);
+
+    _scanningScaleAnimation = Tween<double>(begin: 0.95, end: 1.05).animate(
+      CurvedAnimation(
+        parent: _scanningAnimationController,
+        curve: Curves.easeInOut,
+      ),
+    );
+
+    _scanningOpacityAnimation = Tween<double>(begin: 0.6, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _scanningAnimationController,
+        curve: Curves.easeInOut,
+      ),
+    );
+
+    // Macro cards animation (Page 2) - will be triggered per card
+    _macroAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    )..repeat();
+
+    // Fire animation (Page 3) - scale and rotate
+    _fireAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    )..repeat(reverse: true);
+
+    _fireScaleAnimation = Tween<double>(begin: 0.9, end: 1.1).animate(
+      CurvedAnimation(
+        parent: _fireAnimationController,
+        curve: Curves.easeInOut,
+      ),
+    );
+
+    _fireRotationAnimation = Tween<double>(begin: -0.05, end: 0.05).animate(
+      CurvedAnimation(
+        parent: _fireAnimationController,
+        curve: Curves.easeInOut,
+      ),
+    );
   }
 
   @override
   void dispose() {
     _pageController.dispose();
     _videoController?.dispose();
+    _scanningAnimationController.dispose();
+    _macroAnimationController.dispose();
+    _fireAnimationController.dispose();
     super.dispose();
   }
 
@@ -69,33 +139,58 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
     if (pageIndex >= 0 && pageIndex < _config.pages.length) {
       final page = _config.pages[pageIndex];
       if (page.useVideo && page.backgroundVideoUrl != null) {
+        print(
+            '🎥 Initializing video for page $pageIndex: ${page.backgroundVideoUrl}');
         _videoController?.dispose();
 
-        // Check if it's a local asset or network URL
-        if (page.backgroundVideoUrl!.startsWith('assets/')) {
-          _videoController =
-              VideoPlayerController.asset(page.backgroundVideoUrl!);
-        } else {
-          _videoController = VideoPlayerController.networkUrl(
-            Uri.parse(page.backgroundVideoUrl!),
-          );
-        }
+        try {
+          // Check if it's a local asset or network URL
+          if (page.backgroundVideoUrl!.startsWith('assets/')) {
+            print('🎥 Loading local asset video: ${page.backgroundVideoUrl}');
+            _videoController =
+                VideoPlayerController.asset(page.backgroundVideoUrl!);
+          } else {
+            print('🎥 Loading network video: ${page.backgroundVideoUrl}');
+            _videoController = VideoPlayerController.networkUrl(
+              Uri.parse(page.backgroundVideoUrl!),
+            );
+          }
 
-        _videoController!.initialize().then((_) {
+          _videoController!.initialize().then((_) {
+            print('🎥 Video initialized successfully');
+            if (mounted) {
+              setState(() {
+                _isVideoInitialized = true;
+              });
+              _videoController!.setLooping(true);
+              // Auto-play video with small delay
+              Future.delayed(const Duration(milliseconds: 300), () {
+                if (mounted && _videoController != null) {
+                  print('🎥 Starting video playback');
+                  _videoController!.play();
+                }
+              });
+            }
+          }).catchError((error) {
+            print('❌ Video initialization failed: $error');
+            if (mounted) {
+              setState(() {
+                _isVideoInitialized = false;
+                _errorMessage = 'Video failed to load: $error';
+              });
+            }
+          });
+        } catch (e) {
+          print('❌ Video controller creation failed: $e');
           if (mounted) {
             setState(() {
-              _isVideoInitialized = true;
-            });
-            _videoController!.setLooping(true);
-            // Auto-play video with small delay
-            Future.delayed(const Duration(milliseconds: 300), () {
-              if (mounted && _videoController != null) {
-                _videoController!.play();
-              }
+              _isVideoInitialized = false;
+              _errorMessage = 'Video controller creation failed: $e';
             });
           }
-        });
+        }
       } else {
+        print('🎥 No video for page $pageIndex');
         _videoController?.dispose();
         _videoController = null;
         _isVideoInitialized = false;
@@ -138,7 +233,7 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // PageView with full-screen pages (includes welcome page as last page)
+          // PageView with full-screen pages
           PageView.builder(
             controller: _pageController,
             onPageChanged: (index) {
@@ -147,26 +242,21 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
               });
               _initializeVideoForPage(index);
             },
-            itemCount: _config.pages.length + 1, // +1 for welcome page
+            itemCount: _config.pages.length,
             itemBuilder: (context, index) {
-              // Last page is the welcome/login page
-              if (index == _config.pages.length) {
-                return _buildWelcomePage();
-              }
               return _buildPage(_config.pages[index], index);
             },
           ),
 
-          // Bottom content card with proper spacing - hide on welcome page
-          if (_currentPage < _config.pages.length)
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: SafeArea(
-                child: _buildBottomCard(),
-              ),
+          // Bottom content card with proper spacing
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: SafeArea(
+              child: _buildBottomCard(),
             ),
+          ),
         ],
       ),
     );
@@ -174,11 +264,11 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
 
   /// Build loading screen
   Widget _buildLoadingScreen() {
-    return Scaffold(
+    return const Scaffold(
       backgroundColor: Colors.black,
       body: Center(
         child: CircularProgressIndicator(
-          color: const Color(0xFFFF6B6B),
+          color: Color(0xFF34C759),
         ),
       ),
     );
@@ -197,7 +287,7 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
               const Icon(
                 Icons.error_outline,
                 size: 64,
-                color: Color(0xFFFF6B6B),
+                color: Color(0xFF34C759),
               ),
               const SizedBox(height: 24),
               Text(
@@ -218,7 +308,7 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
                   _loadConfiguration();
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFF6B6B),
+                  backgroundColor: const Color(0xFF34C759),
                   foregroundColor: Colors.white,
                   padding:
                       const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
@@ -242,7 +332,9 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
         // Full-screen background (video or image)
         Positioned.fill(
           child: page.useVideo && page.backgroundVideoUrl != null
-              ? _buildVideoBackground(page)
+              ? (_isVideoInitialized
+                  ? _buildVideoBackground(page)
+                  : Container(color: Colors.black))
               : _buildImageBackground(page),
         ),
 
@@ -267,12 +359,32 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
         if (index == 0) _buildScanningOverlay(),
         if (index == 1) _buildMacroCardsOverlay(),
         if (index == 2) _buildDailyCalorieOverlay(),
+        if (index == 3) _buildLoginOverlay(),
       ],
     );
   }
 
   /// Build image background
   Widget _buildImageBackground(OnboardingPageModel page) {
+    // Check if the image is a local asset
+    final isLocalAsset = page.backgroundImageUrl.startsWith('assets/');
+
+    if (isLocalAsset) {
+      return Image.asset(
+        page.backgroundImageUrl,
+        fit: BoxFit.cover,
+        width: double.infinity,
+        height: double.infinity,
+        errorBuilder: (context, error, stackTrace) => Container(
+          color: Colors.black,
+          child: const Center(
+            child: Icon(Icons.error, color: Colors.white, size: 48),
+          ),
+        ),
+      );
+    }
+
+    // Fallback to network image for backward compatibility
     return CachedNetworkImage(
       imageUrl: page.backgroundImageUrl,
       fit: BoxFit.cover,
@@ -296,8 +408,32 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
     if (_videoController == null || !_isVideoInitialized) {
       return Container(
         color: Colors.black,
-        child: const Center(
-          child: CircularProgressIndicator(color: Colors.white),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const CircularProgressIndicator(color: Colors.white),
+              const SizedBox(height: 16),
+              Text(
+                'Loading video...',
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.8),
+                  fontSize: 16,
+                ),
+              ),
+              if (_errorMessage != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  _errorMessage!,
+                  style: TextStyle(
+                    color: Colors.red.withOpacity(0.8),
+                    fontSize: 12,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ],
+          ),
         ),
       );
     }
@@ -314,32 +450,90 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
     );
   }
 
-  /// Build scanning frame overlay (Page 1) - centered with bottom margin
+  /// Build scanning frame overlay (Page 1) - centered with bottom margin and animation
   Widget _buildScanningOverlay() {
     return Center(
       child: Padding(
         padding: const EdgeInsets.only(bottom: 80), // Add bottom margin
-        child: Container(
-          width: 280,
-          height: 280,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(32),
-            border: Border.all(
-              color: Colors.white,
-              width: 3,
-            ),
-          ),
-          child: Stack(
-            children: [
-              // Corner brackets
-              _buildCornerBracket(Alignment.topLeft, true, true),
-              _buildCornerBracket(Alignment.topRight, true, false),
-              _buildCornerBracket(Alignment.bottomLeft, false, true),
-              _buildCornerBracket(Alignment.bottomRight, false, false),
-            ],
-          ),
+        child: AnimatedBuilder(
+          animation: _scanningAnimationController,
+          builder: (context, child) {
+            return Transform.scale(
+              scale: _scanningScaleAnimation.value,
+              child: Opacity(
+                opacity: _scanningOpacityAnimation.value,
+                child: Container(
+                  width: 280,
+                  height: 280,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(32),
+                    border: Border.all(
+                      color: Colors.white,
+                      width: 3,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.white
+                            .withOpacity(_scanningOpacityAnimation.value * 0.3),
+                        blurRadius: 20,
+                        spreadRadius: 5,
+                      ),
+                    ],
+                  ),
+                  child: Stack(
+                    children: [
+                      // Corner brackets
+                      _buildCornerBracket(Alignment.topLeft, true, true),
+                      _buildCornerBracket(Alignment.topRight, true, false),
+                      _buildCornerBracket(Alignment.bottomLeft, false, true),
+                      _buildCornerBracket(Alignment.bottomRight, false, false),
+
+                      // Scanning line animation
+                      _buildScanningLine(),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
         ),
       ),
+    );
+  }
+
+  /// Build animated scanning line that moves up and down
+  Widget _buildScanningLine() {
+    return AnimatedBuilder(
+      animation: _scanningAnimationController,
+      builder: (context, child) {
+        return Positioned(
+          top: 280 * _scanningAnimationController.value,
+          left: 20,
+          right: 20,
+          child: Opacity(
+            opacity: 0.8,
+            child: Container(
+              height: 2,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [
+                    Colors.transparent,
+                    Color(0xFF34C759),
+                    Colors.transparent,
+                  ],
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF34C759).withOpacity(0.5),
+                    blurRadius: 8,
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -379,85 +573,151 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
     );
   }
 
-  /// Build macro nutrition cards overlay (Page 2) - positioned better
+  /// Build macro nutrition cards overlay (Page 2) - responsive for all devices
   Widget _buildMacroCardsOverlay() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final horizontalPadding = screenWidth * 0.06; // 6% of screen width
+    final cardSpacing =
+        screenWidth * 0.03; // 3% of screen width (min 8, max 16)
+    final spacing = cardSpacing.clamp(8.0, 16.0);
+
     return Positioned(
       left: 0,
       right: 0,
       top: MediaQuery.of(context).size.height * 0.45,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+        padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _buildMacroCard('Protein', '45g', const Color(0xFFB8A0FF), 0.75),
-            const SizedBox(width: 12),
-            _buildMacroCard('Carbs', '120g', const Color(0xFFC4E17F), 0.60),
-            const SizedBox(width: 12),
-            _buildMacroCard('Fat', '28g', const Color(0xFFFFC876), 0.85),
+            Flexible(
+              child: _buildMacroCard(
+                  'Protein', '45g', const Color(0xFFB8A0FF), 0.75),
+            ),
+            SizedBox(width: spacing),
+            Flexible(
+              child: _buildMacroCard(
+                  'Carbs', '120g', const Color(0xFFC4E17F), 0.60),
+            ),
+            SizedBox(width: spacing),
+            Flexible(
+              child:
+                  _buildMacroCard('Fat', '28g', const Color(0xFFFFC876), 0.85),
+            ),
           ],
         ),
       ),
     );
   }
 
-  /// Build individual macro card
+  /// Build individual macro card - responsive for all screen sizes with animation
   Widget _buildMacroCard(
       String label, String value, Color color, double progress) {
-    return Container(
-      width: 100,
-      height: 120,
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.9),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              color: Colors.black.withOpacity(0.7),
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-            ),
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    // Dynamic sizing based on screen size
+    // Card width: 26-30% of screen width, ensuring good fit on all devices
+    final cardWidth = (screenWidth * 0.26).clamp(85.0, 110.0);
+    final cardHeight = (screenHeight * 0.15).clamp(100.0, 130.0);
+
+    // Dynamic font sizes
+    final labelFontSize = (screenWidth * 0.035).clamp(12.0, 15.0);
+    final valueFontSize = (screenWidth * 0.04).clamp(14.0, 17.0);
+
+    // Dynamic circle size
+    final circleSize = (cardWidth * 0.45).clamp(40.0, 55.0);
+    final strokeWidth = (circleSize * 0.08).clamp(3.0, 5.0);
+
+    // Dynamic spacing
+    final verticalSpacing = (cardHeight * 0.06).clamp(6.0, 10.0);
+    final borderRadius = (cardWidth * 0.18).clamp(16.0, 22.0);
+
+    return AnimatedBuilder(
+      animation: _macroAnimationController,
+      builder: (context, child) {
+        return Container(
+          width: cardWidth,
+          height: cardHeight,
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.9),
+            borderRadius: BorderRadius.circular(borderRadius),
+            boxShadow: [
+              BoxShadow(
+                color: color.withOpacity(0.3),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-          const SizedBox(height: 8),
-          // Circular progress indicator
-          SizedBox(
-            width: 50,
-            height: 50,
-            child: Stack(
-              children: [
-                Center(
-                  child: SizedBox(
-                    width: 50,
-                    height: 50,
-                    child: CircularProgressIndicator(
-                      value: progress,
-                      strokeWidth: 4,
-                      backgroundColor: Colors.white.withOpacity(0.3),
-                      valueColor: const AlwaysStoppedAnimation<Color>(
-                        Colors.white,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  color: Colors.black.withOpacity(0.7),
+                  fontSize: labelFontSize,
+                  fontWeight: FontWeight.w600,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              SizedBox(height: verticalSpacing),
+              // Animated circular progress indicator
+              SizedBox(
+                width: circleSize,
+                height: circleSize,
+                child: Stack(
+                  children: [
+                    Center(
+                      child: SizedBox(
+                        width: circleSize,
+                        height: circleSize,
+                        child: TweenAnimationBuilder<double>(
+                          duration: const Duration(milliseconds: 1500),
+                          curve: Curves.easeInOut,
+                          tween: Tween<double>(
+                            begin: 0,
+                            end: progress,
+                          ),
+                          builder: (context, value, _) =>
+                              CircularProgressIndicator(
+                            value: value,
+                            strokeWidth: strokeWidth,
+                            backgroundColor: Colors.white.withOpacity(0.3),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white.withOpacity(0.6 + (value * 0.4)),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
-                Center(
-                  child: Text(
-                    value,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+                    Center(
+                      child: TweenAnimationBuilder<double>(
+                        duration: const Duration(milliseconds: 1500),
+                        curve: Curves.easeInOut,
+                        tween: Tween<double>(begin: 0, end: 1),
+                        builder: (context, opacity, _) => Opacity(
+                          opacity: opacity,
+                          child: Text(
+                            value,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: valueFontSize,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -507,7 +767,7 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
                       ),
                       const SizedBox(height: 4),
                       const Text(
-                        '2000',
+                        '2600',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 38,
@@ -516,19 +776,42 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
                       ),
                     ],
                   ),
-                  // Fire icon on the right
-                  Container(
-                    width: 56,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.3),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.local_fire_department,
-                      color: Colors.white,
-                      size: 30,
-                    ),
+                  // Animated fire icon on the right
+                  AnimatedBuilder(
+                    animation: _fireAnimationController,
+                    builder: (context, child) {
+                      return Transform.scale(
+                        scale: _fireScaleAnimation.value,
+                        child: Transform.rotate(
+                          angle: _fireRotationAnimation.value,
+                          child: Container(
+                            width: 56,
+                            height: 56,
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.3),
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFF34C759).withOpacity(
+                                      _fireScaleAnimation.value - 0.7),
+                                  blurRadius: 20,
+                                  spreadRadius: 3,
+                                ),
+                              ],
+                            ),
+                            child: Icon(
+                              Icons.local_fire_department,
+                              color: Color.lerp(
+                                Colors.white,
+                                const Color(0xFF34C759),
+                                (_fireScaleAnimation.value - 0.9) * 5,
+                              ),
+                              size: 30,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),
@@ -538,8 +821,46 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
       ),
     );
   }
- 
-  /// Build bottom content card with glassmorphism - FIXED HEIGHT
+
+  /// Build login icon overlay (Page 4) - Foody text with splash screen style
+  Widget _buildLoginOverlay() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 80),
+        child: SizedBox(
+          width: 250,
+          height: 80,
+          child: AnimatedTextKit(
+            animatedTexts: [
+              ColorizeAnimatedText(
+                'Foody',
+                textAlign: TextAlign.center,
+                textStyle: const TextStyle(
+                  fontSize: 48,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 2.0,
+                ),
+                colors: [
+                  AppColors.primary.withOpacity(0.3),
+                  AppColors.primaryLight,
+                  AppColors.primary,
+                  AppColors.primaryDark,
+                  AppColors.primary,
+                  AppColors.primaryLight,
+                  AppColors.primary,
+                ],
+                speed: const Duration(milliseconds: 800),
+              ),
+            ],
+            isRepeatingAnimation: true,
+            repeatForever: true,
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Build bottom content card with glassmorphism - RESPONSIVE HEIGHT
   Widget _buildBottomCard() {
     // Safety check to prevent index out of range
     if (_currentPage >= _config.pages.length) {
@@ -548,11 +869,37 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
 
     final page = _config.pages[_currentPage];
     final isLastPage = _currentPage == _config.pages.length - 1;
+    final isLoginPage = page.icon == 'login';
+
+    // Get screen dimensions using MediaQuery
+    final mediaQuery = MediaQuery.of(context);
+    final screenHeight = mediaQuery.size.height;
+
+    // Determine screen size categories
+    final isSmallScreen = screenHeight < 700;
+    final isMediumScreen = screenHeight >= 700 && screenHeight < 800;
+
+    // Adjust spacing based on screen height - EXTREMELY COMPACT for small screens
+    final verticalPadding =
+        isSmallScreen ? 8.0 : (isMediumScreen ? 14.0 : 20.0);
+    final indicatorSpacing =
+        isSmallScreen ? 4.0 : (isMediumScreen ? 10.0 : 16.0);
+    final titleHeight = isSmallScreen
+        ? 24.0
+        : (isMediumScreen ? 30.0 : 36.0); // Reduced for single line
+    final titleFontSize = isSmallScreen ? 16.0 : (isMediumScreen ? 20.0 : 24.0);
+    final descriptionHeight =
+        isSmallScreen ? 28.0 : (isMediumScreen ? 36.0 : 42.0);
+    final descriptionFontSize =
+        isSmallScreen ? 10.0 : (isMediumScreen ? 12.0 : 14.0);
+    final spaceBetweenTitleDesc =
+        isSmallScreen ? 0.0 : (isMediumScreen ? 4.0 : 8.0);
+    final buttonVerticalPadding =
+        isSmallScreen ? 8.0 : (isMediumScreen ? 12.0 : 15.0);
+    final bottomMargin = isSmallScreen ? 4.0 : (isMediumScreen ? 12.0 : 20.0);
 
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-      constraints:
-          const BoxConstraints(maxHeight: 300), // Max height with constraints
+      margin: EdgeInsets.fromLTRB(16, 0, 16, bottomMargin),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(32),
         child: BackdropFilter(
@@ -575,121 +922,133 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
               ],
             ),
             child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
+              padding: EdgeInsets.symmetric(
+                  horizontal: 24.0, vertical: verticalPadding),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Column(
-                    children: [
-                      // Page indicators
-                      _buildPageIndicators(),
-                      const SizedBox(height: 16),
+                  // Page indicators
+                  _buildPageIndicators(),
+                  SizedBox(height: indicatorSpacing),
 
-                      // Title - fixed height
-                      SizedBox(
-                        height: 58,
-                        child: Center(
-                          child: Text(
-                            page.title,
-                            textAlign: TextAlign.center,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                              height: 1.2,
-                            ),
-                          ),
+                  // Title - responsive height (FIXED) - SINGLE LINE
+                  SizedBox(
+                    height: titleHeight,
+                    child: Center(
+                      child: Text(
+                        page.title,
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: titleFontSize,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          height: 1.0,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                    ),
+                  ),
+                  SizedBox(height: spaceBetweenTitleDesc),
 
-                      // Description - fixed height
-                      SizedBox(
-                        height: 42,
-                        child: Center(
-                          child: Text(
-                            page.description,
-                            textAlign: TextAlign.center,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.white.withOpacity(0.9),
-                              height: 1.4,
-                            ),
-                          ),
+                  // Description - responsive height (FIXED)
+                  SizedBox(
+                    height: descriptionHeight,
+                    child: Center(
+                      child: Text(
+                        page.description,
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: descriptionFontSize,
+                          color: Colors.white.withOpacity(0.9),
+                          height: 1.4,
                         ),
                       ),
-                    ],
+                    ),
                   ),
 
-                  // Bottom section with button and link
-                  Column(
-                    children: [
-                      // Next button
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: _handleNext,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFFF6B6B),
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 15),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                            elevation: 0,
-                          ),
-                          child: Text(
-                            isLastPage ? 'Get Started' : 'Next',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                        ),
-                      ),
+                  // Spacing before button (FIXED HEIGHT)
+                  SizedBox(height: isSmallScreen ? 0 : 8),
 
-                      // "Already have an account?" text (on all pages)
-                      const SizedBox(height: 4),
-                      TextButton(
-                        onPressed: _skipOnboarding,
-                        style: TextButton.styleFrom(
-                          foregroundColor: const Color(0xFFFF6B6B),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 4,
-                          ),
-                          minimumSize: const Size(0, 32),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              'Already have an account?',
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.white.withOpacity(0.9),
+                  // Main button (FIXED HEIGHT for all pages)
+                  SizedBox(
+                    width: double.infinity,
+                    height: isSmallScreen ? 40 : 50, // Fixed button height
+                    child: isLoginPage
+                        ? const GoogleSignInButton(isFullWidth: true)
+                        : ElevatedButton(
+                            onPressed: _handleNext,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF34C759),
+                              foregroundColor: Colors.white,
+                              padding: EdgeInsets.symmetric(
+                                  vertical: buttonVerticalPadding),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
                               ),
+                              elevation: 0,
                             ),
-                            const SizedBox(width: 4),
-                            const Text(
-                              'Sign in',
+                            child: Text(
+                              isLastPage ? 'Get Started' : 'Next',
                               style: TextStyle(
-                                fontSize: 13,
+                                fontSize: isSmallScreen ? 14 : 16,
                                 fontWeight: FontWeight.w600,
-                                color: Color(0xFFFF6B6B),
+                                letterSpacing: 0.5,
                               ),
                             ),
-                          ],
-                        ),
-                      ),
-                    ],
+                          ),
+                  ),
+
+                  // Bottom text/link (FIXED HEIGHT for all pages)
+                  SizedBox(
+                    height: isSmallScreen
+                        ? 32
+                        : 48, // Fixed height for bottom section
+                    child: isLoginPage
+                        // Privacy text on login page
+                        ? Padding(
+                            padding:
+                                EdgeInsets.only(top: isSmallScreen ? 8 : 18),
+                            child: _buildPrivacyTermsText(context),
+                          )
+                        // "Already have an account?" text on other pages
+                        : Center(
+                            child: TextButton(
+                              onPressed: _skipOnboarding,
+                              style: TextButton.styleFrom(
+                                foregroundColor: const Color(0xFF34C759),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                  vertical: 0,
+                                ),
+                                minimumSize: Size(0, isSmallScreen ? 20 : 32),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'Already have an account?',
+                                    style: TextStyle(
+                                      fontSize: isSmallScreen ? 11 : 13,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.white.withOpacity(0.9),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    'Sign in',
+                                    style: TextStyle(
+                                      fontSize: isSmallScreen ? 11 : 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: const Color(0xFF34C759),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                   ),
                 ],
               ),
@@ -700,12 +1059,12 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
     );
   }
 
-  /// Build page indicators (dots) - includes welcome page
+  /// Build page indicators (dots)
   Widget _buildPageIndicators() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: List.generate(
-        _config.pages.length + 1, // +1 for welcome page
+        _config.pages.length,
         (index) => AnimatedContainer(
           duration: const Duration(milliseconds: 300),
           margin: const EdgeInsets.symmetric(horizontal: 4),
@@ -713,7 +1072,7 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
           height: 8,
           decoration: BoxDecoration(
             color: index == _currentPage
-                ? const Color(0xFFFF6B6B)
+                ? const Color(0xFF34C759)
                 : Colors.white.withOpacity(0.4),
             borderRadius: BorderRadius.circular(4),
           ),
@@ -722,239 +1081,57 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen> {
     );
   }
 
-  /// Build welcome/login page (last slide)
-  Widget _buildWelcomePage() {
-    final screenHeight = MediaQuery.of(context).size.height;
-
-    return Stack(
-      children: [
-        // Full-screen background image with blur
-        Positioned.fill(
-          child: Container(
-            decoration: const BoxDecoration(
-              image: DecorationImage(
-                image: NetworkImage(
-                  'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=1080&h=1920&fit=crop',
-                ),
-                fit: BoxFit.cover,
-              ),
-            ),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.black.withOpacity(0.4),
-                      Colors.black.withOpacity(0.7),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
+  /// Build clickable Privacy Policy and Terms of Service text
+  Widget _buildPrivacyTermsText(BuildContext context) {
+    return RichText(
+      textAlign: TextAlign.center,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      text: TextSpan(
+        style: TextStyle(
+          fontSize: 9,
+          color: Colors.white.withOpacity(0.6),
+          height: 1.0,
         ),
-
-        // Main content
-        SafeArea(
-          child: Column(
-            children: [
-              // Top section with logo - positioned higher
-              SizedBox(height: screenHeight * 0.12),
-
-              // Logo and title section
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                child: Column(
-                  children: [
-                    // App icon
-                    TweenAnimationBuilder(
-                      tween: Tween<double>(begin: 0, end: 1),
-                      duration: const Duration(milliseconds: 800),
-                      builder: (context, double value, child) {
-                        return Transform.scale(
-                          scale: value,
-                          child: Opacity(
-                            opacity: value,
-                            child: child,
-                          ),
-                        );
-                      },
-                      child: Container(
-                        width: 100,
-                        height: 100,
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              Color(0xFFFF6B6B),
-                              Color(0xFFFF8E8E),
-                            ],
-                          ),
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFFFF6B6B).withOpacity(0.4),
-                              blurRadius: 20,
-                              spreadRadius: 3,
-                            ),
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.restaurant_menu,
-                          size: 50,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // App name
-                    TweenAnimationBuilder(
-                      tween: Tween<double>(begin: 0, end: 1),
-                      duration: const Duration(milliseconds: 800),
-                      builder: (context, double value, child) {
-                        return Opacity(
-                          opacity: value,
-                          child: Transform.translate(
-                            offset: Offset(0, 20 * (1 - value)),
-                            child: child,
-                          ),
-                        );
-                      },
-                      child: const Text(
-                        'Foody',
-                        style: TextStyle(
-                          fontSize: 42,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                          letterSpacing: 1.2,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    // Tagline
-                    TweenAnimationBuilder(
-                      tween: Tween<double>(begin: 0, end: 1),
-                      duration: const Duration(milliseconds: 1000),
-                      builder: (context, double value, child) {
-                        return Opacity(
-                          opacity: value,
-                          child: Transform.translate(
-                            offset: Offset(0, 20 * (1 - value)),
-                            child: child,
-                          ),
-                        );
-                      },
-                      child: Text(
-                        'Your Personal Nutrition Companion',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.white.withOpacity(0.8),
-                          letterSpacing: 0.5,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              const Spacer(),
-
-              // Bottom white card with sign-in button - exact match with other pages
-              Padding(
-                padding: const EdgeInsets.only(bottom: 20.0),
-                child: Container(
-                  margin: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-                  constraints: const BoxConstraints(maxHeight: 300),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(32),
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(32),
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.4),
-                            width: 1.5,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.15),
-                              blurRadius: 30,
-                              spreadRadius: 5,
-                              offset: const Offset(0, 10),
-                            ),
-                          ],
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 24.0, vertical: 20.0),
-                          child: Column(
-                            children: [
-                              // Page indicators
-                              _buildPageIndicators(),
-                              const SizedBox(height: 16),
-
-                              // Title - fixed height
-                              const SizedBox(
-                                height: 58,
-                                child: Center(
-                                  child: Text(
-                                    'Ready to start your journey?',
-                                    textAlign: TextAlign.center,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                      height: 1.2,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-
-                              // Description - fixed height
-                              SizedBox(
-                                height: 42,
-                                child: Center(
-                                  child: Text(
-                                    'Sign in to track your nutrition and achieve your goals',
-                                    textAlign: TextAlign.center,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      color: Colors.white.withOpacity(0.9),
-                                      height: 1.4,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-
-                              // Google Sign-In Button
-                              const GoogleSignInButton(isFullWidth: true),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
+        children: [
+          const TextSpan(text: 'By signing in, you agree to our '),
+          TextSpan(
+            text: 'Privacy Policy',
+            style: const TextStyle(
+              color: Color(0xFF34C759),
+              fontWeight: FontWeight.w600,
+              decoration: TextDecoration.underline,
+            ),
+            recognizer: TapGestureRecognizer()
+              ..onTap = () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const PrivacyPolicyPage(),
                   ),
-                ),
-              ),
-            ],
+                );
+              },
           ),
-        ),
-      ],
+          const TextSpan(text: ' and '),
+          TextSpan(
+            text: 'Terms of Service',
+            style: const TextStyle(
+              color: Color(0xFF34C759),
+              fontWeight: FontWeight.w600,
+              decoration: TextDecoration.underline,
+            ),
+            recognizer: TapGestureRecognizer()
+              ..onTap = () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const TermsOfServicePage(),
+                  ),
+                );
+              },
+          ),
+        ],
+      ),
     );
   }
 }

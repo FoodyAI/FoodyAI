@@ -192,7 +192,8 @@ class _OnboardingViewState extends State<OnboardingView> {
     final ctx = context;
 
     // OPTIMISTIC UI: Navigate immediately without waiting for save
-    print('🚀 OnboardingView: Optimistic navigation - moving to analysis screen');
+    print(
+        '🚀 OnboardingView: Optimistic navigation - moving to analysis screen');
     NavigationService.navigateToAnalysisLoading();
 
     // Save profile in the background

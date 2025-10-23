@@ -252,7 +252,7 @@ class BarcodeScannerShimmer extends StatelessWidget {
 
   Widget _buildNutrientCardShimmer(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
       child: BackdropFilter(
@@ -315,7 +315,7 @@ class BarcodeScannerShimmer extends StatelessWidget {
 
   Widget _buildButtonShimmer(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
       child: BackdropFilter(

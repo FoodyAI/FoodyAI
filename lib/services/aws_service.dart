@@ -531,15 +531,18 @@ class AWSService {
         ),
       );
 
-      print('📥 AWS Service: FCM token update response status: ${response.statusCode}');
+      print(
+          '📥 AWS Service: FCM token update response status: ${response.statusCode}');
       print('📥 AWS Service: FCM token update response data: ${response.data}');
 
       if (response.statusCode == 200) {
         print('✅ AWS Service: FCM token updated successfully');
         return response.data;
       } else {
-        print('❌ AWS Service: Failed to update FCM token: ${response.statusMessage}');
-        throw Exception('Failed to update FCM token: ${response.statusMessage}');
+        print(
+            '❌ AWS Service: Failed to update FCM token: ${response.statusMessage}');
+        throw Exception(
+            'Failed to update FCM token: ${response.statusMessage}');
       }
     } catch (e) {
       print('❌ AWS Service: Error updating FCM token: $e');
@@ -585,15 +588,19 @@ class AWSService {
         ),
       );
 
-      print('📥 AWS Service: Notification preferences update response status: ${response.statusCode}');
-      print('📥 AWS Service: Notification preferences update response data: ${response.data}');
+      print(
+          '📥 AWS Service: Notification preferences update response status: ${response.statusCode}');
+      print(
+          '📥 AWS Service: Notification preferences update response data: ${response.data}');
 
       if (response.statusCode == 200) {
         print('✅ AWS Service: Notification preferences updated successfully');
         return response.data;
       } else {
-        print('❌ AWS Service: Failed to update notification preferences: ${response.statusMessage}');
-        throw Exception('Failed to update notification preferences: ${response.statusMessage}');
+        print(
+            '❌ AWS Service: Failed to update notification preferences: ${response.statusMessage}');
+        throw Exception(
+            'Failed to update notification preferences: ${response.statusMessage}');
       }
     } catch (e) {
       print('❌ AWS Service: Error updating notification preferences: $e');

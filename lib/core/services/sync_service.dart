@@ -166,7 +166,8 @@ class SyncService {
       return;
     }
 
-    print('📋 SyncService: Pending syncs - Profile: $profilePending, Notification: $notificationPending, Theme: $themePending');
+    print(
+        '📋 SyncService: Pending syncs - Profile: $profilePending, Notification: $notificationPending, Theme: $themePending');
 
     // Sync each component
     if (profilePending) {
@@ -207,7 +208,8 @@ class SyncService {
       // Get measurement unit and theme from SQLite
       final isMetric = await _sqliteService.getIsMetric();
       final measurementUnit = isMetric ? 'metric' : 'imperial';
-      final themePreference = await _sqliteService.getThemePreference() ?? 'system';  // Default to 'system' if null
+      final themePreference = await _sqliteService.getThemePreference() ??
+          'light'; // Default to 'light' if null
 
       // Sync to AWS using saveUserProfile with ALL data
       final result = await _awsService.saveUserProfile(
@@ -223,7 +225,7 @@ class SyncService {
         goal: profile.weightGoal.name,
         aiProvider: profile.aiProvider.name,
         measurementUnit: measurementUnit,
-        themePreference: themePreference,  // ✅ NOW INCLUDED!
+        themePreference: themePreference, // ✅ NOW INCLUDED!
       );
 
       if (result != null && result['success'] == true) {
@@ -336,7 +338,8 @@ class SyncService {
   Future<bool> trySyncProfile(UserProfile profile) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null || user.email == null) {
-      print('⚠️ SyncService: No user signed in or no email, marking profile for sync');
+      print(
+          '⚠️ SyncService: No user signed in or no email, marking profile for sync');
       await markProfileNeedsSync();
       return false;
     }
@@ -345,7 +348,8 @@ class SyncService {
       // Get measurement unit and theme from SQLite
       final isMetric = await _sqliteService.getIsMetric();
       final measurementUnit = isMetric ? 'metric' : 'imperial';
-      final themePreference = await _sqliteService.getThemePreference() ?? 'system';  // Default to 'system' if null
+      final themePreference = await _sqliteService.getThemePreference() ??
+          'light'; // Default to 'light' if null
 
       final result = await _awsService.saveUserProfile(
         userId: user.uid,
@@ -360,14 +364,15 @@ class SyncService {
         goal: profile.weightGoal.name,
         aiProvider: profile.aiProvider.name,
         measurementUnit: measurementUnit,
-        themePreference: themePreference,  // ✅ NOW INCLUDED!
+        themePreference: themePreference, // ✅ NOW INCLUDED!
       );
 
       if (result != null && result['success'] == true) {
         print('✅ SyncService: Profile synced immediately');
         return true;
       } else {
-        print('❌ SyncService: Immediate sync returned null or failed, marking for later');
+        print(
+            '❌ SyncService: Immediate sync returned null or failed, marking for later');
         await markProfileNeedsSync();
         return false;
       }
@@ -390,12 +395,14 @@ class SyncService {
         print('✅ SyncService: Notification settings synced immediately');
         return true;
       } else {
-        print('❌ SyncService: Immediate notification sync failed, marking for later');
+        print(
+            '❌ SyncService: Immediate notification sync failed, marking for later');
         await markNotificationNeedsSync();
         return false;
       }
     } catch (e) {
-      print('❌ SyncService: Immediate notification sync failed, marking for later: $e');
+      print(
+          '❌ SyncService: Immediate notification sync failed, marking for later: $e');
       await markNotificationNeedsSync();
       return false;
     }
@@ -444,7 +451,8 @@ class SyncService {
         return false;
       }
     } catch (e) {
-      print('❌ SyncService: Immediate theme sync failed, marking for later: $e');
+      print(
+          '❌ SyncService: Immediate theme sync failed, marking for later: $e');
       await markThemeNeedsSync();
       return false;
     }

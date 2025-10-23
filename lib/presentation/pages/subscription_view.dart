@@ -23,7 +23,7 @@ class _SubscriptionViewState extends State<SubscriptionView> {
     scansUsedThisMonth: 3,
   );
 
-  bool isYearly = true; // Default to yearly plan
+  bool isYearly = false; // Default to monthly plan
 
   /// Helper method to build glassmorphic cards (matching profile_view.dart style)
   Widget _buildGlassmorphicCard({
@@ -109,30 +109,28 @@ class _SubscriptionViewState extends State<SubscriptionView> {
         children: [
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // Premium Hero Section
                   _buildHeroSection(context, isDark, colorScheme),
 
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 12),
 
                   // Pricing Toggle
                   _buildPricingHeader(context, isDark, colorScheme),
 
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
 
                   // Feature Highlights
                   _buildFeatureHighlights(context, isDark, colorScheme),
 
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
 
-                  // Comparison Section (Optional - can be shown/hidden)
-                  if (currentSubscription.tier == SubscriptionTier.free)
-                    _buildComparisonSection(context, isDark, colorScheme),
+                  // Comparison Section removed as requested
 
-                  const SizedBox(height: 90), // Space for fixed button
+                  const SizedBox(height: 60), // Reduced space for fixed button
                 ],
               ),
             ),
@@ -181,50 +179,24 @@ class _SubscriptionViewState extends State<SubscriptionView> {
     return _buildGlassmorphicCard(
       context: context,
       margin: EdgeInsets.zero,
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(12),
       child: Column(
         children: [
-          // Crown Icon with gradient background
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  AppColors.primary,
-                  AppColors.primaryDark,
-                ],
-              ),
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primary.withOpacity(0.3),
-                  blurRadius: 20,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: const FaIcon(
-              FontAwesomeIcons.crown,
-              color: Colors.white,
-              size: 32,
-            ),
-          ),
-          const SizedBox(height: 20),
           Text(
-            tier == SubscriptionTier.free ? 'Upgrade to Pro' : 'You\'re a Pro!',
+            tier == SubscriptionTier.free
+                ? 'Transform Your Health Journey'
+                : 'You\'re a Pro!',
             style: GoogleFonts.poppins(
-              fontSize: 28,
+              fontSize: 20,
               fontWeight: FontWeight.bold,
               color: colorScheme.onSurface,
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
           Text(
             tier == SubscriptionTier.free
-                ? 'Unlock unlimited scans and premium features'
+                ? 'Join thousands who\'ve discovered the power of smart nutrition tracking'
                 : 'Enjoy unlimited access to all features',
             style: GoogleFonts.inter(
               fontSize: 15,
@@ -341,63 +313,13 @@ class _SubscriptionViewState extends State<SubscriptionView> {
   // Pricing Header Section
   Widget _buildPricingHeader(
       BuildContext context, bool isDark, ColorScheme colorScheme) {
-    final price = isYearly ? '€29.99' : '€2.99';
-    final period = isYearly ? 'year' : 'month';
-    final savings = isYearly ? '€6/year' : null;
+    final price = isYearly ? '€2.50' : '€2.99';
+    const period = 'month';
+    final billingNote = isYearly ? 'billed annually as €29.99' : null;
 
     return Column(
       children: [
-        // Price Display
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(
-              price,
-              style: GoogleFonts.poppins(
-                fontSize: 48,
-                fontWeight: FontWeight.bold,
-                color: colorScheme.primary,
-                height: 1,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8, left: 4),
-              child: Text(
-                '/$period',
-                style: GoogleFonts.inter(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: colorScheme.onSurface.withOpacity(0.6),
-                ),
-              ),
-            ),
-          ],
-        ),
-        if (savings != null) ...[
-          const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: AppColors.green.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: AppColors.green.withOpacity(0.3),
-                width: 1,
-              ),
-            ),
-            child: Text(
-              'Save $savings',
-              style: GoogleFonts.inter(
-                fontSize: 13,
-                fontWeight: FontWeight.bold,
-                color: AppColors.green,
-              ),
-            ),
-          ),
-        ],
-        const SizedBox(height: 16),
-        // Toggle Buttons
+        // Toggle Buttons (moved to top)
         _buildGlassmorphicCard(
           context: context,
           padding: const EdgeInsets.all(6),
@@ -423,11 +345,59 @@ class _SubscriptionViewState extends State<SubscriptionView> {
                   'Yearly',
                   isYearly,
                   () => setState(() => isYearly = true),
-                  showBadge: true,
+                  showBadge: false, // Remove badge from button
                 ),
               ),
             ],
           ),
+        ),
+        const SizedBox(height: 28),
+        // Price Display
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(
+              price,
+              style: GoogleFonts.poppins(
+                fontSize: 36,
+                fontWeight: FontWeight.bold,
+                color: colorScheme.primary,
+                height: 1,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 6, left: 3),
+              child: Text(
+                '/$period',
+                style: GoogleFonts.inter(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: colorScheme.onSurface.withOpacity(0.6),
+                ),
+              ),
+            ),
+          ],
+        ),
+        // Fixed height space for billing note to prevent button movement
+        SizedBox(
+          height: 24, // Reduced height
+          child: billingNote != null
+              ? Column(
+                  children: [
+                    const SizedBox(height: 4),
+                    Text(
+                      billingNote,
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        color: colorScheme.onSurface.withOpacity(0.6),
+                        fontStyle: FontStyle.italic,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                )
+              : null,
         ),
       ],
     );
@@ -503,7 +473,7 @@ class _SubscriptionViewState extends State<SubscriptionView> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    '17% OFF',
+                    '€2.50/month',
                     style: GoogleFonts.inter(
                       fontSize: 9,
                       fontWeight: FontWeight.bold,
@@ -525,7 +495,7 @@ class _SubscriptionViewState extends State<SubscriptionView> {
     return _buildGlassmorphicCard(
       context: context,
       margin: EdgeInsets.zero,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -537,7 +507,7 @@ class _SubscriptionViewState extends State<SubscriptionView> {
               color: colorScheme.onSurface,
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           _buildFeatureItem(
             context,
             icon: FontAwesomeIcons.infinity,
@@ -590,7 +560,7 @@ class _SubscriptionViewState extends State<SubscriptionView> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Padding(
-      padding: EdgeInsets.only(bottom: isLast ? 0 : 16),
+      padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
       child: Row(
         children: [
           Container(
@@ -636,93 +606,6 @@ class _SubscriptionViewState extends State<SubscriptionView> {
                     fontSize: 13,
                     color: colorScheme.onSurface.withOpacity(0.65),
                     height: 1.3,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Comparison Section (Free vs Pro)
-  Widget _buildComparisonSection(
-      BuildContext context, bool isDark, ColorScheme colorScheme) {
-    return _buildGlassmorphicCard(
-      context: context,
-      margin: EdgeInsets.zero,
-      padding: const EdgeInsets.all(18),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Free vs Pro',
-            style: GoogleFonts.poppins(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: colorScheme.onSurface,
-            ),
-          ),
-          const SizedBox(height: 12),
-          _buildComparisonRow(
-              context, '5 scans/month', 'Unlimited scans', colorScheme),
-          _buildComparisonRow(
-              context, 'Basic analysis', 'Advanced insights', colorScheme),
-          _buildComparisonRow(context, 'Ads', 'Ad-free', colorScheme),
-          _buildComparisonRow(
-              context, 'Standard support', 'Priority support', colorScheme),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildComparisonRow(
-      BuildContext context, String free, String pro, ColorScheme colorScheme) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Row(
-        children: [
-          Expanded(
-            child: Row(
-              children: [
-                FaIcon(
-                  FontAwesomeIcons.xmark,
-                  size: 14,
-                  color: colorScheme.onSurface.withOpacity(0.4),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    free,
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      color: colorScheme.onSurface.withOpacity(0.5),
-                      decoration: TextDecoration.lineThrough,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Row(
-              children: [
-                const FaIcon(
-                  FontAwesomeIcons.check,
-                  size: 14,
-                  color: AppColors.primary,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    pro,
-                    style: GoogleFonts.inter(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: colorScheme.onSurface,
-                    ),
                   ),
                 ),
               ],
@@ -844,10 +727,10 @@ class _SubscriptionViewState extends State<SubscriptionView> {
 
   void _handleStartTrial() {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Starting free trial...'),
+      const SnackBar(
+        content: Text('Starting free trial...'),
         backgroundColor: AppColors.primary,
-        duration: const Duration(seconds: 2),
+        duration: Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,
       ),
     );

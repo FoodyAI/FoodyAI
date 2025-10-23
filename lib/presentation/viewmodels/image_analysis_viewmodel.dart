@@ -16,7 +16,6 @@ import '../../services/aws_service.dart';
 import '../../services/permission_service.dart';
 import '../../core/events/food_data_update_event.dart';
 import '../../core/services/connection_service.dart';
-import '../widgets/rating_dialog.dart';
 import '../../config/routes/navigation_service.dart';
 
 class ImageAnalysisViewModel extends ChangeNotifier {
@@ -95,20 +94,24 @@ class ImageAnalysisViewModel extends ChangeNotifier {
 
     while (retryCount < maxRetries) {
       try {
-        print('📥 ImageAnalysisViewModel: Loading analyses from SQLite (attempt ${retryCount + 1}/$maxRetries)...');
+        print(
+            '📥 ImageAnalysisViewModel: Loading analyses from SQLite (attempt ${retryCount + 1}/$maxRetries)...');
         _savedAnalyses = await _storage.loadAnalyses();
         // Sort by createdAt in descending order (latest first)
         _savedAnalyses.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-        print('✅ ImageAnalysisViewModel: Loaded ${_savedAnalyses.length} analyses successfully');
+        print(
+            '✅ ImageAnalysisViewModel: Loaded ${_savedAnalyses.length} analyses successfully');
         notifyListeners();
         return; // Success - exit retry loop
       } catch (e) {
         retryCount++;
-        print('⚠️ ImageAnalysisViewModel: Failed to load analyses (attempt $retryCount/$maxRetries): $e');
+        print(
+            '⚠️ ImageAnalysisViewModel: Failed to load analyses (attempt $retryCount/$maxRetries): $e');
 
         if (retryCount >= maxRetries) {
           // Final failure - set empty list to avoid null issues
-          print('❌ ImageAnalysisViewModel: All retry attempts failed, setting empty list');
+          print(
+              '❌ ImageAnalysisViewModel: All retry attempts failed, setting empty list');
           _savedAnalyses = [];
           notifyListeners();
           return;
@@ -123,37 +126,10 @@ class ImageAnalysisViewModel extends ChangeNotifier {
 
   // Public method to reload analyses (called after AWS sync)
   Future<void> reloadAnalyses() async {
-    print('🔄 ImageAnalysisViewModel: Manually reloading analyses after AWS sync...');
+    print(
+        '🔄 ImageAnalysisViewModel: Manually reloading analyses after AWS sync...');
     // Retry logic is now handled inside _loadSavedAnalyses()
     await _loadSavedAnalyses();
-  }
-
-  Future<void> _checkAndShowRating() async {
-    final hasSubmittedRating = await _sqliteService.getHasSubmittedRating();
-    final maybeLaterTimestamp = await _sqliteService.getMaybeLaterTimestamp();
-
-    if (hasSubmittedRating) return;
-
-    // Check if user has added at least 3 foods
-    if (_savedAnalyses.length < 3) return;
-
-    // If user clicked "Maybe Later", check if 2 days have passed
-    if (maybeLaterTimestamp != null) {
-      final daysSinceMaybeLater = DateTime.now()
-          .difference(DateTime.fromMillisecondsSinceEpoch(maybeLaterTimestamp))
-          .inDays;
-      if (daysSinceMaybeLater < 2) return;
-    }
-
-    // Show rating dialog
-    final context = NavigationService.currentContext;
-    if (context != null) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => const RatingDialog(),
-      );
-    }
   }
 
   Future<void> pickImage(ImageSource source, BuildContext context) async {
@@ -223,15 +199,15 @@ class ImageAnalysisViewModel extends ChangeNotifier {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Row(
+        content: const Row(
           children: [
-            const Icon(
+            Icon(
               Icons.wifi_off,
               color: Colors.white,
               size: 20,
             ),
-            const SizedBox(width: 12),
-            const Expanded(
+            SizedBox(width: 12),
+            Expanded(
               child: Text(
                 'No internet connection',
                 style: TextStyle(
@@ -345,9 +321,10 @@ class ImageAnalysisViewModel extends ChangeNotifier {
     notifyListeners();
     try {
       // ALWAYS use Gemini (forced)
-      final aiProvider = AIProvider.gemini;
+      const aiProvider = AIProvider.gemini;
 
-      print('🤖 [ViewModel] Using AI Provider: ${aiProvider.name} (FORCED TO GEMINI)');
+      print(
+          '🤖 [ViewModel] Using AI Provider: ${aiProvider.name} (FORCED TO GEMINI)');
 
       // Get the appropriate AI service
       final AIService service = AIServiceFactory.getService(aiProvider);
@@ -438,9 +415,6 @@ class ImageAnalysisViewModel extends ChangeNotifier {
 
       // Single UI update after all operations are complete
       notifyListeners();
-
-      // Check if it's a good time to show the rating dialog
-      await _checkAndShowRating();
     }
   }
 
@@ -510,7 +484,8 @@ class ImageAnalysisViewModel extends ChangeNotifier {
   /// Add analysis with loading state (for barcode scanner)
   /// Shows shimmer effect on home page while processing
   Future<void> addAnalysisWithLoading(FoodAnalysis analysis) async {
-    print('🔄 ImageAnalysisViewModel: Adding analysis with loading: ${analysis.name}');
+    print(
+        '🔄 ImageAnalysisViewModel: Adding analysis with loading: ${analysis.name}');
 
     // Set loading state to show shimmer on home page
     _isLoading = true;
@@ -541,9 +516,6 @@ class ImageAnalysisViewModel extends ChangeNotifier {
       await _syncService.saveFoodAnalysisToAWS(analysis);
 
       print('✅ ImageAnalysisViewModel: Analysis added successfully');
-
-      // Check if it's a good time to show the rating dialog
-      await _checkAndShowRating();
     } catch (e) {
       print('❌ ImageAnalysisViewModel: Error adding analysis: $e');
       _error = e.toString();
@@ -559,12 +531,6 @@ class ImageAnalysisViewModel extends ChangeNotifier {
     _currentAnalysis = null;
     _error = null;
     notifyListeners();
-  }
-
-  // Add method to handle "Maybe Later" response
-  Future<void> handleMaybeLater() async {
-    await _sqliteService
-        .setMaybeLaterTimestamp(DateTime.now().millisecondsSinceEpoch);
   }
 
   // Force refresh the UI - useful after sign-in when data might not be immediately available
@@ -614,7 +580,8 @@ class ImageAnalysisViewModel extends ChangeNotifier {
 
       // Save downloaded image to temporary file
       await tempFile.writeAsBytes(response.bodyBytes);
-      print('✅ ImageAnalysisViewModel: Image downloaded and saved to: ${tempFile.path}');
+      print(
+          '✅ ImageAnalysisViewModel: Image downloaded and saved to: ${tempFile.path}');
 
       // Upload image to S3
       print('📤 ImageAnalysisViewModel: Uploading image to S3...');
@@ -641,7 +608,8 @@ class ImageAnalysisViewModel extends ChangeNotifier {
         dateOrderNumber: 0,
       );
 
-      print('📝 ImageAnalysisViewModel: Created barcode analysis: ${analysis.name} (${analysis.calories} cal)');
+      print(
+          '📝 ImageAnalysisViewModel: Created barcode analysis: ${analysis.name} (${analysis.calories} cal)');
 
       // Insert the analysis at the beginning of the list (top)
       _savedAnalyses.insert(0, analysis);
@@ -656,9 +624,6 @@ class ImageAnalysisViewModel extends ChangeNotifier {
       print('🔄 ImageAnalysisViewModel: Syncing to AWS...');
       await _syncService.saveFoodAnalysisToAWS(analysis);
       print('✅ ImageAnalysisViewModel: AWS sync completed');
-
-      // Check if it's a good time to show the rating dialog
-      await _checkAndShowRating();
 
       print('✅ ImageAnalysisViewModel: Barcode analysis added successfully');
     } catch (e) {

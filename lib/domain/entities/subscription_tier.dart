@@ -106,7 +106,8 @@ class UserSubscription {
       scansUsedThisMonth: scansUsedThisMonth ?? this.scansUsedThisMonth,
       trialStartDate: trialStartDate ?? this.trialStartDate,
       trialEndDate: trialEndDate ?? this.trialEndDate,
-      subscriptionStartDate: subscriptionStartDate ?? this.subscriptionStartDate,
+      subscriptionStartDate:
+          subscriptionStartDate ?? this.subscriptionStartDate,
       subscriptionEndDate: subscriptionEndDate ?? this.subscriptionEndDate,
     );
   }
