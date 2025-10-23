@@ -36,8 +36,10 @@ class OnboardingPageModel {
       backgroundVideoUrl: json['background_video_url'] as String?,
       useVideo: json['use_video'] as bool? ?? false,
       icon: json['icon'] as String,
-      primaryColorOverride: json['primary_color_override'] != null
-          ? OnboardingConfig.hexToColor(json['primary_color_override'] as String)
+      primaryColorOverride: json['primary_color_override'] != null &&
+              json['primary_color_override'] is String
+          ? OnboardingConfig.hexToColor(
+              json['primary_color_override'] as String)
           : null,
     );
   }

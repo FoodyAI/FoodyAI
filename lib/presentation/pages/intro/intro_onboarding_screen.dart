@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:video_player/video_player.dart';
+import 'package:animated_text_kit/animated_text_kit.dart';
 import '../../../config/onboarding/onboarding_config.dart';
 import '../../../config/onboarding/onboarding_page_model.dart';
+import '../../../core/constants/app_colors.dart';
 import '../../widgets/google_signin_button.dart';
 import '../legal/privacy_policy_page.dart';
 import '../legal/terms_of_service_page.dart';
@@ -39,14 +41,12 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen>
   late AnimationController _scanningAnimationController;
   late AnimationController _macroAnimationController;
   late AnimationController _fireAnimationController;
-  late AnimationController _utensilsAnimationController;
 
   // Animations
   late Animation<double> _scanningScaleAnimation;
   late Animation<double> _scanningOpacityAnimation;
   late Animation<double> _fireScaleAnimation;
   late Animation<double> _fireRotationAnimation;
-  late Animation<double> _utensilsSlideAnimation;
 
   @override
   void initState() {
@@ -103,19 +103,6 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen>
         curve: Curves.easeInOut,
       ),
     );
-
-    // Utensils animation (Page 4) - slide in from sides
-    _utensilsAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 2000),
-      vsync: this,
-    )..repeat(reverse: true);
-
-    _utensilsSlideAnimation = Tween<double>(begin: -10, end: 10).animate(
-      CurvedAnimation(
-        parent: _utensilsAnimationController,
-        curve: Curves.easeInOut,
-      ),
-    );
   }
 
   @override
@@ -125,7 +112,6 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen>
     _scanningAnimationController.dispose();
     _macroAnimationController.dispose();
     _fireAnimationController.dispose();
-    _utensilsAnimationController.dispose();
     super.dispose();
   }
 
@@ -153,33 +139,58 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen>
     if (pageIndex >= 0 && pageIndex < _config.pages.length) {
       final page = _config.pages[pageIndex];
       if (page.useVideo && page.backgroundVideoUrl != null) {
+        print(
+            '🎥 Initializing video for page $pageIndex: ${page.backgroundVideoUrl}');
         _videoController?.dispose();
 
-        // Check if it's a local asset or network URL
-        if (page.backgroundVideoUrl!.startsWith('assets/')) {
-          _videoController =
-              VideoPlayerController.asset(page.backgroundVideoUrl!);
-        } else {
-          _videoController = VideoPlayerController.networkUrl(
-            Uri.parse(page.backgroundVideoUrl!),
-          );
-        }
+        try {
+          // Check if it's a local asset or network URL
+          if (page.backgroundVideoUrl!.startsWith('assets/')) {
+            print('🎥 Loading local asset video: ${page.backgroundVideoUrl}');
+            _videoController =
+                VideoPlayerController.asset(page.backgroundVideoUrl!);
+          } else {
+            print('🎥 Loading network video: ${page.backgroundVideoUrl}');
+            _videoController = VideoPlayerController.networkUrl(
+              Uri.parse(page.backgroundVideoUrl!),
+            );
+          }
 
-        _videoController!.initialize().then((_) {
+          _videoController!.initialize().then((_) {
+            print('🎥 Video initialized successfully');
+            if (mounted) {
+              setState(() {
+                _isVideoInitialized = true;
+              });
+              _videoController!.setLooping(true);
+              // Auto-play video with small delay
+              Future.delayed(const Duration(milliseconds: 300), () {
+                if (mounted && _videoController != null) {
+                  print('🎥 Starting video playback');
+                  _videoController!.play();
+                }
+              });
+            }
+          }).catchError((error) {
+            print('❌ Video initialization failed: $error');
+            if (mounted) {
+              setState(() {
+                _isVideoInitialized = false;
+                _errorMessage = 'Video failed to load: $error';
+              });
+            }
+          });
+        } catch (e) {
+          print('❌ Video controller creation failed: $e');
           if (mounted) {
             setState(() {
-              _isVideoInitialized = true;
-            });
-            _videoController!.setLooping(true);
-            // Auto-play video with small delay
-            Future.delayed(const Duration(milliseconds: 300), () {
-              if (mounted && _videoController != null) {
-                _videoController!.play();
-              }
+              _isVideoInitialized = false;
+              _errorMessage = 'Video controller creation failed: $e';
             });
           }
-        });
+        }
       } else {
+        print('🎥 No video for page $pageIndex');
         _videoController?.dispose();
         _videoController = null;
         _isVideoInitialized = false;
@@ -321,7 +332,9 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen>
         // Full-screen background (video or image)
         Positioned.fill(
           child: page.useVideo && page.backgroundVideoUrl != null
-              ? _buildVideoBackground(page)
+              ? (_isVideoInitialized
+                  ? _buildVideoBackground(page)
+                  : Container(color: Colors.black))
               : _buildImageBackground(page),
         ),
 
@@ -395,8 +408,32 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen>
     if (_videoController == null || !_isVideoInitialized) {
       return Container(
         color: Colors.black,
-        child: const Center(
-          child: CircularProgressIndicator(color: Colors.white),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const CircularProgressIndicator(color: Colors.white),
+              const SizedBox(height: 16),
+              Text(
+                'Loading video...',
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.8),
+                  fontSize: 16,
+                ),
+              ),
+              if (_errorMessage != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  _errorMessage!,
+                  style: TextStyle(
+                    color: Colors.red.withOpacity(0.8),
+                    fontSize: 12,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ],
+          ),
         ),
       );
     }
@@ -785,72 +822,39 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen>
     );
   }
 
-  /// Build login icon overlay (Page 4) - animated restaurant icon
+  /// Build login icon overlay (Page 4) - Foody text with splash screen style
   Widget _buildLoginOverlay() {
     return Center(
       child: Padding(
         padding: const EdgeInsets.only(bottom: 80),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AnimatedBuilder(
-              animation: _utensilsAnimationController,
-              builder: (context, child) {
-                return Transform.rotate(
-                  angle: _utensilsSlideAnimation.value * 0.02,
-                  child: Transform.scale(
-                    scale: 1.0 + (_utensilsSlideAnimation.value.abs() * 0.008),
-                    child: Container(
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            Color(0xFF34C759),
-                            Color(0xFF5DD879),
-                          ],
-                        ),
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF34C759).withOpacity(
-                                0.4 + (_utensilsSlideAnimation.value.abs() * 0.02)),
-                            blurRadius:
-                                20 + (_utensilsSlideAnimation.value.abs() * 2),
-                            spreadRadius: 3,
-                          ),
-                        ],
-                      ),
-                      child: const Icon(
-                        Icons.restaurant_menu,
-                        size: 50,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'Foody',
-              style: TextStyle(
-                fontSize: 48,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-                letterSpacing: 1.5,
-                shadows: [
-                  Shadow(
-                    color: Colors.black26,
-                    offset: Offset(0, 2),
-                    blurRadius: 4,
-                  ),
+        child: SizedBox(
+          width: 250,
+          height: 80,
+          child: AnimatedTextKit(
+            animatedTexts: [
+              ColorizeAnimatedText(
+                'Foody',
+                textAlign: TextAlign.center,
+                textStyle: const TextStyle(
+                  fontSize: 48,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 2.0,
+                ),
+                colors: [
+                  AppColors.primary.withOpacity(0.3),
+                  AppColors.primaryLight,
+                  AppColors.primary,
+                  AppColors.primaryDark,
+                  AppColors.primary,
+                  AppColors.primaryLight,
+                  AppColors.primary,
                 ],
+                speed: const Duration(milliseconds: 800),
               ),
-            ),
-          ],
+            ],
+            isRepeatingAnimation: true,
+            repeatForever: true,
+          ),
         ),
       ),
     );
@@ -876,14 +880,22 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen>
     final isMediumScreen = screenHeight >= 700 && screenHeight < 800;
 
     // Adjust spacing based on screen height - EXTREMELY COMPACT for small screens
-    final verticalPadding = isSmallScreen ? 8.0 : (isMediumScreen ? 14.0 : 20.0);
-    final indicatorSpacing = isSmallScreen ? 4.0 : (isMediumScreen ? 10.0 : 16.0);
-    final titleHeight = isSmallScreen ? 24.0 : (isMediumScreen ? 30.0 : 36.0); // Reduced for single line
+    final verticalPadding =
+        isSmallScreen ? 8.0 : (isMediumScreen ? 14.0 : 20.0);
+    final indicatorSpacing =
+        isSmallScreen ? 4.0 : (isMediumScreen ? 10.0 : 16.0);
+    final titleHeight = isSmallScreen
+        ? 24.0
+        : (isMediumScreen ? 30.0 : 36.0); // Reduced for single line
     final titleFontSize = isSmallScreen ? 16.0 : (isMediumScreen ? 20.0 : 24.0);
-    final descriptionHeight = isSmallScreen ? 28.0 : (isMediumScreen ? 36.0 : 42.0);
-    final descriptionFontSize = isSmallScreen ? 10.0 : (isMediumScreen ? 12.0 : 14.0);
-    final spaceBetweenTitleDesc = isSmallScreen ? 0.0 : (isMediumScreen ? 4.0 : 8.0);
-    final buttonVerticalPadding = isSmallScreen ? 8.0 : (isMediumScreen ? 12.0 : 15.0);
+    final descriptionHeight =
+        isSmallScreen ? 28.0 : (isMediumScreen ? 36.0 : 42.0);
+    final descriptionFontSize =
+        isSmallScreen ? 10.0 : (isMediumScreen ? 12.0 : 14.0);
+    final spaceBetweenTitleDesc =
+        isSmallScreen ? 0.0 : (isMediumScreen ? 4.0 : 8.0);
+    final buttonVerticalPadding =
+        isSmallScreen ? 8.0 : (isMediumScreen ? 12.0 : 15.0);
     final bottomMargin = isSmallScreen ? 4.0 : (isMediumScreen ? 12.0 : 20.0);
 
     return Container(
@@ -910,7 +922,8 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen>
               ],
             ),
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: verticalPadding),
+              padding: EdgeInsets.symmetric(
+                  horizontal: 24.0, vertical: verticalPadding),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -970,7 +983,8 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen>
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF34C759),
                               foregroundColor: Colors.white,
-                              padding: EdgeInsets.symmetric(vertical: buttonVerticalPadding),
+                              padding: EdgeInsets.symmetric(
+                                  vertical: buttonVerticalPadding),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(30),
                               ),
@@ -989,11 +1003,14 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen>
 
                   // Bottom text/link (FIXED HEIGHT for all pages)
                   SizedBox(
-                    height: isSmallScreen ? 32 : 48, // Fixed height for bottom section
+                    height: isSmallScreen
+                        ? 32
+                        : 48, // Fixed height for bottom section
                     child: isLoginPage
                         // Privacy text on login page
                         ? Padding(
-                            padding: EdgeInsets.only(top: isSmallScreen ? 8 : 18),
+                            padding:
+                                EdgeInsets.only(top: isSmallScreen ? 8 : 18),
                             child: _buildPrivacyTermsText(context),
                           )
                         // "Already have an account?" text on other pages
