@@ -89,7 +89,8 @@ class FoodAnalysisCard extends StatelessWidget {
                     minChildSize: 0.5,
                     expand: false,
                     builder: (context, scrollController) => ClipRRect(
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+                      borderRadius:
+                          const BorderRadius.vertical(top: Radius.circular(32)),
                       child: BackdropFilter(
                         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                         child: Container(
@@ -98,8 +99,8 @@ class FoodAnalysisCard extends StatelessWidget {
                             color: isDark
                                 ? Colors.black.withValues(alpha: 0.3)
                                 : Colors.white.withValues(alpha: 0.4),
-                            borderRadius:
-                                const BorderRadius.vertical(top: Radius.circular(32)),
+                            borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(32)),
                             border: Border.all(
                               color: isDark
                                   ? Colors.white.withValues(alpha: 0.15)
@@ -108,46 +109,49 @@ class FoodAnalysisCard extends StatelessWidget {
                             ),
                           ),
                           child: ClipRRect(
-                            borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+                            borderRadius: const BorderRadius.vertical(
+                                top: Radius.circular(32)),
                             child: Stack(
-                          children: [
-                            // Scrollable content - starts from top edge
-                            SingleChildScrollView(
-                              controller: scrollController,
-                              child: _buildContent(context, showToggle: false),
-                            ),
-                          // Fixed Swipe Indicator - positioned on top of content
-                          Positioned(
-                            top: 12,
-                            left: 0,
-                            right: 0,
-                            child: Center(
-                              child: Container(
-                                width: 48,
-                                height: 4,
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.8),
-                                  borderRadius: BorderRadius.circular(2),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.3),
-                                      blurRadius: 4,
-                                      offset: const Offset(0, 2),
-                                    ),
-                                  ],
+                              children: [
+                                // Scrollable content - starts from top edge
+                                SingleChildScrollView(
+                                  controller: scrollController,
+                                  child:
+                                      _buildContent(context, showToggle: false),
                                 ),
-                              ),
+                                // Fixed Swipe Indicator - positioned on top of content
+                                Positioned(
+                                  top: 12,
+                                  left: 0,
+                                  right: 0,
+                                  child: Center(
+                                    child: Container(
+                                      width: 48,
+                                      height: 4,
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.8),
+                                        borderRadius: BorderRadius.circular(2),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color:
+                                                Colors.black.withOpacity(0.3),
+                                            blurRadius: 4,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ),
-            ),
-          );
-        },
+                );
+              },
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Row(
@@ -174,8 +178,8 @@ class FoodAnalysisCard extends StatelessWidget {
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color:
-                                      AppColors.withOpacity(AppColors.orange, 0.1),
+                                  color: AppColors.withOpacity(
+                                      AppColors.orange, 0.1),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Row(
@@ -316,7 +320,6 @@ class FoodAnalysisCard extends StatelessWidget {
     );
   }
 
-
   Widget _buildContent(BuildContext context, {bool showToggle = true}) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -325,255 +328,256 @@ class FoodAnalysisCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-              // Header Image Section
-              Stack(
-                children: [
-                  if (analysis.localImagePath != null ||
-                      analysis.s3ImageUrl != null ||
-                      analysis.imagePath != null)
-                    Container(
-                      height: 240,
-                      width: double.infinity,
-                      decoration: const BoxDecoration(
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(32),
-                          topRight: Radius.circular(32),
-                        ),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(32),
-                          topRight: Radius.circular(32),
-                        ),
-                        child: ImageHelper.buildHybridImageWidget(
-                          analysis: analysis,
-                          width: double.infinity,
-                          height: 240,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            // Show placeholder if image fails to load
-                            return _buildModalImagePlaceholder(context);
-                          },
-                          loadingBuilder: (context, child, loadingProgress) {
-                            if (loadingProgress == null) return child;
-                            return ImageHelper.createLoadingWidget(
-                              width: double.infinity,
-                              height: 240,
-                              backgroundColor: Colors.grey[300],
-                              borderRadius: 32,
-                            );
-                          },
-                        ),
-                      ),
-                    )
-                  else
-                    _buildModalImagePlaceholder(context),
-                  // Gradient Overlay
+            // Header Image Section
+            Stack(
+              children: [
+                if (analysis.localImagePath != null ||
+                    analysis.s3ImageUrl != null ||
+                    analysis.imagePath != null)
                   Container(
                     height: 240,
                     width: double.infinity,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.transparent,
-                          Colors.black.withOpacity(0.7),
-                        ],
+                    decoration: const BoxDecoration(
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(32),
+                        topRight: Radius.circular(32),
                       ),
                     ),
+                    child: ClipRRect(
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(32),
+                        topRight: Radius.circular(32),
+                      ),
+                      child: ImageHelper.buildHybridImageWidget(
+                        analysis: analysis,
+                        width: double.infinity,
+                        height: 240,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          // Show placeholder if image fails to load
+                          return _buildModalImagePlaceholder(context);
+                        },
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return ImageHelper.createLoadingWidget(
+                            width: double.infinity,
+                            height: 240,
+                            backgroundColor: Colors.grey[300],
+                            borderRadius: 32,
+                          );
+                        },
+                      ),
+                    ),
+                  )
+                else
+                  _buildModalImagePlaceholder(context),
+                // Gradient Overlay
+                Container(
+                  height: 240,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.transparent,
+                        Colors.black.withOpacity(0.7),
+                      ],
+                    ),
                   ),
-                  // Food Name
-                  Positioned(
-                    bottom: 24,
-                    left: 24,
-                    right: 24,
-                    child: Text(
-                      analysis.name,
-                      style: const TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        letterSpacing: -0.5,
+                ),
+                // Food Name
+                Positioned(
+                  bottom: 24,
+                  left: 24,
+                  right: 24,
+                  child: Text(
+                    analysis.name,
+                    style: const TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            // Content Section
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Nutrition Section
+                  const Text(
+                    'Nutritional Information',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildNutritionCard(
+                          context,
+                          'Calories',
+                          analysis.calories,
+                          'cal',
+                          AppColors.orange,
+                          FontAwesomeIcons.fire,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _buildNutritionCard(
+                          context,
+                          'Protein',
+                          analysis.protein,
+                          'g',
+                          AppColors.blue,
+                          FontAwesomeIcons.dumbbell,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _buildNutritionCard(
+                          context,
+                          'Carbs',
+                          analysis.carbs,
+                          'g',
+                          AppColors.green,
+                          FontAwesomeIcons.carrot,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: _buildNutritionCard(
+                          context,
+                          'Fat',
+                          analysis.fat,
+                          'g',
+                          AppColors.orange,
+                          FontAwesomeIcons.water,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Health Score Section
+                  const Text(
+                    'Health Score',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          // Calendar-style glassmorphism with health color tint
+                          color: isDark
+                              ? _getHealthScoreColor(analysis.healthScore)
+                                  .withValues(alpha: 0.15)
+                              : _getHealthScoreColor(analysis.healthScore)
+                                  .withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: isDark
+                                ? _getHealthScoreColor(analysis.healthScore)
+                                    .withValues(alpha: 0.3)
+                                : _getHealthScoreColor(analysis.healthScore)
+                                    .withValues(alpha: 0.5),
+                            width: 1.5,
+                          ),
+                        ),
+                        child: Column(
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: _getHealthScoreColor(
+                                            analysis.healthScore)
+                                        .withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: FaIcon(
+                                    FontAwesomeIcons.heart,
+                                    color: _getHealthScoreColor(
+                                        analysis.healthScore),
+                                    size: 24,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        '${analysis.healthScore.toStringAsFixed(1)}/10',
+                                        style: TextStyle(
+                                          fontSize: 28,
+                                          fontWeight: FontWeight.bold,
+                                          color: _getHealthScoreColor(
+                                              analysis.healthScore),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        _getHealthScoreDescription(
+                                            analysis.healthScore),
+                                        style: TextStyle(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurface
+                                              .withOpacity(0.7),
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 20),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: LinearProgressIndicator(
+                                value: analysis.healthScore / 10,
+                                backgroundColor:
+                                    _getHealthScoreColor(analysis.healthScore)
+                                        .withOpacity(0.1),
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  _getHealthScoreColor(analysis.healthScore),
+                                ),
+                                minHeight: 8,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ],
               ),
-
-              // Content Section
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Nutrition Section
-                    const Text(
-                      'Nutritional Information',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: -0.5,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildNutritionCard(
-                            context,
-                            'Calories',
-                            analysis.calories,
-                            'cal',
-                            AppColors.orange,
-                            FontAwesomeIcons.fire,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: _buildNutritionCard(
-                            context,
-                            'Protein',
-                            analysis.protein,
-                            'g',
-                            AppColors.blue,
-                            FontAwesomeIcons.dumbbell,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: _buildNutritionCard(
-                            context,
-                            'Carbs',
-                            analysis.carbs,
-                            'g',
-                            AppColors.green,
-                            FontAwesomeIcons.carrot,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: _buildNutritionCard(
-                            context,
-                            'Fat',
-                            analysis.fat,
-                            'g',
-                            AppColors.orange,
-                            FontAwesomeIcons.water,
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 20),
-
-                    // Health Score Section
-                    const Text(
-                      'Health Score',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: -0.5,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                        child: Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            // Calendar-style glassmorphism with health color tint
-                            color: isDark
-                                ? _getHealthScoreColor(analysis.healthScore)
-                                    .withValues(alpha: 0.15)
-                                : _getHealthScoreColor(analysis.healthScore)
-                                    .withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: isDark
-                                  ? _getHealthScoreColor(analysis.healthScore)
-                                      .withValues(alpha: 0.3)
-                                  : _getHealthScoreColor(analysis.healthScore)
-                                      .withValues(alpha: 0.5),
-                              width: 1.5,
-                            ),
-                          ),
-                          child: Column(
-                            children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                      color:
-                                          _getHealthScoreColor(analysis.healthScore)
-                                              .withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: FaIcon(
-                                      FontAwesomeIcons.heart,
-                                      color: _getHealthScoreColor(
-                                          analysis.healthScore),
-                                      size: 24,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          '${analysis.healthScore.toStringAsFixed(1)}/10',
-                                          style: TextStyle(
-                                            fontSize: 28,
-                                            fontWeight: FontWeight.bold,
-                                            color: _getHealthScoreColor(
-                                                analysis.healthScore),
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Text(
-                                          _getHealthScoreDescription(
-                                              analysis.healthScore),
-                                          style: TextStyle(
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .onSurface
-                                                .withOpacity(0.7),
-                                            fontSize: 14,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 20),
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: LinearProgressIndicator(
-                                  value: analysis.healthScore / 10,
-                                  backgroundColor:
-                                      _getHealthScoreColor(analysis.healthScore)
-                                          .withOpacity(0.1),
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    _getHealthScoreColor(analysis.healthScore),
-                                  ),
-                                  minHeight: 8,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-        ],
-      ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -603,9 +607,8 @@ class FoodAnalysisCard extends StatelessWidget {
       formattedValue = value.toStringAsFixed(0);
     } else {
       // For numbers < 100, show 1 decimal only if needed
-      formattedValue = value % 1 == 0
-          ? value.toStringAsFixed(0)
-          : value.toStringAsFixed(1);
+      formattedValue =
+          value % 1 == 0 ? value.toStringAsFixed(0) : value.toStringAsFixed(1);
     }
 
     final isDark = Theme.of(context).brightness == Brightness.dark;

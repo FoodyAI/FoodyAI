@@ -5,4 +5,3 @@ import '../../models/food_analysis.dart';
 abstract class AIService {
   Future<FoodAnalysis> analyzeImage(File image);
 }
-

@@ -94,20 +94,24 @@ class ImageAnalysisViewModel extends ChangeNotifier {
 
     while (retryCount < maxRetries) {
       try {
-        print('📥 ImageAnalysisViewModel: Loading analyses from SQLite (attempt ${retryCount + 1}/$maxRetries)...');
+        print(
+            '📥 ImageAnalysisViewModel: Loading analyses from SQLite (attempt ${retryCount + 1}/$maxRetries)...');
         _savedAnalyses = await _storage.loadAnalyses();
         // Sort by createdAt in descending order (latest first)
         _savedAnalyses.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-        print('✅ ImageAnalysisViewModel: Loaded ${_savedAnalyses.length} analyses successfully');
+        print(
+            '✅ ImageAnalysisViewModel: Loaded ${_savedAnalyses.length} analyses successfully');
         notifyListeners();
         return; // Success - exit retry loop
       } catch (e) {
         retryCount++;
-        print('⚠️ ImageAnalysisViewModel: Failed to load analyses (attempt $retryCount/$maxRetries): $e');
+        print(
+            '⚠️ ImageAnalysisViewModel: Failed to load analyses (attempt $retryCount/$maxRetries): $e');
 
         if (retryCount >= maxRetries) {
           // Final failure - set empty list to avoid null issues
-          print('❌ ImageAnalysisViewModel: All retry attempts failed, setting empty list');
+          print(
+              '❌ ImageAnalysisViewModel: All retry attempts failed, setting empty list');
           _savedAnalyses = [];
           notifyListeners();
           return;
@@ -122,7 +126,8 @@ class ImageAnalysisViewModel extends ChangeNotifier {
 
   // Public method to reload analyses (called after AWS sync)
   Future<void> reloadAnalyses() async {
-    print('🔄 ImageAnalysisViewModel: Manually reloading analyses after AWS sync...');
+    print(
+        '🔄 ImageAnalysisViewModel: Manually reloading analyses after AWS sync...');
     // Retry logic is now handled inside _loadSavedAnalyses()
     await _loadSavedAnalyses();
   }
@@ -318,7 +323,8 @@ class ImageAnalysisViewModel extends ChangeNotifier {
       // ALWAYS use Gemini (forced)
       const aiProvider = AIProvider.gemini;
 
-      print('🤖 [ViewModel] Using AI Provider: ${aiProvider.name} (FORCED TO GEMINI)');
+      print(
+          '🤖 [ViewModel] Using AI Provider: ${aiProvider.name} (FORCED TO GEMINI)');
 
       // Get the appropriate AI service
       final AIService service = AIServiceFactory.getService(aiProvider);
@@ -478,7 +484,8 @@ class ImageAnalysisViewModel extends ChangeNotifier {
   /// Add analysis with loading state (for barcode scanner)
   /// Shows shimmer effect on home page while processing
   Future<void> addAnalysisWithLoading(FoodAnalysis analysis) async {
-    print('🔄 ImageAnalysisViewModel: Adding analysis with loading: ${analysis.name}');
+    print(
+        '🔄 ImageAnalysisViewModel: Adding analysis with loading: ${analysis.name}');
 
     // Set loading state to show shimmer on home page
     _isLoading = true;
@@ -573,7 +580,8 @@ class ImageAnalysisViewModel extends ChangeNotifier {
 
       // Save downloaded image to temporary file
       await tempFile.writeAsBytes(response.bodyBytes);
-      print('✅ ImageAnalysisViewModel: Image downloaded and saved to: ${tempFile.path}');
+      print(
+          '✅ ImageAnalysisViewModel: Image downloaded and saved to: ${tempFile.path}');
 
       // Upload image to S3
       print('📤 ImageAnalysisViewModel: Uploading image to S3...');
@@ -600,7 +608,8 @@ class ImageAnalysisViewModel extends ChangeNotifier {
         dateOrderNumber: 0,
       );
 
-      print('📝 ImageAnalysisViewModel: Created barcode analysis: ${analysis.name} (${analysis.calories} cal)');
+      print(
+          '📝 ImageAnalysisViewModel: Created barcode analysis: ${analysis.name} (${analysis.calories} cal)');
 
       // Insert the analysis at the beginning of the list (top)
       _savedAnalyses.insert(0, analysis);

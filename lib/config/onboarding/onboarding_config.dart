@@ -101,16 +101,23 @@ class ThemeConfig {
     final gradientData = json['button_gradient'] as Map<String, dynamic>;
 
     return ThemeConfig(
-      primaryColor: OnboardingConfig.hexToColor(json['primary_color'] as String),
-      secondaryColor: OnboardingConfig.hexToColor(json['secondary_color'] as String),
+      primaryColor:
+          OnboardingConfig.hexToColor(json['primary_color'] as String),
+      secondaryColor:
+          OnboardingConfig.hexToColor(json['secondary_color'] as String),
       accentColor: OnboardingConfig.hexToColor(json['accent_color'] as String),
-      backgroundDark: OnboardingConfig.hexToColor(json['background_dark'] as String),
-      backgroundDarker: OnboardingConfig.hexToColor(json['background_darker'] as String),
+      backgroundDark:
+          OnboardingConfig.hexToColor(json['background_dark'] as String),
+      backgroundDarker:
+          OnboardingConfig.hexToColor(json['background_darker'] as String),
       textPrimary: OnboardingConfig.hexToColor(json['text_primary'] as String),
-      textSecondary: OnboardingConfig.hexToColor(json['text_secondary'] as String),
+      textSecondary:
+          OnboardingConfig.hexToColor(json['text_secondary'] as String),
       buttonGradient: GradientColors(
-        startColor: OnboardingConfig.hexToColor(gradientData['start_color'] as String),
-        endColor: OnboardingConfig.hexToColor(gradientData['end_color'] as String),
+        startColor:
+            OnboardingConfig.hexToColor(gradientData['start_color'] as String),
+        endColor:
+            OnboardingConfig.hexToColor(gradientData['end_color'] as String),
       ),
     );
   }
@@ -153,11 +160,16 @@ class UIElements {
 
   factory UIElements.fromJson(Map<String, dynamic> json) {
     return UIElements(
-      skipButton: ButtonConfig.fromJson(json['skip_button'] as Map<String, dynamic>),
-      backButton: ButtonConfig.fromJson(json['back_button'] as Map<String, dynamic>),
-      continueButton: ButtonConfig.fromJson(json['continue_button'] as Map<String, dynamic>),
-      getStartedButton: ButtonConfig.fromJson(json['get_started_button'] as Map<String, dynamic>),
-      pageIndicators: PageIndicatorConfig.fromJson(json['page_indicators'] as Map<String, dynamic>),
+      skipButton:
+          ButtonConfig.fromJson(json['skip_button'] as Map<String, dynamic>),
+      backButton:
+          ButtonConfig.fromJson(json['back_button'] as Map<String, dynamic>),
+      continueButton: ButtonConfig.fromJson(
+          json['continue_button'] as Map<String, dynamic>),
+      getStartedButton: ButtonConfig.fromJson(
+          json['get_started_button'] as Map<String, dynamic>),
+      pageIndicators: PageIndicatorConfig.fromJson(
+          json['page_indicators'] as Map<String, dynamic>),
     );
   }
 }
@@ -222,7 +234,8 @@ class PageIndicatorConfig {
       height: (json['height'] as num).toDouble(),
       spacing: (json['spacing'] as num).toDouble(),
       activeColor: OnboardingConfig.hexToColor(json['active_color'] as String),
-      inactiveColor: OnboardingConfig.hexToColor(json['inactive_color'] as String),
+      inactiveColor:
+          OnboardingConfig.hexToColor(json['inactive_color'] as String),
       animationDurationMs: json['animation_duration_ms'] as int,
     );
   }
@@ -315,7 +328,8 @@ class AnimationConfig {
       pageTransitionDurationMs: json['page_transition_duration_ms'] as int,
       pageTransitionCurve: json['page_transition_curve'] as String,
       backgroundFadeDurationMs: json['background_fade_duration_ms'] as int,
-      indicatorAnimationDurationMs: json['indicator_animation_duration_ms'] as int,
+      indicatorAnimationDurationMs:
+          json['indicator_animation_duration_ms'] as int,
     );
   }
 
