@@ -314,7 +314,7 @@ class _SubscriptionViewState extends State<SubscriptionView> {
   Widget _buildPricingHeader(
       BuildContext context, bool isDark, ColorScheme colorScheme) {
     final price = isYearly ? '€2.50' : '€2.99';
-    final period = 'month';
+    const period = 'month';
     final billingNote = isYearly ? 'billed annually as €29.99' : null;
 
     return Column(
@@ -727,10 +727,10 @@ class _SubscriptionViewState extends State<SubscriptionView> {
 
   void _handleStartTrial() {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Starting free trial...'),
+      const SnackBar(
+        content: Text('Starting free trial...'),
         backgroundColor: AppColors.primary,
-        duration: const Duration(seconds: 2),
+        duration: Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,
       ),
     );
