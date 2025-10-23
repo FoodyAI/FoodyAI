@@ -60,6 +60,7 @@ flutter:
     - assets/animations/auth/
     - assets/config/
     - assets/images/
+    - assets/videos/
 
 flutter_launcher_icons:
   android: true
