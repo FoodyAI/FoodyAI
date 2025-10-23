@@ -194,15 +194,15 @@ class ImageAnalysisViewModel extends ChangeNotifier {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Row(
+        content: const Row(
           children: [
-            const Icon(
+            Icon(
               Icons.wifi_off,
               color: Colors.white,
               size: 20,
             ),
-            const SizedBox(width: 12),
-            const Expanded(
+            SizedBox(width: 12),
+            Expanded(
               child: Text(
                 'No internet connection',
                 style: TextStyle(
@@ -316,7 +316,7 @@ class ImageAnalysisViewModel extends ChangeNotifier {
     notifyListeners();
     try {
       // ALWAYS use Gemini (forced)
-      final aiProvider = AIProvider.gemini;
+      const aiProvider = AIProvider.gemini;
 
       print('🤖 [ViewModel] Using AI Provider: ${aiProvider.name} (FORCED TO GEMINI)');
 

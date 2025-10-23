@@ -337,10 +337,10 @@ class AuthViewModel extends ChangeNotifier {
         final newContext = NavigationService.currentContext;
         if (newContext != null && newContext.mounted) {
           ScaffoldMessenger.of(newContext).showSnackBar(
-            SnackBar(
-              content: const Text('Signed out successfully'),
+            const SnackBar(
+              content: Text('Signed out successfully'),
               backgroundColor: AppColors.primary,
-              duration: const Duration(seconds: 2),
+              duration: Duration(seconds: 2),
             ),
           );
         }
@@ -423,10 +423,10 @@ class AuthViewModel extends ChangeNotifier {
         final newContext = NavigationService.currentContext;
         if (newContext != null && newContext.mounted) {
           ScaffoldMessenger.of(newContext).showSnackBar(
-            SnackBar(
-              content: const Text('Account deleted successfully'),
+            const SnackBar(
+              content: Text('Account deleted successfully'),
               backgroundColor: AppColors.success,
-              duration: const Duration(seconds: 2),
+              duration: Duration(seconds: 2),
             ),
           );
         }
@@ -508,10 +508,10 @@ class AuthViewModel extends ChangeNotifier {
         final newContext = NavigationService.currentContext;
         if (newContext != null && newContext.mounted) {
           ScaffoldMessenger.of(newContext).showSnackBar(
-            SnackBar(
-              content: const Text('Account deleted successfully'),
+            const SnackBar(
+              content: Text('Account deleted successfully'),
               backgroundColor: AppColors.success,
-              duration: const Duration(seconds: 2),
+              duration: Duration(seconds: 2),
             ),
           );
         }

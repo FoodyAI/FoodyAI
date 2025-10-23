@@ -264,11 +264,11 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen>
 
   /// Build loading screen
   Widget _buildLoadingScreen() {
-    return Scaffold(
+    return const Scaffold(
       backgroundColor: Colors.black,
       body: Center(
         child: CircularProgressIndicator(
-          color: const Color(0xFF34C759),
+          color: Color(0xFF34C759),
         ),
       ),
     );
@@ -515,10 +515,10 @@ class _IntroOnboardingScreenState extends State<IntroOnboardingScreen>
             child: Container(
               height: 2,
               decoration: BoxDecoration(
-                gradient: LinearGradient(
+                gradient: const LinearGradient(
                   colors: [
                     Colors.transparent,
-                    const Color(0xFF34C759),
+                    Color(0xFF34C759),
                     Colors.transparent,
                   ],
                 ),

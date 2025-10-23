@@ -223,7 +223,7 @@ class _ProfileViewState extends State<ProfileView>
                     ),
                     indicatorSize: TabBarIndicatorSize.tab,
                     dividerColor: Colors.transparent,
-                    tabs: [
+                    tabs: const [
                       Tab(
                         icon: FaIcon(FontAwesomeIcons.user, size: 18),
                         text: 'Personal',
@@ -1892,8 +1892,8 @@ class _ProfileViewState extends State<ProfileView>
                 if (!connectionService.isConnected) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Row(
-                        children: const [
+                      content: const Row(
+                        children: [
                           Icon(Icons.wifi_off, color: Colors.white),
                           SizedBox(width: 12),
                           Text('No internet connection'),
@@ -2599,7 +2599,7 @@ class _NotificationToggleWidgetState extends State<_NotificationToggleWidget> {
               child: Switch(
                 value: _notificationsEnabled,
                 onChanged: _handleToggle,
-                activeColor: widget.colorScheme.primary,
+                activeThumbColor: widget.colorScheme.primary,
               ),
             ),
         ],

@@ -238,7 +238,7 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     // Scan frame with corner brackets and buttons
-                    Container(
+                    SizedBox(
                       width: _scanFrameSize,
                       height: _scanFrameSize,
                       child: Stack(
@@ -410,7 +410,7 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
                               color: AppColors.error.withOpacity(0.2),
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: FaIcon(
+                            child: const FaIcon(
                               FontAwesomeIcons.triangleExclamation,
                               color: AppColors.error,
                               size: 20,
@@ -422,7 +422,7 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Text(
+                                const Text(
                                   'Error',
                                   style: TextStyle(
                                     color: AppColors.error,
@@ -695,7 +695,7 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
   }
 
   Widget _buildCornerBracket(bool isTop, bool isLeft) {
-    return Container(
+    return SizedBox(
       width: 70,
       height: 70,
       child: CustomPaint(
@@ -831,7 +831,7 @@ class _BarcodeScannerViewState extends State<BarcodeScannerView> {
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(
+                          borderSide: const BorderSide(
                             color: AppColors.primary,
                             width: 2,
                           ),
