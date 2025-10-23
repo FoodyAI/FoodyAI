@@ -51,7 +51,8 @@ class UserProfileViewModel extends ChangeNotifier {
   Future<void> _loadProfile() async {
     // 🔧 FIX #3: Add timeout to prevent deadlock with retry logic
     if (_isLoadingProfile) {
-      print('⏭️ UserProfileViewModel: Already loading, waiting for completion...');
+      print(
+          '⏭️ UserProfileViewModel: Already loading, waiting for completion...');
       // Wait max 5 seconds for current load to complete, then force retry
       await Future.delayed(const Duration(seconds: 5));
       if (_isLoadingProfile) {
@@ -69,11 +70,13 @@ class UserProfileViewModel extends ChangeNotifier {
 
     while (retryCount < maxRetries) {
       try {
-        print('📥 UserProfileViewModel: Loading profile (attempt ${retryCount + 1}/$maxRetries)...');
+        print(
+            '📥 UserProfileViewModel: Loading profile (attempt ${retryCount + 1}/$maxRetries)...');
         final userId = _auth.currentUser?.uid;
         final profile = await _useCase.getProfile(userId: userId);
         final isMetric = await _useCase.getIsMetric();
-        final hasCompletedOnboarding = await _useCase.getHasCompletedOnboarding();
+        final hasCompletedOnboarding =
+            await _useCase.getHasCompletedOnboarding();
 
         _profile = profile;
         _isMetric = isMetric;
@@ -87,7 +90,8 @@ class UserProfileViewModel extends ChangeNotifier {
         break;
       } catch (e) {
         retryCount++;
-        print('⚠️ UserProfileViewModel: Error loading profile (attempt $retryCount/$maxRetries): $e');
+        print(
+            '⚠️ UserProfileViewModel: Error loading profile (attempt $retryCount/$maxRetries): $e');
 
         if (retryCount >= maxRetries) {
           print('❌ UserProfileViewModel: All retry attempts failed');

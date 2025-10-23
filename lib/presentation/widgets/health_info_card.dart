@@ -21,7 +21,7 @@ class HealthInfoCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final analysisVM = Provider.of<ImageAnalysisViewModel>(context);
     final todayAnalyses = analysisVM.filteredAnalyses;
-    
+
     // Calculate total macros consumed today
     final totalCalories = todayAnalyses.fold<double>(
       0,
@@ -39,31 +39,30 @@ class HealthInfoCard extends StatelessWidget {
       0,
       (sum, analysis) => sum + analysis.carbs,
     );
-    
+
     // Calculate percentages based on calories
     // Protein: 4 cal/g, Fat: 9 cal/g, Carbs: 4 cal/g
     final proteinCalories = totalProtein * 4;
     final fatCalories = totalFat * 9;
     final carbsCalories = totalCarbs * 4;
     final totalMacroCalories = proteinCalories + fatCalories + carbsCalories;
-    
-    final proteinPercentage = totalMacroCalories > 0 
-        ? (proteinCalories / totalMacroCalories * 100) 
+
+    final proteinPercentage = totalMacroCalories > 0
+        ? (proteinCalories / totalMacroCalories * 100)
         : 0.0;
-    final fatPercentage = totalMacroCalories > 0 
-        ? (fatCalories / totalMacroCalories * 100) 
+    final fatPercentage =
+        totalMacroCalories > 0 ? (fatCalories / totalMacroCalories * 100) : 0.0;
+    final carbsPercentage = totalMacroCalories > 0
+        ? (carbsCalories / totalMacroCalories * 100)
         : 0.0;
-    final carbsPercentage = totalMacroCalories > 0 
-        ? (carbsCalories / totalMacroCalories * 100) 
-        : 0.0;
-    
+
     // Get BMI and health data
     final bmiValue = profile.bmi;
     final recommendedCalories = profile.dailyCalories;
-    final caloriePercentage = recommendedCalories > 0 
+    final caloriePercentage = recommendedCalories > 0
         ? (totalCalories / recommendedCalories * 100).clamp(0, 100)
         : 0.0;
-    
+
     // Determine health status and color
     String healthStatus;
     Color statusColor;
@@ -104,7 +103,10 @@ class HealthInfoCard extends StatelessWidget {
                           style: GoogleFonts.poppins(
                             fontSize: 17,
                             fontWeight: FontWeight.w600,
-                            color: Theme.of(context).colorScheme.onSurface.withOpacity(0.85),
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withOpacity(0.85),
                             letterSpacing: 0.5,
                           ),
                         ),
@@ -118,7 +120,8 @@ class HealthInfoCard extends StatelessWidget {
                                 style: GoogleFonts.poppins(
                                   fontSize: 42,
                                   fontWeight: FontWeight.bold,
-                                  color: Theme.of(context).colorScheme.onSurface,
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
                                   height: 1.0,
                                   letterSpacing: -1.5,
                                 ),
@@ -133,7 +136,10 @@ class HealthInfoCard extends StatelessWidget {
                                 style: GoogleFonts.poppins(
                                   fontSize: 18,
                                   fontWeight: FontWeight.w600,
-                                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurface
+                                      .withOpacity(0.7),
                                 ),
                               ),
                             ),
@@ -150,11 +156,11 @@ class HealthInfoCard extends StatelessWidget {
                     percent: (caloriePercentage / 100).clamp(0.0, 1.0),
                     center: Container(
                       padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
                             const Color(0xFFFF6B35).withOpacity(0.2),
                             const Color(0xFFFF6B35).withOpacity(0.08),
                           ],
@@ -168,7 +174,10 @@ class HealthInfoCard extends StatelessWidget {
                       ),
                     ),
                     circularStrokeCap: CircularStrokeCap.round,
-                    backgroundColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.08),
+                    backgroundColor: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withOpacity(0.08),
                     linearGradient: const LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
@@ -181,17 +190,17 @@ class HealthInfoCard extends StatelessWidget {
                     animation: true,
                     animationDuration: 1200,
                     curve: Curves.easeInOutCubic,
-            ),
-          ],
-        ),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 16),
           ],
 
           // BMI and Daily Calories Row (shown in both modes)
           Row(
-              children: [
-                Expanded(
+            children: [
+              Expanded(
                 child: _buildInfoCard(
                   context,
                   'BMI',
@@ -210,10 +219,10 @@ class HealthInfoCard extends StatelessWidget {
                   'Recommended',
                   const Color(0xFFFF6B35),
                   Icons.restaurant_outlined,
-                  ),
                 ),
-              ],
-            ),
+              ),
+            ],
+          ),
 
           // Show additional details based on mode
           if (!isOnboarding) ...[
@@ -221,8 +230,8 @@ class HealthInfoCard extends StatelessWidget {
 
             // Macronutrient Cards
             Row(
-                  children: [
-                    Expanded(
+              children: [
+                Expanded(
                   child: _buildMacroCard(
                     context,
                     'Protein',
@@ -234,7 +243,7 @@ class HealthInfoCard extends StatelessWidget {
                 const SizedBox(width: 12),
                 Expanded(
                   child: _buildMacroCard(
-                        context,
+                    context,
                     'Fat',
                     fatPercentage,
                     totalFat,
@@ -242,17 +251,17 @@ class HealthInfoCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 12),
-                    Expanded(
+                Expanded(
                   child: _buildMacroCard(
-                        context,
+                    context,
                     'Carbs',
                     carbsPercentage,
                     totalCarbs,
                     const Color(0xFF88D66C),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
+              ],
+            ),
           ],
 
           // Health Status Card at Bottom (shown in both modes)
@@ -260,8 +269,8 @@ class HealthInfoCard extends StatelessWidget {
           _buildGlassmorphicCard(
             context,
             padding: const EdgeInsets.all(18),
-              child: Row(
-                children: [
+            child: Row(
+              children: [
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
@@ -273,26 +282,27 @@ class HealthInfoCard extends StatelessWidget {
                     color: statusColor,
                     size: 22,
                   ),
-                  ),
+                ),
                 const SizedBox(width: 14),
-                  Expanded(
-                    child: Text(
-                      'Based on your profile, we recommend maintaining a balanced diet and regular exercise routine.',
+                Expanded(
+                  child: Text(
+                    'Based on your profile, we recommend maintaining a balanced diet and regular exercise routine.',
                     textAlign: TextAlign.start,
-                   
                     style: GoogleFonts.inter(
-                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.75),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withOpacity(0.75),
                       fontSize: 15,
                       height: 1.5,
-                      
                       wordSpacing: 1.5,
                       fontWeight: FontWeight.w400,
-                      ),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
+          ),
         ],
       ),
     );
@@ -304,7 +314,7 @@ class HealthInfoCard extends StatelessWidget {
     EdgeInsets padding = const EdgeInsets.all(24),
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Container(
       padding: padding,
       decoration: BoxDecoration(
@@ -324,14 +334,14 @@ class HealthInfoCard extends StatelessWidget {
                 ],
         ),
         border: Border.all(
-          color: isDark 
-              ? Colors.white.withOpacity(0.25) 
+          color: isDark
+              ? Colors.white.withOpacity(0.25)
               : Colors.white.withOpacity(0.8),
           width: 2,
         ),
         boxShadow: [
           BoxShadow(
-            color: isDark 
+            color: isDark
                 ? Colors.black.withOpacity(0.4)
                 : Colors.grey.withOpacity(0.15),
             blurRadius: 20,
@@ -367,19 +377,22 @@ class HealthInfoCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
-                icon,
-                color: color,
+                  icon,
+                  color: color,
                   size: 20,
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
-                  child: Text(
-                    title,
+                child: Text(
+                  title,
                   style: GoogleFonts.inter(
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withOpacity(0.7),
                   ),
                 ),
               ),
@@ -387,19 +400,19 @@ class HealthInfoCard extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           Text(
-              value,
+            value,
             style: GoogleFonts.poppins(
               fontSize: 32,
-                fontWeight: FontWeight.bold,
-                color: color,
+              fontWeight: FontWeight.bold,
+              color: color,
               height: 1.0,
             ),
           ),
           const SizedBox(height: 4),
           Text(
-                subtitle,
+            subtitle,
             style: GoogleFonts.inter(
-                  fontSize: 12,
+              fontSize: 12,
               fontWeight: FontWeight.w500,
               color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
             ),
@@ -436,7 +449,8 @@ class HealthInfoCard extends StatelessWidget {
               ),
             ),
             circularStrokeCap: CircularStrokeCap.round,
-            backgroundColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.08),
+            backgroundColor:
+                Theme.of(context).colorScheme.onSurface.withOpacity(0.08),
             progressColor: color,
             animation: true,
             animationDuration: 1000,

@@ -41,8 +41,8 @@ extension ActivityLevelX on ActivityLevel {
 
 /// UserProfile now includes gender & age, and uses Mifflin–St Jeor
 class UserProfile {
-  final String gender;            // "Male" or "Female"
-  final int age;                  // in years
+  final String gender; // "Male" or "Female"
+  final int age; // in years
   final double weightKg;
   final double heightCm;
   final ActivityLevel activityLevel;

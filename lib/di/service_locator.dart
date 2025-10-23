@@ -22,7 +22,7 @@ void setupServiceLocator() {
   getIt.registerLazySingleton(
     () => UserProfileViewModel(getIt<UserProfileUseCase>()),
   );
-  
+
   getIt.registerLazySingleton(
     () => AuthViewModel(),
   );

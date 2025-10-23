@@ -31,7 +31,8 @@ class HomeView extends StatefulWidget {
   State<HomeView> createState() => _HomeViewState();
 }
 
-class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin {
+class _HomeViewState extends State<HomeView>
+    with SingleTickerProviderStateMixin {
   int _currentIndex = 0;
   final ConnectionService _connectionService = ConnectionService();
   final SyncService _syncService = SyncService();
@@ -43,9 +44,9 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
   bool _wasLoading = false;
 
   final List<Widget> _pages = [
-    const _HomeContent(),      // Index 0: Home
-    const AnalyzeView(),       // Index 1: Analyze
-    const ProfileView(),       // Index 2: Settings/Profile
+    const _HomeContent(), // Index 0: Home
+    const AnalyzeView(), // Index 1: Analyze
+    const ProfileView(), // Index 2: Settings/Profile
   ];
 
   Widget _buildGlassmorphismFAB(BuildContext context) {
@@ -101,7 +102,9 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
                   color: Colors.transparent,
                   child: InkWell(
                     // Lock button during loading
-                    onTap: isLoading ? null : () => _showAddOptionsBottomSheet(context),
+                    onTap: isLoading
+                        ? null
+                        : () => _showAddOptionsBottomSheet(context),
                     borderRadius: BorderRadius.circular(16),
                     child: Center(
                       child: RotationTransition(
@@ -220,8 +223,7 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
                       isDark: isDark,
                       onTap: () {
                         Navigator.pop(context);
-                        final vm = Provider.of<ImageAnalysisViewModel>(
-                            context,
+                        final vm = Provider.of<ImageAnalysisViewModel>(context,
                             listen: false);
                         vm.pickImage(ImageSource.camera, context);
                       },
@@ -234,8 +236,7 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
                       isDark: isDark,
                       onTap: () {
                         Navigator.pop(context);
-                        final vm = Provider.of<ImageAnalysisViewModel>(
-                            context,
+                        final vm = Provider.of<ImageAnalysisViewModel>(context,
                             listen: false);
                         vm.pickImage(ImageSource.gallery, context);
                       },
@@ -372,7 +373,8 @@ class _HomeViewState extends State<HomeView> with SingleTickerProviderStateMixin
         return Scaffold(
           extendBody: true,
           body: _pages[_currentIndex],
-          floatingActionButton: _currentIndex == 0 ? _buildGlassmorphismFAB(context) : null,
+          floatingActionButton:
+              _currentIndex == 0 ? _buildGlassmorphismFAB(context) : null,
           floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
           bottomNavigationBar: Column(
             mainAxisSize: MainAxisSize.min,
@@ -522,7 +524,7 @@ class _HomeContentState extends State<_HomeContent> {
     UserProfile profile,
   ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     return AppBar(
       automaticallyImplyLeading: false,
       backgroundColor: isDark ? AppColors.darkBackground : Colors.white,
@@ -532,19 +534,22 @@ class _HomeContentState extends State<_HomeContent> {
       toolbarHeight: 64,
       flexibleSpace: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 4),
+          padding:
+              const EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 4),
           child: Row(
             children: [
               // Profile Picture with Gender-based Avatar
               CircleAvatar(
                 radius: 22,
-                backgroundImage: (authVM.userPhotoURL != null && authVM.userPhotoURL!.isNotEmpty)
+                backgroundImage: (authVM.userPhotoURL != null &&
+                        authVM.userPhotoURL!.isNotEmpty)
                     ? NetworkImage(authVM.userPhotoURL!)
                     : null,
                 backgroundColor: AppColors.primary.withOpacity(0.1),
-                child: (authVM.userPhotoURL == null || authVM.userPhotoURL!.isEmpty)
+                child: (authVM.userPhotoURL == null ||
+                        authVM.userPhotoURL!.isEmpty)
                     ? FaIcon(
-                        profile.gender.toLowerCase() == 'male' 
+                        profile.gender.toLowerCase() == 'male'
                             ? FontAwesomeIcons.person
                             : FontAwesomeIcons.personDress,
                         size: 20,
@@ -564,7 +569,9 @@ class _HomeContentState extends State<_HomeContent> {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: isDark ? AppColors.darkTextPrimary : AppColors.textPrimary,
+                        color: isDark
+                            ? AppColors.darkTextPrimary
+                            : AppColors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -572,7 +579,9 @@ class _HomeContentState extends State<_HomeContent> {
                       _getGreeting(),
                       style: TextStyle(
                         fontSize: 12,
-                        color: isDark ? AppColors.darkTextSecondary : AppColors.textSecondary,
+                        color: isDark
+                            ? AppColors.darkTextSecondary
+                            : AppColors.textSecondary,
                       ),
                     ),
                   ],

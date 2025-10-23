@@ -6,7 +6,6 @@ import '../../../core/constants/app_colors.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/user_profile_viewmodel.dart';
 
-
 class AnalysisLoadingView extends StatefulWidget {
   const AnalysisLoadingView({super.key});
 

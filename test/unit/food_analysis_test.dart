@@ -14,7 +14,7 @@ void main() {
         healthScore: 8.5,
         imagePath: '/path/to/image.jpg',
       );
-      
+
       // Act & Assert
       expect(analysis.name, equals('Apple'));
       expect(analysis.protein, equals(0.3));
@@ -24,11 +24,12 @@ void main() {
       expect(analysis.healthScore, equals(8.5));
       expect(analysis.imagePath, equals('/path/to/image.jpg'));
     });
-    
+
     test('should create FoodAnalysis with current date by default', () {
       // Arrange
-      final beforeCreation = DateTime.now().subtract(const Duration(seconds: 1));
-      
+      final beforeCreation =
+          DateTime.now().subtract(const Duration(seconds: 1));
+
       // Act
       final analysis = FoodAnalysis(
         name: 'Banana',
@@ -38,18 +39,18 @@ void main() {
         calories: 89.0,
         healthScore: 7.5,
       );
-      
+
       final afterCreation = DateTime.now().add(const Duration(seconds: 1));
-      
+
       // Assert
       expect(analysis.date.isAfter(beforeCreation), isTrue);
       expect(analysis.date.isBefore(afterCreation), isTrue);
     });
-    
+
     test('should create FoodAnalysis with custom date', () {
       // Arrange
       final customDate = DateTime(2024, 1, 15, 10, 30);
-      
+
       // Act
       final analysis = FoodAnalysis(
         name: 'Orange',
@@ -60,15 +61,16 @@ void main() {
         healthScore: 8.0,
         date: customDate,
       );
-      
+
       // Assert
       expect(analysis.date, equals(customDate));
     });
-    
+
     test('should create FoodAnalysis using withCurrentDate factory', () {
       // Arrange
-      final beforeCreation = DateTime.now().subtract(const Duration(seconds: 1));
-      
+      final beforeCreation =
+          DateTime.now().subtract(const Duration(seconds: 1));
+
       // Act
       final analysis = FoodAnalysis.withCurrentDate(
         name: 'Grape',
@@ -78,15 +80,15 @@ void main() {
         calories: 62.0,
         healthScore: 7.0,
       );
-      
+
       final afterCreation = DateTime.now().add(const Duration(seconds: 1));
-      
+
       // Assert
       expect(analysis.name, equals('Grape'));
       expect(analysis.date.isAfter(beforeCreation), isTrue);
       expect(analysis.date.isBefore(afterCreation), isTrue);
     });
-    
+
     test('should convert to JSON correctly', () {
       // Arrange
       final customDate = DateTime(2024, 1, 15, 10, 30);
@@ -102,10 +104,10 @@ void main() {
         date: customDate,
         dateOrderNumber: 2,
       );
-      
+
       // Act
       final json = analysis.toJson();
-      
+
       // Assert
       expect(json['name'], equals('Strawberry'));
       expect(json['protein'], equals(0.7));
@@ -118,7 +120,7 @@ void main() {
       expect(json['date'], equals(customDate.millisecondsSinceEpoch));
       expect(json['dateOrderNumber'], equals(2));
     });
-    
+
     test('should create from JSON correctly', () {
       // Arrange
       final customDate = DateTime(2024, 1, 15, 10, 30);
@@ -134,10 +136,10 @@ void main() {
         'date': customDate.millisecondsSinceEpoch,
         'dateOrderNumber': 4,
       };
-      
+
       // Act
       final analysis = FoodAnalysis.fromJson(json);
-      
+
       // Assert
       expect(analysis.name, equals('Blueberry'));
       expect(analysis.protein, equals(0.7));

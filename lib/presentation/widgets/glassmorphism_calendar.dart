@@ -43,7 +43,8 @@ class _GlassmorphismCalendarState extends State<GlassmorphismCalendar> {
   @override
   void initState() {
     super.initState();
-    _currentMonth = DateTime(widget.selectedDate.year, widget.selectedDate.month);
+    _currentMonth =
+        DateTime(widget.selectedDate.year, widget.selectedDate.month);
   }
 
   void _previousMonth() {
@@ -71,8 +72,10 @@ class _GlassmorphismCalendarState extends State<GlassmorphismCalendar> {
   }
 
   List<DateTime?> _getDaysInMonth() {
-    final firstDayOfMonth = DateTime(_currentMonth.year, _currentMonth.month, 1);
-    final lastDayOfMonth = DateTime(_currentMonth.year, _currentMonth.month + 1, 0);
+    final firstDayOfMonth =
+        DateTime(_currentMonth.year, _currentMonth.month, 1);
+    final lastDayOfMonth =
+        DateTime(_currentMonth.year, _currentMonth.month + 1, 0);
 
     // Get the weekday of the first day (1 = Monday, 7 = Sunday)
     final firstWeekday = firstDayOfMonth.weekday;
@@ -105,15 +108,15 @@ class _GlassmorphismCalendarState extends State<GlassmorphismCalendar> {
     if (date == null) return false;
     final now = DateTime.now();
     return date.year == now.year &&
-           date.month == now.month &&
-           date.day == now.day;
+        date.month == now.month &&
+        date.day == now.day;
   }
 
   bool _isSelected(DateTime? date) {
     if (date == null) return false;
     return date.year == widget.selectedDate.year &&
-           date.month == widget.selectedDate.month &&
-           date.day == widget.selectedDate.day;
+        date.month == widget.selectedDate.month &&
+        date.day == widget.selectedDate.day;
   }
 
   @override
@@ -292,7 +295,8 @@ class _GlassmorphismCalendarState extends State<GlassmorphismCalendar> {
                               : (isToday
                                   ? (isDark
                                       ? AppColors.primary.withValues(alpha: 0.2)
-                                      : AppColors.primary.withValues(alpha: 0.1))
+                                      : AppColors.primary
+                                          .withValues(alpha: 0.1))
                                   : Colors.transparent),
                           border: isToday && !isSelected
                               ? Border.all(
@@ -331,8 +335,18 @@ class _GlassmorphismCalendarState extends State<GlassmorphismCalendar> {
 
   String _getMonthString() {
     const months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December'
     ];
     return months[_currentMonth.month - 1];
   }

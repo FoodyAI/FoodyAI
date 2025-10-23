@@ -113,8 +113,7 @@ void main() {
       final elevatedButton =
           tester.widget<ElevatedButton>(find.byType(ElevatedButton));
       expect(elevatedButton.style?.elevation, equals(0));
-      expect(
-          elevatedButton.style?.backgroundColor, isA<WidgetStateProperty>());
+      expect(elevatedButton.style?.backgroundColor, isA<WidgetStateProperty>());
     });
 
     testWidgets('should have correct styling in dark theme',
@@ -138,8 +137,7 @@ void main() {
       final elevatedButton =
           tester.widget<ElevatedButton>(find.byType(ElevatedButton));
       expect(elevatedButton.style?.elevation, equals(0));
-      expect(
-          elevatedButton.style?.backgroundColor, isA<WidgetStateProperty>());
+      expect(elevatedButton.style?.backgroundColor, isA<WidgetStateProperty>());
     });
 
     testWidgets('should have correct text styling',
