@@ -147,6 +147,7 @@ class _SplashScreenState extends State<SplashScreen> {
   Widget _buildPoweredByText(bool isDarkMode) {
     return Text(
       'Powered by youngDevs.space',
+      textAlign: TextAlign.center,
       style: TextStyle(
         fontSize: 12,
         fontWeight: FontWeight.w400,
