@@ -93,8 +93,18 @@ class _SplashScreenState extends State<SplashScreen> {
 
     return Scaffold(
       backgroundColor: isDarkMode ? Colors.black : Colors.white,
-      body: Center(
-        child: _buildLiquidText(isDarkMode),
+      body: Stack(
+        children: [
+          Center(
+            child: _buildLiquidText(isDarkMode),
+          ),
+          Positioned(
+            bottom: 40,
+            left: 0,
+            right: 0,
+            child: _buildPoweredByText(isDarkMode),
+          ),
+        ],
       ),
     );
   }
@@ -130,6 +140,20 @@ class _SplashScreenState extends State<SplashScreen> {
         isRepeatingAnimation: false,
         totalRepeatCount: 1,
         pause: const Duration(milliseconds: 1000),
+      ),
+    );
+  }
+
+  Widget _buildPoweredByText(bool isDarkMode) {
+    return Text(
+      'Powered by youngDevs.space',
+      style: TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w400,
+        color: isDarkMode
+            ? Colors.white.withOpacity(0.5)
+            : Colors.black.withOpacity(0.5),
+        letterSpacing: 0.5,
       ),
     );
   }
