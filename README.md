@@ -72,7 +72,7 @@ Flutter App → Firebase Auth → AWS API Gateway → Lambda Functions → Postg
 
 ## 📄 License
 
-GPL-3.0 © 2024 Mohammad Amin Rezaei Sepehr
+GPL-3.0 © 2025 Mohammad Amin Rezaei Sepehr
 
 ---
 
