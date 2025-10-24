@@ -1,4 +1,4 @@
-package io.github.mohammadaminrez.foody
+package space.youngdevs.foody
 
 import io.flutter.embedding.android.FlutterActivity
 
