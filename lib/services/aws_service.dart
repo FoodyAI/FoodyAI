@@ -129,17 +129,20 @@ class AWSService {
         throw Exception('Unexpected status code: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error getting user profile: $e');
-
-      // Check if this is a DioException with 404 status
-      if (e.toString().contains('404')) {
+      // Inspect the response directly rather than string-matching the message:
+      // '404' also appears in exception text for unrelated reasons (a userId
+      // containing it, a timeout after 404ms), which would silently turn a
+      // real failure into a "first-time user" and wipe the caller's data.
+      if (e is DioException && e.response?.statusCode == 404) {
         print(
-            'ℹ️ AWS Service: Caught 404 exception - treating as first-time user');
+            'ℹ️ AWS Service: User profile not found (404) - first-time user');
         return {
           'success': false,
           'message': 'User not found',
         };
       }
+
+      print('Error getting user profile: $e');
 
       // For other errors, return null to indicate a real error
       return null;

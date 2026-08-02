@@ -148,8 +148,11 @@ class SyncService {
       // Only clear if we get a successful response saying user doesn't exist
       // If profileData is null, it could be a network error (offline), not a deleted account
       if (profileData == null) {
+        // null means "the fetch failed" — offline, but also auth rejection (403)
+        // or a server error. Don't claim offline; the real cause was logged by
+        // AWSService.getUserProfile just above this line.
         print(
-            '⚠️ AWS: Could not reach AWS (likely offline) - keeping local data');
+            '⚠️ AWS: Profile fetch failed (see error above) - keeping local data');
         return; // Keep existing local data, don't clear anything
       }
 
