@@ -19,7 +19,8 @@ if (keystorePropertiesFile.exists()) {
 android {
     namespace = "space.youngdevs.foody"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = "27.0.12077973"
+    // Must be >= the highest NDK required by any plugin (jni requires 28.2.13676358).
+    ndkVersion = "28.2.13676358"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11

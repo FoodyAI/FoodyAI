@@ -23,7 +23,7 @@ dependencies:
   flutter_dotenv: ^5.1.0
   flutter_spinkit: ^5.2.0
   meta: ^1.9.1
-  google_fonts: ^4.0.3
+  google_fonts: ^6.3.2
   http_parser: ^4.0.2
   fl_chart: ^0.65.0
   shimmer: ^3.0.0
